@@ -1,5 +1,7 @@
 # node-red-contrib-alexa-home
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/mabunixda/node-red-contrib-alexa-home.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/mabunixda/node-red-contrib-alexa-home.svg?branch=master)](https://travis-ci.org/mabunixda/node-red-contrib-alexa-home)
 
 Rewrite of [node-red-contrib-alexa-local](https://github.com/originallyus/node-red-contrib-alexa-local) to use a defined port range and also minimize the nunmber of open ports - just 1 bridge is for every 25 devices
