@@ -4,9 +4,9 @@ module.exports = function (RED) {
     const HUE_USERNAME = "1028d66426293e821ecfd9ef1a0731df";
 
     const maximumNodeCount = 25;
-    const httpDefaultPort = 60000;
+    const httpDefaultPort = process.env.PORT || 60000;
     const httpGraceTime = 500;
-    const bri_default = 126;
+    const bri_default = process.env.BRI_DEFAULT || 126;
     const bri_step = 25;
     const util = require('util')
 
