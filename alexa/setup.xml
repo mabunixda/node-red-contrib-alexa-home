@@ -9,7 +9,7 @@
 <deviceType>urn:schemas-upnp-org:device:basic:1</deviceType>
 <friendlyName>Amazon-Echo-NodeRed-Bridge</friendlyName>
 <manufacturer>Royal Philips Electronics</manufacturer>
-<manufacturerURL>http://originally.us</manufacturerURL>
+<manufacturerURL>http://nitram.at</manufacturerURL>
 <modelDescription>Philips hue Personal Wireless Lighting</modelDescription>
 <modelName>Philips hue bridge 2012</modelName>
 <modelNumber>929000226503</modelNumber>

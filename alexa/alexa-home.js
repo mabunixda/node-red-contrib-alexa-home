@@ -9,6 +9,7 @@ module.exports = function (RED) {
     const bri_default = process.env.BRI_DEFAULT || 126;
     const bri_step = 25;
     const util = require('util')
+    var storage = require('node-persist');
 
     function AlexaHomeController(config) {
 
@@ -77,6 +78,7 @@ module.exports = function (RED) {
 
 
     AlexaHomeController.prototype.registerCommand = function (deviceNode) {
+        // console.log("registering: " + deviceNode.name);
         this._commands[formatUUID(deviceNode.id)] = deviceNode;
         this.nodeCount += 1;
     }
@@ -131,9 +133,8 @@ module.exports = function (RED) {
         var itemCount = keys.length;
         var data = '{ "lights": { ';
         for (var i = 0; i < itemCount; ++i) {
-            var key = keys[i];
-            var uuid = formatUUID(key);
-            data += '"' + uuid + '": ' + this.generateCommandConfig(this._commands[key]);
+            var uuid = keys[i];
+            data += '"' + uuid + '": ' + this.generateCommandConfig(uuid, this._commands[uuid]);
             if ((i + 1) < itemCount) {
                 data += ","
             }
@@ -142,8 +143,8 @@ module.exports = function (RED) {
         return data;
     }
 
-    AlexaHomeController.prototype.generateCommandConfig = function (node) {
-        var uuid = formatUUID(node.id);
+    AlexaHomeController.prototype.generateCommandConfig = function (uuid, node) {
+        // console.log("node: ", node);
         var state = null;
         if (state === undefined || state === null)
             state = "true";
@@ -165,7 +166,7 @@ module.exports = function (RED) {
         return fullResponseString;
     }
 
-    AlexaHomeController.prototype.generateBridgeSetupXml = function (lightId, deviceName, httpPort) {
+    AlexaHomeController.prototype.generateBridgeSetupXml = function (lightId, deviceName) {
 
         //IP Address of this local machine
         var ip = require("ip").address();
@@ -178,7 +179,7 @@ module.exports = function (RED) {
         var fs = require('fs');
         var setupXml = fs.readFileSync(__dirname + '/setup.xml');
         setupXml = setupXml.toString();
-        setupXml = setupXml.replace("IP_ADDRESS_WITH_PORT", ip + ":" + httpPort);
+        setupXml = setupXml.replace("IP_ADDRESS_WITH_PORT", ip + ":" + this.port);
         setupXml = setupXml.replace("UUID_UUID_UUID", bridgeUUID);
 
         return setupXml;
@@ -238,13 +239,11 @@ module.exports = function (RED) {
         });
     }
 
-    AlexaHomeController.prototype.justDoIt = function (config, uuid, msg) {
+    AlexaHomeController.prototype.justDoIt = function (uuid, msg) {
         //Node parameters
         var targetNode = this._commands[uuid];
         var deviceName = targetNode.name;
-        var httpPort = 8082;
-        if (config.port && config.port > 0)
-            httpPort = config.port;
+        var httpPort = this.port;
 
         //Detect increase/decrease command
         msg.change_direction = 0;
@@ -329,19 +328,19 @@ module.exports = function (RED) {
         var uuid = lightMatch[2];
         uuid = uuid.replace("/", "");
         // console.log("lightMatch: " + token + "|" + uuid);
-
+        var node = this;
         if (request.method == 'PUT') {
             request.on('data', function (chunk) {
                 // console.log("Receiving PUT data ", chunk.toString());
                 request.data = JSON.parse(chunk);
             });
             request.on('end', function () {
-                node.handleAlexaDeviceRequestFunction(request, response, config, uuid);
+                node.handleAlexaDeviceRequestFunction(request, response, uuid);
             });
         } else {
             // console.log("Sending light " + uuid + " to " + request.connection.remoteAddress);
             var targetNode = this._commands[uuid];
-            var lightJson = this.generateCommandConfig(targetNode);
+            var lightJson = this.generateCommandConfig(uuid, targetNode);
             response.writeHead(200, {
                 'Content-Type': 'application/json'
             });
@@ -363,14 +362,14 @@ module.exports = function (RED) {
             this.controlSingleLight(lightMatch, request, response)
         } else if (authMatch) {
             var responseStr = '[{"success":{"username":"' + HUE_USERNAME + '"}}]';
-            // console.log("Sending response to " + request.connection.remoteAddress, responseStr);
+            console.log("Sending response to " + request.connection.remoteAddress, responseStr);
             this.setConnectionStatusMsg("blue", "auth (p: " + node.port + ")")
             response.writeHead(200, "OK", {
                 'Content-Type': 'application/json'
             });
             response.end(responseStr);
         } else if (/^\/api/.exec(request.url)) {
-            // console.log("Sending all lights json to " + request.connection.remoteAddress);
+            console.log("Sending all lights json to " + request.connection.remoteAddress);
             this.setConnectionStatusMsg("yellow", "/lights (p:" + node.port + ")");
             var allLightsConfig = this.generateControllerConfig();
             response.writeHead(200, {
@@ -378,9 +377,10 @@ module.exports = function (RED) {
             });
             response.end(allLightsConfig);
         } else if (request.url == '/upnp/amazon-ha-bridge/setup.xml') {
-            // console.log("Sending setup.xml to " + request.connection.remoteAddress);
+            console.log("Sending setup.xml to " + request.connection.remoteAddress);
             this.setConnectionStatusMsg("yellow", "discovery (p: " + node.port + ")")
-            var rawXml = this.generateBridgeSetupXml(lightId, config.devicename, node.port);
+            var rawXml = this.generateBridgeSetupXml(lightId, config.devicename);
+            console.log("xml", rawXml);
             response.writeHead(200, {
                 'Content-Type': 'application/xml'
             });
@@ -404,7 +404,7 @@ module.exports = function (RED) {
         });
     }
 
-    AlexaHomeController.prototype.handleAlexaDeviceRequestFunction = function (request, response, config, uuid) {
+    AlexaHomeController.prototype.handleAlexaDeviceRequestFunction = function (request, response, uuid) {
         if (request === null || request === undefined || request.data === null || request.data === undefined) {
             this.setConnectionStatusMsg("red", "Invalid request")
             RED.log.error("Invalid request");
@@ -423,7 +423,7 @@ module.exports = function (RED) {
             onoff = "on";
         msg.payload = onoff;
 
-        this.justDoIt(config, uuid, msg);
+        this.justDoIt(uuid, msg);
 
         //Response to Alexa
         var responseStr = '[{"success":{"/lights/' + uuid + '/state/on":true}}]';
@@ -454,6 +454,10 @@ module.exports = function (RED) {
 
         RED.nodes.createNode(this, config);
 
+        storage.initSync({
+            dir: RED.settings.userDir + '/alexa-home'
+        });
+
         var node = this;
         node.state = config.state;
         node.control = config.control;
@@ -465,7 +469,7 @@ module.exports = function (RED) {
             node.status("red", "No Alexa Home Controller")
             return;
         }
-
+        node.persistControllerPort();
         node.controller.registerCommand(node);
         node.on('close', function (done) {
             if (node.controller) {
@@ -483,8 +487,27 @@ module.exports = function (RED) {
             text: "online (p:" + node.controller.port + ")"
         });
     }
+    AlexaHomeNode.prototype.persistControllerPort = function () {
+        if (!storage)
+            return
+
+        storage.setItemSync(this.id, this.controller.port);
+    }
+    AlexaHomeNode.prototype.loadControllerPort = function () {
+        var port = undefined;
+        if (storage) {
+            port = storage.getItemSync(this.id);
+        }
+        if (port === null) {
+            port = undefined;
+        }
+        return port
+    }
 
     AlexaHomeNode.prototype.findAlexaHomeController = function () {
+
+        var persistedPort = this.loadControllerPort();
+
         var globalContext = this.context().global;
         var controllerList = [];
         var lastController = null;
@@ -493,17 +516,23 @@ module.exports = function (RED) {
             for (var i = 0; i < controllerList.length; ++i) {
                 lastController = controllerList[i];
                 if (controllerList[i].nodeCount < maximumNodeCount) {
-                    return controllerList[i];
+                    if (persistedPort === undefined || persistedPort === controllerList[i].port)
+                        return controllerList[i];
                 }
             }
         }
         var port = httpDefaultPort;
-        if (lastController !== null) {
+        if (persistedPort !== undefined) {
+            port = persistedPort;
+        } else if (lastController !== null) {
             port = lastController.port + 1;
         }
+        var controllerId = this.loadControllerId(port);
+        if(controllerId === undefined)
+            controllerId = RED.util.generateId()
 
         var controllerConfig = {
-            id: RED.util.generateId(),
+            id: controllerId,
             type: 'alexa-home-controller',
             z: '',
             name: port,
@@ -512,7 +541,24 @@ module.exports = function (RED) {
         var createdController = new AlexaHomeController(controllerConfig);
         controllerList.push(createdController);
         globalContext.set("alexa-home-controller", controllerList)
+        this.persistControllerId(port, controllerConfig.id);
         return createdController;
+    }
+    AlexaHomeNode.prototype.persistControllerId = function (port, id) {
+        if (!storage)
+            return
+
+        storage.setItemSync(port.toString(), id)
+    }
+    AlexaHomeNode.prototype.loadControllerId = function(port) {
+        var cid = undefined;
+        if(storage && port !== undefined) {
+            cid = storage.getItemSync(port.toString());
+        }
+        if(cid == null)
+            cid = undefined;
+
+        return cid
     }
 
     RED.nodes.registerType("alexa-home", AlexaHomeNode);
