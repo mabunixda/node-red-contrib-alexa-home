@@ -41,13 +41,13 @@ module.exports = function (RED) {
             if (errorCode) errorText += errorCode;
             else errorText += "unable to start [1]";
             errorText += " (p:" + node.port + ")";
-            ^node.setConnectionStatusMsg("red", errorText, "ring");
+            node.setConnectionStatusMsg("red", errorText, "ring");
             node.error(error);
         });
 
         node.httpServer.listen(node.port, function (error) {
             if (error) {
-                this.setConnectionStatusMsg("red", "unable to start [2] (p:" + node.port + ")", "ring");
+                node.setConnectionStatusMsg("red", "unable to start [2] (p:" + node.port + ")", "ring");
                 console.error(error);
                 return;
             }
