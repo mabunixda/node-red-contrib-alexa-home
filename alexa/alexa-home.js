@@ -327,6 +327,11 @@ module.exports = function (RED) {
         var token = lightMatch[1];
         var uuid = lightMatch[2];
         uuid = uuid.replace("/", "");
+	if(this._commands[uuid] === undefined) {
+		RED.log.warn("unknown alexa node was requested: " + uuid)
+		return
+	}
+
         // console.log("lightMatch: " + token + "|" + uuid);
         var node = this;
         if (request.method == 'PUT') {
