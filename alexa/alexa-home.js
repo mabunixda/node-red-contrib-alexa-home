@@ -4,7 +4,7 @@ module.exports = function (RED) {
     const HUE_USERNAME = "1028d66426293e821ecfd9ef1a0731df";
 
     const maximumNodeCount = 25;
-    const httpDefaultPort = process.env.PORT || 60000;
+    const httpDefaultPort = process.env.ALEXA_PORT || 60000;
     const httpGraceTime = 500;
     const bri_default = process.env.BRI_DEFAULT || 126;
     const bri_step = 25;
@@ -415,6 +415,11 @@ module.exports = function (RED) {
             RED.log.error("Invalid request");
             return;
         }
+        var alexa_ip = request.headers['x-forwarded-for'] || 
+	                 request.connection.remoteAddress || 
+	                 request.socket.remoteAddress ||
+	                 request.connection.socket.remoteAddress;
+
         //Use the json from Alexa as the base for our msg
         var msg = request.data;
         // console.log("Got request " + this.id + " for " + uuid + ": " + msg);
@@ -427,7 +432,7 @@ module.exports = function (RED) {
         if (request.data.on) //true/false
             onoff = "on";
         msg.payload = onoff;
-
+        msg.alexa_ip = alexa_ip;
         this.justDoIt(uuid, msg);
 
         //Response to Alexa
