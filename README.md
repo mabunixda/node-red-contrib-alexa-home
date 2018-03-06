@@ -23,3 +23,12 @@ Install using npm
 
 
 
+
+## Message Object Properties
+the follow *msg* properties are generated within this node
+
+**payload:** "on|off"
+
+**_on_off_command:_** true|false
+
+**alexa_ip:** \<ip of alexa device interacting with node-red\>
