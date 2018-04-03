@@ -131,7 +131,7 @@ module.exports = function (RED) {
     AlexaHomeController.prototype.generateControllerConfig = function () {
         var keys = Object.keys(this._commands);
         var itemCount = keys.length;
-        var data = '{ "lights": { ';
+        var data = '{ ';
         for (var i = 0; i < itemCount; ++i) {
             var uuid = keys[i];
             data += '"' + uuid + '": ' + this.generateCommandConfig(uuid, this._commands[uuid]);
@@ -139,7 +139,7 @@ module.exports = function (RED) {
                 data += ","
             }
         }
-        data = data + " } }";
+        data = data + " }";
         return data;
     }
 
