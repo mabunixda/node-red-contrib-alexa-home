@@ -13,7 +13,7 @@
     },
     "dependencies": {
       "ip": "^1.1.5",
-      "node-persist": "^2.1.0",
+      "node-persist": "^3.0.0",
       "peer-ssdp": "0.0.5",
       "stoppable": "^1.0.4"
     },
