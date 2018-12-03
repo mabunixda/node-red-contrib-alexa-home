@@ -7,6 +7,7 @@ module.exports = function (RED) {
     const httpDefaultPort = process.env.ALEXA_PORT || 60000;
     const httpGraceTime = 500;
     const bri_default = process.env.BRI_DEFAULT || 126;
+    const httpIpAddress = process.env.ALEXA_IP || "";
     const bri_step = 25;
     const util = require('util')
     var storage = require('node-persist');
@@ -113,14 +114,17 @@ module.exports = function (RED) {
 
             var uuid = formatUUID(config.id);
             var hueuuid = formatHueBridgeUUID(config.id);
-
+            var ip = "{{networkInterfaceAddress}}";
+            if (httpIpAddress != "" ) {
+                ip = httpIpAddress
+            }
             peer.reply({
                 ST: "urn:schemas-upnp-org:device:basic:1",
                 SERVER: "Linux/3.14.0 UPnP/1.0 IpBridge/1.17.0",
                 EXT: "",
                 USN: "uuid:" + hueuuid,
                 "hue-bridgeid": uuid,
-                LOCATION: "http://{{networkInterfaceAddress}}:" + config.port + "/upnp/amazon-ha-bridge/setup.xml",
+                LOCATION: "http://" + ip + ":" + config.port + "/upnp/amazon-ha-bridge/setup.xml",
             }, address);
         });
         peer.on("found", function (headers, address) {});
@@ -170,7 +174,9 @@ module.exports = function (RED) {
 
         //IP Address of this local machine
         var ip = require("ip").address();
-
+        if ( httpIpAddress !== "" ) {
+            ip = httpIpAddress
+        }
         //Unique UUID for each bridge device
         var uuid = formatUUID(lightId);
         var bridgeUUID = formatHueBridgeUUID(lightId);
@@ -415,15 +421,19 @@ module.exports = function (RED) {
             RED.log.error("Invalid request");
             return;
         }
-        var alexa_ip = request.headers['x-forwarded-for'] || 
-	                 request.connection.remoteAddress || 
+
+        var msg = request.data;
+
+        var header_names = Object.keys(request.headers);
+        header_names.forEach(function(key){
+            msg["http_header_" + key] = request.headers[key];
+        })
+
+        var alexa_ip = request.headers['x-forwarded-for'] ||
+	                 request.connection.remoteAddress ||
 	                 request.socket.remoteAddress ||
 	                 request.connection.socket.remoteAddress;
 
-        //Use the json from Alexa as the base for our msg
-        var msg = request.data;
-        // console.log("Got request " + this.id + " for " + uuid + ": " + msg);
-        //Differentiate between on/off and dimming command. Issue #24
         var isOnOffCommand = (msg.on !== undefined && msg.on !== null) && (msg.bri === undefined || msg.bri === null);
         msg.on_off_command = isOnOffCommand;
 
