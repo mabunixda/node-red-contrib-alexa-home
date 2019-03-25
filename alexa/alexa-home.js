@@ -231,7 +231,7 @@ module.exports = function (RED) {
         if (config.inputtrigger)
             inputTrigger = config.inputtrigger;
         if (inputTrigger) {
-            node.justDoIt(node, config, lightId, msg);
+            this.justDoIt(lightId, msg);
             return;
         }
 
