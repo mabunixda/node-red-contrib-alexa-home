@@ -1,12 +1,13 @@
 <script type="text/javascript">
     RED.nodes.registerType('alexa-home', {
-        category: 'input',
+        category: 'alexa-home',
         color: '#3FADB5',
         defaults: {
             devicename: {
                 value: "",
                 required: true
             },
+            devicetype: { value: "Extended color light", required: true},
             inputtrigger: {
                 value: false
             }
@@ -25,18 +26,20 @@
             <i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-devicename" placeholder="Ceiling light">
     </div>
-    <div class="form-tips">Alexa uses this
-        <strong>Name</strong> to indentify your device by voice. This has to be unique for each device. If you have renamed your
-        device, please ask Alexa to discover again.</div>
-    <p></p>
+    <div class="form-row">
+        <label for="node-input-devicetype">
+            <i class="icon-tag"></i> Type</label>
+        <select id="node-input-devicetype" >
+            <option>Extended color light</option>
+            <option>Dimmable light</option>
+            <option>Color temperature light</option>
+        </select>
+    </div>
     <div class="form-row">
         <label for="node-input-inputtrigger">
             <i class="icon-tag"></i> Input Trigger</label>
         <input type="checkbox" id="node-input-inputtrigger">
     </div>
-    <div class="form-tips">Enable execution of this node via
-        <strong>Input</strong> signal. Please refer to node Info for valid formats for input parameter. Be careful of infinite loop
-        if you enable this.</div>
 </script>
 
 <script type="text/x-red" data-help-name="alexa-home">
@@ -65,17 +68,20 @@
         <input type="text" id="node-config-input-name" placeholder="Name">
     </div>
 </script>
-
 <script type="text/javascript">
     RED.nodes.registerType('alexa-home-controller', {
-        category: 'config',
+        category: 'alexa-home',
+        color: '#3FADB5',
         defaults: {
             name: {
                 value: ""
             }
         },
+        inputs: 0,
+        outputs: 0,
+        icon: "alexa-home.png",
         label: function () {
-            return (this.name || 'alexa');
+            return this.name || "Alexa Controller";
         }
     });
 </script>

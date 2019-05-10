@@ -4,7 +4,7 @@
 <major>1</major>
 <minor>0</minor>
 </specVersion>
-<URLBase>http://IP_ADDRESS_WITH_PORT/</URLBase>
+<URLBase>URL_BASE_RPL</URLBase>
 <device>
 <deviceType>urn:schemas-upnp-org:device:basic:1</deviceType>
 <friendlyName>Amazon-Echo-NodeRed-Bridge</friendlyName>
