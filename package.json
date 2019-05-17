@@ -15,7 +15,8 @@
     }
   },
   "dependencies": {
-    "peer-ssdp": "0.0.5"
+    "node-ssdp": "4.0.0",
+    "mustache": "^3.0.1"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }

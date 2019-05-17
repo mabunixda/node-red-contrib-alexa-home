@@ -9,7 +9,7 @@ module.exports = function (RED) {
     const bri_default = process.env.BRI_DEFAULT || 126;
 
     var controllerId = undefined;
-
+    var debug = require('debug');
     function formatUUID(lightId) {
         if (lightId === null || lightId === undefined)
             return "";
@@ -28,7 +28,7 @@ module.exports = function (RED) {
 
     RED.httpAdmin.get(nodeSubPath + '/upnp/amazon-ha-bridge/setup.xml', function (req, res) {
         if (!controllerId) {
-            console.log("no controller id found");
+            debug("no controller id found");
             res.writeHead(501);
             res.end();
             return;
@@ -48,7 +48,7 @@ module.exports = function (RED) {
         res.end(rawXml);
     });
 
-    function _processHttpRequest(req, req) {
+    function _processHttpRequest(req, res) {
         if (!controllerId) {
             console.log("no controller id found");
             res.writeHead(501);
@@ -101,6 +101,7 @@ module.exports = function (RED) {
         var node = this;
         node._commands = {};
         node.httpEndpoint = node.getHttpAddress();
+	node._logger = debug(this)
         controllerId = node.id;
 
         node.startSSDP();
@@ -110,7 +111,7 @@ module.exports = function (RED) {
         });
 
         node.on('close', function (removed, doneFunction) {
-            node.peer.close()
+            node.server.stop()
             if (removed) {}
 
             doneFunction();
@@ -163,33 +164,16 @@ module.exports = function (RED) {
     AlexaHomeController.prototype.startSSDP = function () {
 
         var node = this;
-        var ssdp = require("peer-ssdp");
-        node.peer = ssdp.createPeer();
-        node.peer.on("ready", function () {});
-        node.peer.on("notify", function (headers, address) {});
-        node.peer.on("search", function (headers, address) {
-            var isValid = headers.ST && headers.MAN == '"ssdp:discover"';
-            if (!isValid) {
-                return;
-            }
-//            console.log("SEARCH:")
-//            console.log(address);
-
-            var uuid = formatUUID(this.id);
-            var hueuuid = formatHueBridgeUUID(this.id);
-            var reply = {
-                ST: "urn:schemas-upnp-org:device:basic:1",
-                SERVER: "Linux/3.14.0 UPnP/1.0 IpBridge/1.17.0",
-                EXT: "",
-                USN: "uuid:" + hueuuid,
-                "hue-bridgeid": uuid,
-                LOCATION: "http://" + node.httpEndpoint + nodeSubPath + "/upnp/amazon-ha-bridge/setup.xml",
-            }
-            node.peer.reply(reply, address);
-        });
-        node.peer.on("found", function (headers, address) {});
-        node.peer.on("close", function () {});
-        node.peer.start();
+        var hueuuid = formatHueBridgeUUID(node.id);
+        const ssdp = require("node-ssdp").Server;
+	node.server = new ssdp({ 
+		location:  "http://" + node.httpEndpoint + nodeSubPath + "/upnp/amazon-ha-bridge/setup.xml",
+		        udn: 'uuid:' + hueuuid
+	});
+	node.server.addUSN('upnp:rootdevice');
+	node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
+	node.server.start();
+        node._logger("announcing: " + "http://" + node.httpEndpoint + nodeSubPath + "/upnp/amazon-ha-bridge/setup.xml");	
     }
 
     AlexaHomeController.prototype.generateAPIDeviceList = function () {
