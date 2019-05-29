@@ -54,6 +54,7 @@ module.exports = function (RED) {
             res.end();
             return undefined;
         }
+
         var node = RED.nodes.getNode(controllerId);
         if (!node) {
             console.log("controller node not found");
@@ -377,7 +378,11 @@ module.exports = function (RED) {
         var node = this;
         node.control = config.control;
         node.name = config.devicename;
-        node.devicetype = config.devicetype;
+        if (config.devicetype) {
+            node.devicetype = config.devicetype;
+        } else {
+            node.devicetype = "Extended color light"
+        }
         node.inputTrigger = config.inputtrigger;
         node.state = false;
         node.bri = 0;
