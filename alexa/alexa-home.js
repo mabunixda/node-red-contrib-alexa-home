@@ -8,8 +8,13 @@ module.exports = function (RED) {
     const nodeSubPath = "";
     const bri_default = process.env.BRI_DEFAULT || 126;
 
+    const isDebug = process.env.DEBUG && process.env.DEBUG.indexOf("node-red-contrib-alexa-home") > 0 || false;
+    const debug = require('debug');
+    const Mustache = require('mustache');
+    const fs = require('fs')
+
     var controllerId = undefined;
-    var debug = require('debug');
+
     function formatUUID(lightId) {
         if (lightId === null || lightId === undefined)
             return "";
@@ -26,72 +31,78 @@ module.exports = function (RED) {
         return uuid; // f6543a06-da50-11ba-8d8f-5ccf7f139f3d
     }
 
-    RED.httpAdmin.get(nodeSubPath + '/upnp/amazon-ha-bridge/setup.xml', function (req, res) {
-        if (!controllerId) {
-            debug("no controller id found");
-            res.writeHead(501);
-            res.end();
-            return;
-        }
-        var node = RED.nodes.getNode(controllerId);
-        if (!node) {
-            console.log("controller node not found");
-            res.writeHead(502);
-            res.end();
-            return;
-        }
-        node.setConnectionStatusMsg("green", "setup requested");
-        var rawXml = node.generateBridgeSetupXml();
-        res.writeHead(200, {
-            'Content-Type': 'application/xml'
-        });
-        res.end(rawXml);
-    });
+    function getControllerNode() {
 
-    function _processHttpRequest(req, res) {
         if (!controllerId) {
             console.log("no controller id found");
             res.writeHead(501);
             res.end();
-            return;
+            return undefined;
         }
         var node = RED.nodes.getNode(controllerId);
         if (!node) {
             console.log("controller node not found");
             res.writeHead(502);
             res.end();
-            return;
+            return undefined;
         }
-        node.handleHueApiRequestFunction(req, res);
+        return node;
     }
 
-    RED.httpAdmin.get(nodeSubPath + '/api*', function (req, res) {
-        _processHttpRequest(req, res);
-    });
-    RED.httpAdmin.post(nodeSubPath + '/api/*', function (req, res) {
-        _processHttpRequest(req, res);
-    });
-    RED.httpAdmin.put(nodeSubPath + '/api/*', function (req, res) {
-        if (!controllerId) {
-            console.log("no controller id found");
-            res.writeHead(501);
-            res.end();
+    RED.httpAdmin.get(nodeSubPath + '/upnp/amazon-ha-bridge/setup.xml', function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
             return;
         }
-        var node = RED.nodes.getNode(controllerId);
-        if (!node) {
-            console.log("controller node not found");
-            res.writeHead(502);
-            res.end();
-            return;
-        }
-        req.on('data', function (chunk) {
-            request.data = JSON.parse(chunk);
-        });
-        req.on('end', function () {
-            node.handleAlexaDeviceRequestFunction(req, res, uuid);
-        });
+        node.handleSetup(req, res);
+    })
 
+    RED.httpAdmin.post(nodeSubPath + '/api', function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
+            return;
+        }
+        node.handleRegistration(req, res);
+    })
+
+    RED.httpAdmin.get(nodeSubPath + '/api', function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
+            return;
+        }
+        node.handleHueApi(req, res);
+    })
+
+    RED.httpAdmin.get(nodeSubPath + "/api/:username", function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
+            return;
+        }
+        node.handleApiCall(req, res);
+    })
+
+    RED.httpAdmin.get(nodeSubPath + "/api/:username/lights", function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
+            return;
+        }
+        node.handleApiItemList(req, res);
+    })
+
+    RED.httpAdmin.get(nodeSubPath + "/api/:username/lights/:id", function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
+            return;
+        }
+        node.getItemInfo(req, res);
+    })
+
+    RED.httpAdmin.put(nodeSubPath + '/api/:username/lights/:id/state', function (req, res) {
+        var node = getControllerNode();
+        if (node === undefined) {
+            return;
+        }
+        node.controlItem(req, res);
     });
 
     function AlexaHomeController(config) {
@@ -100,15 +111,10 @@ module.exports = function (RED) {
 
         var node = this;
         node._commands = {};
-        node.httpEndpoint = node.getHttpAddress();
-	node._logger = debug(this)
+        node._logger = debug(this)
         controllerId = node.id;
 
-        node.startSSDP();
-
-        node.on('input', function (msg) {
-            node.handleEvent(node, config, msg);
-        });
+        node.startSSDP(node.getHttpAddress());
 
         node.on('close', function (removed, doneFunction) {
             node.server.stop()
@@ -141,10 +147,13 @@ module.exports = function (RED) {
 
                 if (alias >= 1) {
                     // this single interface has multiple ipv4 addresses
-                    // console.log(ifname + ':' + alias, iface.address);
+                    if (isDebug) {
+                        RED.log.info(ifname + ':' + alias, iface.address);
+                    }
                 } else {
-                    // this interface has only one ipv4 adress
-                    // console.log(ifname, iface.address);
+                    if (isDebug) {
+                        RED.log.info(ifname, iface.address);
+                    }
                     return iface.address + ":" + RED.settings.uiPort;
                 }
                 ++alias;
@@ -161,238 +170,171 @@ module.exports = function (RED) {
         delete this._commands[formatUUID(deviceNode.id)]
     }
 
-    AlexaHomeController.prototype.startSSDP = function () {
+    AlexaHomeController.prototype.startSSDP = function (endpoint) {
 
         var node = this;
         var hueuuid = formatHueBridgeUUID(node.id);
         const ssdp = require("node-ssdp").Server;
-	node.server = new ssdp({ 
-		location:  "http://" + node.httpEndpoint + nodeSubPath + "/upnp/amazon-ha-bridge/setup.xml",
-		        udn: 'uuid:' + hueuuid
-	});
-	node.server.addUSN('upnp:rootdevice');
-	node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
-	node.server.start();
-        node._logger("announcing: " + "http://" + node.httpEndpoint + nodeSubPath + "/upnp/amazon-ha-bridge/setup.xml");	
+        node.server = new ssdp({
+            location: "http://" + endpoint + "/upnp/amazon-ha-bridge/setup.xml",
+            udn: 'uuid:' + hueuuid
+        });
+        node.server.addUSN('upnp:rootdevice');
+        node.server.reuseAddr = true;
+        node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
+        node.server.start();
+        node._logger("announcing: " + "http://" + endpoint + "/upnp/amazon-ha-bridge/setup.xml");
+    }
+
+    AlexaHomeController.prototype.handleSetup = function (request, response) {
+        var template = fs.readFileSync(__dirname + '/templates/setup.xml', 'utf8').toString();
+        var data = {
+            uuid: formatHueBridgeUUID(this.id),
+            baseUrl: "http://" + request.headers["host"] + "/" + nodeSubPath
+        }
+        var content = Mustache.render(template, data);
+        this.setConnectionStatusMsg("green", "setup requested");
+        response.writeHead(200, {
+            'Content-Type': 'application/xml'
+        });
+        response.end(content);
+    }
+
+    AlexaHomeController.prototype.handleRegistration = function (request, response) {
+        var template = fs.readFileSync(__dirname + '/templates/registration.json', 'utf8').toString();
+        var data = {
+            username: HUE_USERNAME
+        }
+        var content = Mustache.render(template, data);
+        node.setConnectionStatusMsg("green", "registration succeded");
+        response.writeHead(200, {
+            'Content-Type': 'application/json'
+        });
+        response.end(content);
+    }
+
+    AlexaHomeController.prototype.handleApiItemList = function (request, response) {
+        var template = fs.readFileSync(__dirname + '/templates/items/list.json', 'utf8').toString();
+        var data = {
+            lights: this.generateAPIDeviceList(),
+            date: new Date().toISOString().split('.').shift()
+        }
+        var content = Mustache.render(template, data);
+        RED.log.info("Sending all lights json to " + request.connection.remoteAddress);
+        this.setConnectionStatusMsg("yellow", "device list requested");
+        response.writeHead(200, {
+            'Content-Type': 'application/json'
+        });
+        response.end(content);
+    }
+
+    AlexaHomeController.prototype.handleApiCall = function (request, response) {
+        var responseTemplate = fs.readFileSync(__dirname + '/templates/response.json', 'utf8').toString();
+        var itemTemplate = fs.readFileSync(__dirname + '/templates/items/list.json', 'utf8').toString();
+        var data = {
+            lights: this.generateAPIDeviceList(),
+            address: request.hostname,
+            username: request.params.username,
+            date: new Date().toISOString().split('.').shift()
+        }
+        var content = Mustache.render(responseTemplate, data, {
+            itemsTemplate: itemTemplate
+        });
+        RED.log.info("Sending all information json to " + request.connection.remoteAddress);
+        this.setConnectionStatusMsg("yellow", "api requested");
+        response.writeHead(200, {
+            'Content-Type': 'application/json'
+        });
+        response.end(content);
     }
 
     AlexaHomeController.prototype.generateAPIDeviceList = function () {
         var keys = Object.keys(this._commands);
         var itemCount = keys.length;
-        var data = '{ ';
+
+        var deviceList = [];
+
         for (var i = 0; i < itemCount; ++i) {
             var uuid = keys[i];
-            data += '"' + uuid + '": ' + this.generateAPIDevice(uuid, this._commands[uuid]);
-            if ((i + 1) < itemCount) {
-                data += ","
-            }
+            var device = {
+                id: uuid,
+                name: this._commands[uuid].name
+            };
+            var deviceData = this.generateAPIDevice(uuid, this._commands[uuid]);
+            deviceList.push(Object.assign({}, deviceData, device));
         }
-        data = data + " }";
-        return data;
+        return deviceList;
     }
 
     AlexaHomeController.prototype.generateAPIDevice = function (uuid, node) {
-        // console.log("node: ", node);
-        var state = null;
-        if (state === undefined || state === null)
-            state = "false";
-        else
-            state = state ? "true" : "false";
 
-        var fullResponseString = '{"state": ' +
-            '{"on": ' + state + ', "bri": ' + bri_default + ',' +
-            ' "hue": 15823, "sat": 88, "effect": "none", ' +
-            '"alert": "none", "colormode": "ct", "ct": 365, "reachable": true, ' +
-            '"xy": [0.4255, 0.3998]}, "type": "' + node.devicetype + '", ' +
-            '"name": "' + node.name + '", ' +
-            '"modelid": "LCT004", "manufacturername": "Philips", ' +
-            '"uniqueid": "' + uuid + '", ' +
-            '"swversion": "65003148", ' +
-            '"pointsymbol": {"1": "none", "2": "none", "3": "none", "4": "none", "5": "none", "6": "none", "7": "none", "8": "none"}' +
-            '}';
+        var defaultAttributes = {
+            on: node.state,
+            bri: node.bri,
+            hue: 0,
+            sat: 254,
+            ct: 199,
+            colormode: "ct"
+        };
 
-        return fullResponseString;
+        return defaultAttributes;
+
     }
 
-    AlexaHomeController.prototype.generateBridgeSetupXml = function (lightId) {
+    AlexaHomeController.prototype.controlItem = function (request, response) {
 
-        var node = this;
-        var bridgeUUID = formatHueBridgeUUID(lightId);
-        var fs = require('fs');
-        var setupXml = fs.readFileSync(__dirname + '/setup.xml');
-        setupXml = setupXml.toString();
-        setupXml = setupXml.replace("URL_BASE_RPL", "http://" + node.httpEndpoint + nodeSubPath + "/");
-        setupXml = setupXml.replace("UUID_UUID_UUID", bridgeUUID);
 
-//        console.log(setupXml);
+        var template = fs.readFileSync(__dirname + '/templates/items/set-state.json', 'utf8').toString();
 
-        return setupXml;
-    }
-
-    AlexaHomeController.prototype.handleEvent = function (node, msg) {
-        if (msg == null || msg.payload === null || msg.payload === undefined) {
-            node.status({
-                fill: "red",
-                shape: "dot",
-                text: "invalid payload received"
-            });
-            return;
-        }
-        var controller = this;
-        var lightId = formatUUID(controller.id);
-        var isOnOffCommand = false;
-
-        var briInput = 0;
-        msg.payload = "" + msg.payload;
-        msg.payload = msg.payload.trim().toLowerCase();
-        if (msg.payload === "toggle") {
-            isOnOffCommand = true;
-        } else if (msg.payload === "on") {
-            msg.payload = "on";
-            briInput = 100;
-            isOnOffCommand = true;
-        } else if (msg.payload === "off") {
-            msg.payload = "off";
-            briInput = 0;
-            isOnOffCommand = true;
-        } else {
-            briInput = Math.round(parseFloat(msg.payload));
-            msg.bri = Math.round(parseFloat(msg.payload) / 100.0 * 255.0);
-            msg.payload = (msg.bri > 0) ? "on" : "off";
-            isOnOffCommand = false;
-        }
-
-        msg.on_off_command = isOnOffCommand;
-
-        //Check if we want to trigger the node
-        var inputTrigger = false;
-        if (controller.inputtrigger) {
-            inputTrigger = controller.inputtrigger;
-        }
-        if (inputTrigger) {
-            this.processCommand(lightId, msg);
-            return;
-        }
-    }
-
-    AlexaHomeController.prototype.processCommand = function (uuid, msg) {
-        //Node parameters
-        var targetNode = this._commands[uuid];
-        var deviceName = targetNode.name;
-
-        //Detect increase/decrease command
-        msg.change_direction = 0;
-        if (msg.bri && msg.bri == bri_default - 64) //magic number
-            msg.change_direction = -1;
-        if (msg.bri && msg.bri == bri_default + 63) //magic number
-            msg.change_direction = 1;
-
-        //Dimming or Temperature command
-        if (msg.bri) {
-
-            msg.bri = Math.round(msg.bri / 255.0 * 100.0);
-            msg.bri_normalized = msg.bri / 100.0;
-            msg.on = msg.bri > 0;
-            msg.payload = msg.on ? "on" : "off";
-
-            targetNode.status({
-                fill: "blue",
-                shape: "dot",
-                text: "bri:" + msg.bri
-            });
-        }
-        //On/off command
-        else {
-            var isOn = (msg.payload == "on")
-            msg.bri = isOn ? 100 : 0;
-            msg.bri_normalized = isOn ? 1.0 : 0.0;
-
-            //Restore the previous value before off command
-            var savedBri = bri_default;
-            if (isOn) {
-                if (savedBri && savedBri > 0) {
-                    msg.bri = Math.round(savedBri / 255.0 * 100.0);
-                    msg.bri_normalized = msg.bri / 100.0;
-                }
-            }
-            //Output the saved bri value for troubleshooting
-            else {
-                if (savedBri) {
-                    msg.saved_bri = Math.round(savedBri / 255.0 * 100.0);
-                    msg.save_bri_normalized = msg.saved_bri / 100.0;
-                }
-            }
-
-            //Node status
-            targetNode.status({
-                fill: "blue",
-                shape: "dot",
-                text: "" + msg.payload
-            });
-        }
-
-        //Add extra device parameters
-        msg.device_name = deviceName;
-        msg.light_id = uuid;
-
-        //Send the message to next node
-        targetNode.send(msg);
-    }
-
-    AlexaHomeController.prototype.controlSingleLight = function (lightMatch, request, response) {
-
-        var token = lightMatch[1];
-        var uuid = lightMatch[2];
+        var token = request.params.username;
+        var uuid = request.params.id;
         uuid = uuid.replace("/", "");
         if (this._commands[uuid] === undefined) {
             RED.log.warn("unknown alexa node was requested: " + uuid)
             return
         }
 
-
-        // console.log("Sending light " + uuid + " to " + request.connection.remoteAddress);
+        var payloadRaw = Object.keys(request.body)[0];
+        
+        var msg = {
+            payload: JSON.parse(payloadRaw)
+        }
+        if (isDebug) {
+            msg.alexa_ip = request.headers['x-forwarded-for'] ||
+                request.connection.remoteAddress ||
+                request.socket.remoteAddress ||
+                request.connection.socket.remoteAddress;
+            var header_names = Object.keys(request.headers);
+            header_names.forEach(function (key) {
+                msg["http_header_" + key] = request.headers[key];
+            })
+        }
         var targetNode = this._commands[uuid];
-        var lightJson = this.generateAPIDevice(uuid, targetNode);
+        targetNode.processCommand(msg);
+
+        var data = this.generateAPIDevice(uuid, targetNode);
+        var output = Mustache.render(template, data);
         response.writeHead(200, {
             'Content-Type': 'application/json'
         });
-        response.end(lightJson);
-
+        response.end(output);
     }
-    AlexaHomeController.prototype.handleHueApiRequestFunction = function (request, response) {
 
-        var url = request.url.slice(nodeSubPath.length);
+    AlexaHomeController.prototype.getItemInfo = function (request, response) {
+        var template = fs.readFileSync(__dirname + '/templates/items/get-state.json', 'utf8').toString();
 
-        var node = this;
-        var lightId = formatUUID(node.id);
-        var lightMatch = /^\/api\/(\w*)\/lights\/([\w\-]*)/.exec(url);
-        var authMatch = /^\/api\/(\w*)/.exec(url) && (request.method == 'POST');
-        //Control 1 single light
-        if (lightMatch) {
-            this.controlSingleLight(lightMatch, request, response)
-        } else if (authMatch) {
-            var responseStr = '[{"success":{"username":"' + HUE_USERNAME + '"}}]';
-            console.log("Sending response to " + request.connection.remoteAddress, responseStr);
-            this.setConnectionStatusMsg("blue", "auth")
-            response.writeHead(200, "OK", {
-                'Content-Type': 'application/json'
-            });
-            response.end(responseStr);
-        } else if (/^\/api/.exec(url)) {
-            console.log("Sending all lights json to " + request.connection.remoteAddress);
-            this.setConnectionStatusMsg("yellow", "/lights");
-            var allLightsConfig = this.generateAPIDeviceList();
-            response.writeHead(200, {
-                'Content-Type': 'application/json'
-            });
-            response.end(allLightsConfig);
-        } else {
-            response.writeHead(404, {
-                'Content-Type': 'application/json'
-            });
-            response.end("WHAAAAAT?");
+        var token = request.params.username;
+        var uuid = request.params.id;
 
-        }
+        var targetNode = this._commands[uuid];
+        var data = this.generateAPIDevice(uuid, targetNode);
+        data.name = targetNode.name;
+        data.date = new Date().toISOString().split('.').shift();
+        var output = Mustache.render(template, data);
+        response.writeHead(200, {
+            'Content-Type': 'application/json'
+        });
+        response.end(output);
     }
 
     AlexaHomeController.prototype.setConnectionStatusMsg = function (color, text, shape) {
@@ -404,55 +346,18 @@ module.exports = function (RED) {
         });
     }
 
-    AlexaHomeController.prototype.handleAlexaDeviceRequestFunction = function (request, response, uuid) {
-        if (request === null || request === undefined || request.data === null || request.data === undefined) {
-            this.setConnectionStatusMsg("red", "Invalid request")
-            RED.log.error("Invalid request");
-            return;
-        }
-
-        var msg = request.data;
-
-        var header_names = Object.keys(request.headers);
-        header_names.forEach(function (key) {
-            msg["http_header_" + key] = request.headers[key];
-        })
-
-        var alexa_ip = requestAnimationFrame
-            .headers['x-forwarded-for'] ||
-            request.connection.remoteAddress ||
-            request.socket.remoteAddress ||
-            request.connection.socket.remoteAddress;
-
-        var isOnOffCommand = (msg.on !== undefined && msg.on !== null) && (msg.bri === undefined || msg.bri === null);
-        msg.on_off_command = isOnOffCommand;
-
-        //Add extra 'payload' parameter which if either "on" or "off"
-        var onoff = "off";
-        if (request.data.on) //true/false
-            onoff = "on";
-        msg.payload = onoff;
-        msg.alexa_ip = alexa_ip;
-        this.processCommand(uuid, msg);
-
-        //Response to Alexa
-        var responseStr = '[{"success":{"/lights/' + uuid + '/state/on":true}}]';
-        // console.log("Sending response to " + request.connection.remoteAddress, responseStr);
-        response.writeHead(200, "OK", {
-            'Content-Type': 'application/json'
-        });
-        response.end(responseStr);
-    }
-
     function AlexaHomeNode(config) {
 
         RED.nodes.createNode(this, config);
 
         var node = this;
-        node.state = config.state;
         node.control = config.control;
         node.name = config.devicename;
-        node.devicetype = config.devicetype
+        node.devicetype = config.devicetype;
+        node.inputTrigger = config.inputtrigger;
+        node.state = false;
+        node.bri = 0;
+
         if (!controllerId) {
             RED.log.error("Could not get an Alexa Home Controller - node is not functional!")
             node.status("red", "No Alexa Home Controller on any workflow")
@@ -469,7 +374,8 @@ module.exports = function (RED) {
         })
 
         node.on('input', function (msg) {
-            node.controller.handleEvent(node, config, msg);
+            msg.inputTrigger = true;
+            node.processCommand(msg);
         });
         node.status({
             fill: "green",
@@ -478,6 +384,55 @@ module.exports = function (RED) {
         });
     }
 
+    AlexaHomeNode.prototype.processCommand = function (msg) {
+        var node = this;
+        //Detect increase/decrease command
+        msg.change_direction = 0;
+        if (msg.payload.bri) {
+            if (msg.payload.bri == bri_default - 64) //magic number
+                msg.change_direction = -1;
+            if (msg.payload.bri == bri_default + 63) //magic number
+                msg.change_direction = 1;
+        }
+
+        //Dimming or Temperature command
+        if (msg.payload.bri) {
+
+            msg.payload.on = msg.payload.bri > 0;
+
+            node.status({
+                fill: "blue",
+                shape: "dot",
+                text: "bri:" + msg.payload.bri
+            });
+        }
+        //On/off command
+        else {
+            var isOn = msg.payload.on
+            msg.payload.on = isOn;
+            msg.payload.bri = isOn ? 255.0 : 0.0;
+
+            //Node status
+            node.status({
+                fill: "blue",
+                shape: "dot",
+                text: isOn ? "On" : "Off"
+            });
+        }
+        msg.payload.bri_normalized = msg.payload.bri / 255.0 * 100.0;
+
+        msg.device_name = this.name;
+        msg.light_id = this.id;
+
+        node.state = msg.payload.on;
+        node.bri = msg.payload.bri;
+
+        if (msg.inputTrigger) {
+            return;
+        }
+
+        node.send(msg);
+    }
     RED.nodes.registerType("alexa-home", AlexaHomeNode);
     RED.nodes.registerType("alexa-home-controller", AlexaHomeController)
 
