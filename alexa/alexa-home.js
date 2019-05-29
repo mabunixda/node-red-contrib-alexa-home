@@ -9,7 +9,6 @@ module.exports = function (RED) {
     const bri_default = process.env.BRI_DEFAULT || 126;
 
     const isDebug = process.env.DEBUG && process.env.DEBUG.indexOf("node-red-contrib-alexa-home") > 0 || false;
-    const debug = require('debug');
     const Mustache = require('mustache');
     const fs = require('fs')
 
@@ -31,9 +30,25 @@ module.exports = function (RED) {
         return uuid; // f6543a06-da50-11ba-8d8f-5ccf7f139f3d
     }
 
-    function getControllerNode() {
+    function findControllerNode() {
+
+        RED.nodes.eachNode(function (node) {
+            if (node.type == "alexa-home-controller") {
+                controllerId = node.id;
+                return node;
+            }
+        });
+        return undefined;
+    }
+
+    function getControllerNode(req, res) {
 
         if (!controllerId) {
+            var node = findControllerNode();
+            if (node != undefined) {
+                controllerId = node.id;
+                return node;
+            }
             console.log("no controller id found");
             res.writeHead(501);
             res.end();
@@ -50,7 +65,7 @@ module.exports = function (RED) {
     }
 
     RED.httpAdmin.get(nodeSubPath + '/upnp/amazon-ha-bridge/setup.xml', function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -58,7 +73,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.post(nodeSubPath + '/api', function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -66,7 +81,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.get(nodeSubPath + '/api', function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -74,7 +89,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.get(nodeSubPath + "/api/:username", function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -82,7 +97,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.get(nodeSubPath + "/api/:username/lights", function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -90,7 +105,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.get(nodeSubPath + "/api/:username/lights/:id", function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -98,7 +113,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.put(nodeSubPath + '/api/:username/lights/:id/state', function (req, res) {
-        var node = getControllerNode();
+        var node = getControllerNode(req, res);
         if (node === undefined) {
             return;
         }
@@ -111,7 +126,6 @@ module.exports = function (RED) {
 
         var node = this;
         node._commands = {};
-        node._logger = debug(this)
         controllerId = node.id;
 
         node.startSSDP(node.getHttpAddress());
@@ -123,6 +137,15 @@ module.exports = function (RED) {
             doneFunction();
         });
         node.setConnectionStatusMsg("green", "ok");
+
+        RED.nodes.eachNode(function (n) {
+            if (n.type == "alexa-home") {
+                var x = RED.nodes.getNode(n.id);
+                x.initController(node);
+            }
+        });
+
+
     }
 
     AlexaHomeController.prototype.getHttpAddress = function () {
@@ -148,11 +171,11 @@ module.exports = function (RED) {
                 if (alias >= 1) {
                     // this single interface has multiple ipv4 addresses
                     if (isDebug) {
-                        RED.log.info(ifname + ':' + alias, iface.address);
+                        RED.log.debug(ifname + ':' + alias, iface.address);
                     }
                 } else {
                     if (isDebug) {
-                        RED.log.info(ifname, iface.address);
+                        RED.log.debug(ifname, iface.address);
                     }
                     return iface.address + ":" + RED.settings.uiPort;
                 }
@@ -183,7 +206,7 @@ module.exports = function (RED) {
         node.server.reuseAddr = true;
         node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
         node.server.start();
-        node._logger("announcing: " + "http://" + endpoint + "/upnp/amazon-ha-bridge/setup.xml");
+        RED.log.debug("announcing: " + "http://" + endpoint + "/upnp/amazon-ha-bridge/setup.xml");
     }
 
     AlexaHomeController.prototype.handleSetup = function (request, response) {
@@ -220,7 +243,7 @@ module.exports = function (RED) {
             date: new Date().toISOString().split('.').shift()
         }
         var content = Mustache.render(template, data);
-        RED.log.info("Sending all lights json to " + request.connection.remoteAddress);
+        RED.log.debug("Sending all lights json to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", "device list requested");
         response.writeHead(200, {
             'Content-Type': 'application/json'
@@ -240,7 +263,7 @@ module.exports = function (RED) {
         var content = Mustache.render(responseTemplate, data, {
             itemsTemplate: itemTemplate
         });
-        RED.log.info("Sending all information json to " + request.connection.remoteAddress);
+        RED.log.debug("Sending all information json to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", "api requested");
         response.writeHead(200, {
             'Content-Type': 'application/json'
@@ -295,7 +318,7 @@ module.exports = function (RED) {
         }
 
         var payloadRaw = Object.keys(request.body)[0];
-        
+
         var msg = {
             payload: JSON.parse(payloadRaw)
         }
@@ -348,6 +371,7 @@ module.exports = function (RED) {
 
     function AlexaHomeNode(config) {
 
+
         RED.nodes.createNode(this, config);
 
         var node = this;
@@ -358,14 +382,12 @@ module.exports = function (RED) {
         node.state = false;
         node.bri = 0;
 
-        if (!controllerId) {
-            RED.log.error("Could not get an Alexa Home Controller - node is not functional!")
-            node.status("red", "No Alexa Home Controller on any workflow")
-            return;
-        }
 
-        node.controller = RED.nodes.getNode(controllerId)
-        node.controller.registerCommand(node);
+        node.on('input', function (msg) {
+            msg.inputTrigger = true;
+            node.processCommand(msg);
+        });
+
         node.on('close', function (done) {
             if (node.controller) {
                 node.controller.deregisterCommand(node);
@@ -373,10 +395,27 @@ module.exports = function (RED) {
             done();
         })
 
-        node.on('input', function (msg) {
-            msg.inputTrigger = true;
-            node.processCommand(msg);
-        });
+
+        node.initController();
+    }
+    AlexaHomeNode.prototype.initController = function (controller) {
+
+        var node = this;
+        if (controller) {
+            node.controller = controller;
+            RED.log.info("Reinit with Alexa Home Controller - node is now functional!")
+
+        } else if (controllerId) {
+            node.controller = RED.nodes.getNode(controllerId)
+        }
+        if (!node.controller) {
+            RED.log.warn("Could not get an Alexa Home Controller - node is not functional!")
+            node.status("red", "No Alexa Home Controller on any workflow")
+            return;
+        }
+
+        node.controller.registerCommand(node);
+
         node.status({
             fill: "green",
             shape: "dot",
