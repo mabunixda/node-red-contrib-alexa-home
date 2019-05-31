@@ -73,14 +73,6 @@ module.exports = function (RED) {
         node.handleRegistration(req, res);
     })
 
-    RED.httpAdmin.get(nodeSubPath + '/api', function (req, res) {
-        var node = getControllerNode(req, res);
-        if (node === undefined) {
-            return;
-        }
-        node.handleHueApi(req, res);
-    })
-
     RED.httpAdmin.get(nodeSubPath + "/api/:username", function (req, res) {
         var node = getControllerNode(req, res);
         if (node === undefined) {
@@ -120,7 +112,7 @@ module.exports = function (RED) {
 //        nodeSubPath = RED.settings.httpRoot;
 
         var node = this;
-        node._commands = {};
+        node._commands = new Map();
         controllerNode = node;
 
         node.startSSDP(node.getHttpAddress());
@@ -137,6 +129,7 @@ module.exports = function (RED) {
             if (n.type == "alexa-home") {
                 var x = RED.nodes.getNode(n.id);
                 if (x) {
+	            node.registerCommand(x);
                     x.initController(node);
                 }
             }
@@ -181,12 +174,11 @@ module.exports = function (RED) {
 
     AlexaHomeController.prototype.registerCommand = function (deviceNode) {
         deviceNode.controller = this;
-        this._commands[formatUUID(deviceNode.id)] = deviceNode;
+        this._commands.set(formatUUID(deviceNode.id), deviceNode);
     }
 
     AlexaHomeController.prototype.deregisterCommand = function (deviceNode) {
-        _commands[formatUUID(deviceNode.id)].controller = undefined;
-        delete this._commands[formatUUID(deviceNode.id)]
+        this._commands.delete(formatUUID(deviceNode.id))
     }
 
     AlexaHomeController.prototype.startSSDP = function (endpoint) {
@@ -195,7 +187,7 @@ module.exports = function (RED) {
         var hueuuid = formatHueBridgeUUID(node.id);
         const ssdp = require("node-ssdp").Server;
         node.server = new ssdp({
-            location: "http://" + endpoint + "/" + RED.settings.httpRoot + "/upnp/amazon-ha-bridge/setup.xml",
+            location: "http://" + endpoint +  "/upnp/amazon-ha-bridge/setup.xml",
             udn: 'uuid:' + hueuuid
         });
         node.server.addUSN('upnp:rootdevice');
@@ -240,7 +232,9 @@ module.exports = function (RED) {
         }
         var content = Mustache.render(template, data);
         RED.log.debug("Sending all lights json to " + request.connection.remoteAddress);
-        this.setConnectionStatusMsg("yellow", "device list requested");
+	console.log(this._commands.size) 
+        this.setConnectionStatusMsg("yellow", "device list requested: " + this._commands.size);
+
         response.writeHead(200, {
             'Content-Type': 'application/json'
         });
@@ -268,20 +262,18 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.generateAPIDeviceList = function () {
-        var keys = Object.keys(this._commands);
-        var itemCount = keys.length;
-
+	console.log(this._commands.size)
         var deviceList = [];
-
-        for (var i = 0; i < itemCount; ++i) {
-            var uuid = keys[i];
+	for(const [uuid,dev] of this._commands) {
+            console.log(uuid)
             var device = {
                 id: uuid,
-                name: this._commands[uuid].name
+                name: dev.name
             };
-            var deviceData = this.generateAPIDevice(uuid, this._commands[uuid]);
+            var deviceData = this.generateAPIDevice(uuid, dev);
             deviceList.push(Object.assign({}, deviceData, device));
         }
+	console.log(deviceList)
         return deviceList;
     }
 
@@ -307,7 +299,7 @@ module.exports = function (RED) {
         var token = request.params.username;
         var uuid = request.params.id;
         uuid = uuid.replace("/", "");
-        if (this._commands[uuid] === undefined) {
+        if (this._commands.get(uuid) === undefined) {
             RED.log.warn("unknown alexa node was requested: " + uuid)
             return
         }
@@ -327,7 +319,7 @@ module.exports = function (RED) {
                 msg["http_header_" + key] = request.headers[key];
             })
         }
-        var targetNode = this._commands[uuid];
+        var targetNode = this._commands.get(uuid);
         targetNode.processCommand(msg);
 
         var data = this.generateAPIDevice(uuid, targetNode);
@@ -345,7 +337,7 @@ module.exports = function (RED) {
         var token = request.params.username;
         var uuid = request.params.id;
 
-        var targetNode = this._commands[uuid];
+        var targetNode = this._commands.get(uuid);
         var data = this.generateAPIDevice(uuid, targetNode);
         data.name = targetNode.name;
         data.date = new Date().toISOString().split('.').shift();
