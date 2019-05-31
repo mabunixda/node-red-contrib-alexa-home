@@ -5,13 +5,13 @@ module.exports = function (RED) {
     const HUE_USERNAME = "1028d66426293e821ecfd9ef1a0731df";
     const prefixUUID = "f6543a06-da50-11ba-8d8f-";
 
-    const nodeSubPath = "";
     const bri_default = process.env.BRI_DEFAULT || 126;
 
     const isDebug = process.env.DEBUG && process.env.DEBUG.indexOf("node-red-contrib-alexa-home") > 0 || false;
     const Mustache = require('mustache');
     const fs = require('fs')
 
+    var nodeSubPath = "";
     var controllerNode = undefined;
 
     function formatUUID(lightId) {
@@ -117,6 +117,8 @@ module.exports = function (RED) {
 
         RED.nodes.createNode(this, config);
 
+        nodeSubPath = RED.settings.httpRoot;
+
         var node = this;
         node._commands = {};
         controllerNode = node;
@@ -134,7 +136,9 @@ module.exports = function (RED) {
         RED.nodes.eachNode(function (n) {
             if (n.type == "alexa-home") {
                 var x = RED.nodes.getNode(n.id);
-                x.initController(node);
+                if (x) {
+                    x.initController(node);
+                }
             }
         });
     }
@@ -176,6 +180,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.registerCommand = function (deviceNode) {
+        deviceNode.controller = this;
         this._commands[formatUUID(deviceNode.id)] = deviceNode;
     }
 
@@ -334,6 +339,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.getItemInfo = function (request, response) {
+
         var template = fs.readFileSync(__dirname + '/templates/items/get-state.json', 'utf8').toString();
 
         var token = request.params.username;
@@ -395,20 +401,18 @@ module.exports = function (RED) {
     AlexaHomeNode.prototype.initController = function (controller) {
 
         var node = this;
+        var text = "online";
         if (controller) {
-            node.controller = controller;
-            RED.log.info("Reinit with Alexa Home Controller - node is now functional!")
-
-        } else if (controllerNode) {
-            node.controller = RED.nodes.getNode(controllerNode)
+            controllerNode = controller;
+            text += " - post init";
         }
-        if (!node.controller) {
+        if (controllerNode == undefined || controllerNode == null) {
             RED.log.warn("Could not get an Alexa Home Controller - node is not functional!");
-            node.status("red", "No Alexa Home Controller on any workflow");
+            node.status("red", "No Alexa Home Controller available");
             return;
         }
 
-        node.controller.registerCommand(node);
+        controllerNode.registerCommand(node);
 
         node.status({
             fill: "green",
@@ -419,6 +423,10 @@ module.exports = function (RED) {
 
     AlexaHomeNode.prototype.processCommand = function (msg) {
         var node = this;
+        if (node.controller == null || node.controller == undefined) {
+            node.status("red", "No Alexa Home Controller available");
+            return;
+        }
         //Detect increase/decrease command
         msg.change_direction = 0;
         if (msg.payload.bri) {
