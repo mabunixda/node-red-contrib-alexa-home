@@ -117,7 +117,7 @@ module.exports = function (RED) {
 
         RED.nodes.createNode(this, config);
 
-        nodeSubPath = RED.settings.httpRoot;
+//        nodeSubPath = RED.settings.httpRoot;
 
         var node = this;
         node._commands = {};
@@ -195,7 +195,7 @@ module.exports = function (RED) {
         var hueuuid = formatHueBridgeUUID(node.id);
         const ssdp = require("node-ssdp").Server;
         node.server = new ssdp({
-            location: "http://" + endpoint + "/upnp/amazon-ha-bridge/setup.xml",
+            location: "http://" + endpoint + "/" + RED.settings.httpRoot + "/upnp/amazon-ha-bridge/setup.xml",
             udn: 'uuid:' + hueuuid
         });
         node.server.addUSN('upnp:rootdevice');
