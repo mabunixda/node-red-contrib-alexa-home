@@ -29,19 +29,6 @@
       "linkbutton":false,
       "portalservices":false
    },
-   "swupdate2":{
-      "checkforupdate":false,
-      "lastchange":"{{ date }}",
-      "bridge":{
-         "state":"noupdates",
-         "lastinstall":"{{ date }}"
-      },
-      "state":"noupdates",
-      "autoinstall":{
-         "updatetime":"T14:00:00",
-         "on":false
-      }
-   },
    "schedules":{
    }
 }

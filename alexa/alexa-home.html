@@ -48,28 +48,3 @@
         <li>That's it!</li>
     </ul>
 </script>
-
-<script type="text/x-red" data-template-name="alexa-home-controller">
-    <div class="form-row">
-        <label for="node-config-input-name">
-            <i class="icon-tag"></i> Name</label>
-        <input type="text" id="node-config-input-name" placeholder="Name">
-    </div>
-</script>
-<script type="text/javascript">
-    RED.nodes.registerType('alexa-home-controller', {
-        category: 'alexa-home',
-        color: '#3FADB5',
-        defaults: {
-            name: {
-                value: ""
-            }
-        },
-        inputs: 0,
-        outputs: 0,
-        icon: "alexa-home.png",
-        label: function () {
-            return this.name || "Alexa Controller";
-        }
-    });
-</script>

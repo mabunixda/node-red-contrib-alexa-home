@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-alexa-home",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "Works directly with Alexa in your local network",
   "license": "MIT",
   "keywords": [
@@ -11,12 +11,15 @@
   ],
   "node-red": {
     "nodes": {
-      "alexa-home": "alexa/alexa-home.js"
+      "alexa-home": "alexa/alexa-home.js",
+      "alexa-home-controller": "alexa/alexa-home-controller.js"
     }
   },
   "dependencies": {
-    "node-ssdp": "4.0.0",
-    "mustache": "^3.0.1"
+    "compression": "1.7.4",
+    "debug": "4.1.1",
+    "mustache": "3.0.1",
+    "node-ssdp": "4.0.0"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }

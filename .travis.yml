@@ -1,13 +1,23 @@
 language: node_js
 language: node_js
 node_js:
+  - "10"
+  - "9"
   - "8"
+  - "7"
   - "6"
-  - "4"
 
 cache:
   directories:
     - "node_modules"
 
-script:
+before_install:
+  - npm install -g npm-check
+
+install:
   - npm install
+
+script:
+  - npm-check
+  - echo "tests are still missing :("
+
