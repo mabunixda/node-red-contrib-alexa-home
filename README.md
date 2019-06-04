@@ -22,13 +22,14 @@ Install using npm
     $ npm install node-red-contrib-alexa-home
 
 
-
-
 ## Message Object Properties
 the follow *msg* properties are generated within this node
 
-**payload:** "on|off"
+**payload.on:** true|false
 
-**_on_off_command:_** true|false
+**payload.bri:** brightness 0-255
 
 **alexa_ip:** \<ip of alexa device interacting with node-red\>
+
+
+With version 1.x now also the input is processed within the node and updates the data to alexa. Within the alexa app you are now able to get the current state of your nodes.
