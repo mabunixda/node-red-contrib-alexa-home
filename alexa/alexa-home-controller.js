@@ -125,7 +125,7 @@ module.exports = function (RED) {
 
     RED.httpAdmin.put(alexa_home.nodeSubPath + '/api/:username/:itemType/:id/state', function (req, res) {
         var logger = debug("alexa-home:controller")
-        logger(req.params.itemType + " gets state set: " + req.param.id);
+        logger(req.params.itemType + " gets state set: " + req.params.id);
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -195,11 +195,11 @@ module.exports = function (RED) {
 
                 if (alias >= 1) {
                     // this single interface has multiple ipv4 addresses
-                    if (isDebug) {
+                    if (alexa_home.isDebug) {
                         RED.log.debug(ifname + ':' + alias, iface.address);
                     }
                 } else {
-                    if (isDebug) {
+                    if (alexa_home.isDebug) {
                         RED.log.debug(ifname, iface.address);
                     }
                     this._logger("httpAddress using interface address: " + iface.address + ":" + RED.settings.uiPort);
@@ -211,12 +211,12 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.getDevices = function () {
-        return this._commands;;
+        return this._commands;
     }
 
     AlexaHomeController.prototype.getDevice = function (uuid) {
         if (this._commands.has(uuid)) {
-            return this._commands[uuid];
+            return this._commands.get(uuid);
         }
         return undefined;
     }
@@ -354,7 +354,7 @@ module.exports = function (RED) {
         var msg = {
             payload: JSON.parse(payloadRaw)
         }
-        if (isDebug) {
+        if (alexa_home.isDebug) {
             msg.alexa_ip = request.headers['x-forwarded-for'] ||
                 request.connection.remoteAddress ||
                 request.socket.remoteAddress ||
