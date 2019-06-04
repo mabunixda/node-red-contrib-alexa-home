@@ -24,8 +24,7 @@ module.exports = function (RED) {
         node.state = false;
         node.bri = 0;
 
-        if(alexa_home.controllerNode)
-        {
+        if (alexa_home.controllerNode) {
             alexa_home.controllerNode.registerCommand(node);
         }
 
@@ -73,7 +72,22 @@ module.exports = function (RED) {
         //On/off command
         else {
             this._logger(this.name + " - Setting values on On/Off");
-            var isOn = msg.payload.on
+            var isOn = false;
+            console.log(typeof msg.payload)
+            if (typeof msg.payload === "object") {
+                isOn = msg.payload.on
+            } else {
+                if (typeof msg.payload === "string") {
+                    isOn = msg.payload === "1" || msg.payload === "on";
+                }
+                else if (typeof msg.payload === "number") {
+                    isOn = msg.payload === 1;
+                } else {
+                    node.status("orange", "could not process input msg");
+                    return;
+                }
+                msg.payload = {};
+            }
             msg.payload.on = isOn;
             msg.payload.bri = isOn ? 255.0 : 0.0;
 

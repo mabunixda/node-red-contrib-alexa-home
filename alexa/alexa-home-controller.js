@@ -125,7 +125,7 @@ module.exports = function (RED) {
 
     RED.httpAdmin.put(alexa_home.nodeSubPath + '/api/:username/:itemType/:id/state', function (req, res) {
         var logger = debug("alexa-home:controller")
-        logger(req.params.itemType + " gets state set: " + req.params.id);
+        logger(req.params.itemType + " gets state set: " + req.params.id + ' by ' + req.connection.remoteAddress);
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -270,8 +270,12 @@ module.exports = function (RED) {
         }
         var content = Mustache.render(template, data);
         this.setConnectionStatusMsg("green", "registration succeded");
-        var data = JSON.parse(content)
-        response.json(data);
+        response.set({
+            'Content-Type': 'application/json',
+            'Content-Encoding': 'gzip'
+        });
+        response.send(content);
+
     }
 
     AlexaHomeController.prototype.handleLightsList = function (request, response) {
@@ -284,8 +288,11 @@ module.exports = function (RED) {
         var content = Mustache.render(template, data);
         this._logger("Sending all " + this._commands.size + " lights json to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", "device list requested: " + this._commands.size);
-        var data = JSON.parse(content)
-        response.jsonp(data);
+        response.set({
+            'Content-Type': 'application/json',
+            'Content-Encoding': 'gzip'
+        });
+        response.send(content);
     }
 
     AlexaHomeController.prototype.handleApiCall = function (request, response) {
@@ -303,8 +310,11 @@ module.exports = function (RED) {
         });
         this._logger("Sending all " + this._commands.size + " lights information to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", "api requested");
-        var data = JSON.parse(content);
-        response.json(data);
+        response.set({
+            'Content-Type': 'application/json',
+            'Content-Encoding': 'gzip'
+        });
+        response.send(content);
     }
 
     AlexaHomeController.prototype.generateAPIDeviceList = function () {
@@ -351,9 +361,7 @@ module.exports = function (RED) {
 
         var payloadRaw = Object.keys(request.body)[0];
 
-        var msg = {
-            payload: JSON.parse(payloadRaw)
-        }
+        var msg = { payload: JSON.parse(payloadRaw) };
         if (alexa_home.isDebug) {
             msg.alexa_ip = request.headers['x-forwarded-for'] ||
                 request.connection.remoteAddress ||
@@ -368,8 +376,11 @@ module.exports = function (RED) {
 
         var data = this.generateAPIDevice(uuid, targetNode);
         var output = Mustache.render(template, data);
-        var data = JSON.parse(output);
-        response.json(data);
+        response.set({
+            'Content-Type': 'application/json',
+            'Content-Encoding': 'gzip'
+        });
+        response.send(output);
     }
 
     AlexaHomeController.prototype.getItemInfo = function (request, response) {
@@ -389,8 +400,12 @@ module.exports = function (RED) {
         data.name = targetNode.name;
         data.date = new Date().toISOString().split('.').shift();
         var output = Mustache.render(template, data);
-        var data = JSON.parse(output);
-        response.json(data);
+        response.set({
+            'Content-Type': 'application/json',
+            'Content-Encoding': 'gzip'
+        });
+        response.send(output);
+
     }
 
     AlexaHomeController.prototype.setConnectionStatusMsg = function (color, text, shape) {
