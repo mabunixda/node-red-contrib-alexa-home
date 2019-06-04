@@ -11,12 +11,14 @@
   ],
   "node-red": {
     "nodes": {
-      "alexa-home": "alexa/alexa-home.js"
+      "alexa-home": "alexa/alexa-home.js",
+      "alexa-home-controller": "alexa/alexa-home-controller.js"
     }
   },
   "dependencies": {
     "node-ssdp": "4.0.0",
-    "mustache": "^3.0.1"
+    "mustache": "^3.0.1",
+    "compression": "1.7.4"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }
