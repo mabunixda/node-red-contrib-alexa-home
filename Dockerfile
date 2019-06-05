@@ -5,9 +5,8 @@ COPY ./ /usr/src/alexa-node
 
 USER root
 
-RUN whoami \
-    && npm install \
-    && npm link /usr/src/alexa-node/
+RUN npm install \
+  && npm link /usr/src/alexa-node/
 
 USER node-red
 

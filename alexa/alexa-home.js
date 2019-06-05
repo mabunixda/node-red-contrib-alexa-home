@@ -1,4 +1,3 @@
-
 module.exports = function (RED) {
 
     "use strict";
@@ -24,10 +23,6 @@ module.exports = function (RED) {
         node.state = false;
         node.bri = 0;
 
-        if (alexa_home.controllerNode) {
-            alexa_home.controllerNode.registerCommand(node);
-        }
-
         node.on('input', function (msg) {
             msg.inputTrigger = true;
             node.processCommand(msg);
@@ -39,6 +34,28 @@ module.exports = function (RED) {
             }
             done();
         })
+
+        if (alexa_home.controllerNode) {
+            alexa_home.controllerNode.registerCommand(node);
+            return;
+        }
+        node._logger("No Alexa Home Controller available")
+        node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
+    }
+
+    AlexaHomeNode.prototype.setConnectionStatusMsg = function (color, text, shape) {
+        shape = shape || 'dot';
+        this.status({
+            fill: color,
+            shape: shape,
+            text: text
+        });
+    }
+
+    AlexaHomeNode.prototype.updateController = function (controllerNode) {
+        var node = this;
+        node.controller = controllerNode;
+        node.setConnectionStatusMsg("green", "Ok")
     }
 
     AlexaHomeNode.prototype.processCommand = function (msg) {
@@ -46,7 +63,8 @@ module.exports = function (RED) {
 
         if (node.controller == null || node.controller == undefined) {
             this._logger("Ignoring process command - no controller available on " + this.name);
-            node.status("red", "No Alexa Home Controller available");
+            node.warn("Ignoring process command - no controller available!");
+            node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
             return;
         }
         //Detect increase/decrease command
@@ -63,27 +81,24 @@ module.exports = function (RED) {
             this._logger(this.name + " - Setting values on bri");
             msg.payload.on = msg.payload.bri > 0;
 
-            node.status({
-                fill: "blue",
-                shape: "dot",
-                text: "bri:" + msg.payload.bri
-            });
+            node.setConnectionStatusMsg("blue",
+                "dot",
+                "bri:" + msg.payload.bri
+            );
         }
         //On/off command
         else {
             this._logger(this.name + " - Setting values on On/Off");
             var isOn = false;
-            console.log(typeof msg.payload)
             if (typeof msg.payload === "object") {
                 isOn = msg.payload.on
             } else {
                 if (typeof msg.payload === "string") {
                     isOn = msg.payload === "1" || msg.payload === "on";
-                }
-                else if (typeof msg.payload === "number") {
+                } else if (typeof msg.payload === "number") {
                     isOn = msg.payload === 1;
                 } else {
-                    node.status("orange", "could not process input msg");
+                    node.setConnectionStatusMsg("orange", "could not process input msg");
                     return;
                 }
                 msg.payload = {};
@@ -92,11 +107,10 @@ module.exports = function (RED) {
             msg.payload.bri = isOn ? 255.0 : 0.0;
 
             //Node status
-            node.status({
-                fill: "blue",
-                shape: "dot",
-                text: isOn ? "On" : "Off"
-            });
+            node.setConnectionStatusMsg(
+                "blue",
+                (isOn ? "On" : "Off")
+            );
         }
         msg.payload.bri_normalized = msg.payload.bri / 255.0 * 100.0;
 

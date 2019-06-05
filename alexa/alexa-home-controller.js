@@ -2,26 +2,10 @@ module.exports = function (RED) {
 
     "use strict";
 
-    var alexa_home = require('./alexa-helper.js');
     var Mustache = require('mustache'),
         fs = require('fs'),
-        debug = require('debug');
-
-
-    var compression = require("compression");
-    // var app = RED.server.server;
-    // app.use(compression({ filter: shouldCompress }))
-
-    function shouldCompress(req, res) {
-        console.log(req.url);
-        if (req.headers['x-no-compression']) {
-            // don't compress responses with this request header
-            return false
-        }
-
-        // fallback to standard filter function
-        return compression.filter(req, res)
-    }
+        debug = require('debug'),
+        alexa_home = require('./alexa-helper.js');
 
     function findControllerNode() {
 
@@ -32,7 +16,6 @@ module.exports = function (RED) {
         });
         return undefined;
     }
-
 
     function getControllerNode(req, res) {
 
@@ -150,7 +133,9 @@ module.exports = function (RED) {
 
         node.on('close', function (removed, doneFunction) {
             node.server.stop()
-            if (removed) { }
+            for (const [k, v] of node._commands) {
+                node.deregisterCommand(v);
+            }
 
             doneFunction();
         });
@@ -222,7 +207,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.registerCommand = function (deviceNode) {
-        deviceNode.controller = this;
+        deviceNode.updateController(this);
         this._commands.set(alexa_home.formatUUID(deviceNode.id), deviceNode);
     }
 
@@ -361,7 +346,9 @@ module.exports = function (RED) {
 
         var payloadRaw = Object.keys(request.body)[0];
 
-        var msg = { payload: JSON.parse(payloadRaw) };
+        var msg = {
+            payload: JSON.parse(payloadRaw)
+        };
         if (alexa_home.isDebug) {
             msg.alexa_ip = request.headers['x-forwarded-for'] ||
                 request.connection.remoteAddress ||
