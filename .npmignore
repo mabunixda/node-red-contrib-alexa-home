@@ -1,0 +1,6 @@
+.travis.yml
+*.md
+Dockerfile
+docker-package.json
+Makefile
+*.sh
