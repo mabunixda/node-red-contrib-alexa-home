@@ -1,15 +1,11 @@
 module.exports = function (RED) {
 
     "use strict";
-    var debug = require('debug');
     var alexa_home = require('./alexa-helper');
 
     function AlexaHomeNode(config) {
 
         RED.nodes.createNode(this, config);
-
-        this._subclass = 'alexa-home:node';
-        this._logger = debug(this._subclass)
 
         var node = this;
         node.control = config.control;
@@ -39,7 +35,7 @@ module.exports = function (RED) {
             alexa_home.controllerNode.registerCommand(node);
             return;
         }
-        node._logger("No Alexa Home Controller available")
+        RED.log.debug("No Alexa Home Controller available")
         node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
     }
 
@@ -62,7 +58,6 @@ module.exports = function (RED) {
         var node = this;
 
         if (node.controller == null || node.controller == undefined) {
-            this._logger("Ignoring process command - no controller available on " + this.name);
             node.warn("Ignoring process command - no controller available!");
             node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
             return;
@@ -78,7 +73,7 @@ module.exports = function (RED) {
 
         //Dimming or Temperature command
         if (msg.payload.bri) {
-            this._logger(this.name + " - Setting values on bri");
+            RED.log.debug(this.name + " - Setting values on bri");
             msg.payload.on = msg.payload.bri > 0;
 
             node.setConnectionStatusMsg("blue",
@@ -88,7 +83,7 @@ module.exports = function (RED) {
         }
         //On/off command
         else {
-            this._logger(this.name + " - Setting values on On/Off");
+            RED.log.debug(this.name + " - Setting values on On/Off");
             var isOn = false;
             if (typeof msg.payload === "object") {
                 isOn = msg.payload.on
@@ -121,11 +116,11 @@ module.exports = function (RED) {
         node.bri = msg.payload.bri;
 
         if (msg.inputTrigger) {
-            this._logger(this.name + " - Set values on input");
+            RED.log.debug(this.name + " - Set values on input");
             return;
         }
 
-        this._logger(this.name + " - sending values");
+        RED.log.debug(this.name + " - sending values");
 
         node.send(msg);
     }

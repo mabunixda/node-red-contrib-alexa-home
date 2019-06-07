@@ -1,7 +1,5 @@
 {
    "lights": {{> itemsTemplate }},
-   "groups":{
-   },
    "config":{
       "name":"Philips hue",
       "mac":"00:00:00:aa:bb:cc",
@@ -28,7 +26,5 @@
       },
       "linkbutton":false,
       "portalservices":false
-   },
-   "schedules":{
    }
 }

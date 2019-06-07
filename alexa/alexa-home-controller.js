@@ -4,7 +4,6 @@ module.exports = function (RED) {
 
     var Mustache = require('mustache'),
         fs = require('fs'),
-        debug = require('debug'),
         alexa_home = require('./alexa-helper.js');
 
     function findControllerNode() {
@@ -33,8 +32,7 @@ module.exports = function (RED) {
     }
 
     RED.httpAdmin.get(alexa_home.nodeSubPath + '/setup.xml', function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger("Setup was requested");
+        RED.log.debug("Setup was requested");
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -45,8 +43,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.post(alexa_home.nodeSubPath + '/api', function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger("Got registion api call");
+        RED.log.debug("Got registion api call");
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -57,8 +54,7 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.get(alexa_home.nodeSubPath + "/api/", function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger("Got api call without username");
+        RED.log.debug("Got api call without username");
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -70,8 +66,7 @@ module.exports = function (RED) {
 
 
     RED.httpAdmin.get(alexa_home.nodeSubPath + "/api/:username", function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger("Got api call with username");
+        RED.log.debug("Got api call with username");
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -82,21 +77,20 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.get(alexa_home.nodeSubPath + "/api/:username/:itemType", function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger(RED.server);
-        logger("Got " + req.params.itemType + " api call");
+
+        RED.log.debug("Got " + req.params.itemType + " api call");
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
             response.status(502).end();
             return;
         }
-        node.handleLightsList(req, res);
+        node.handleItemList(req, res);
     })
 
     RED.httpAdmin.get(alexa_home.nodeSubPath + "/api/:username/:itemType/:id", function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger(req.params.itemType + " information was requested: " + req.params.id);
+
+        RED.log.debug(req.params.itemType + " information was requested: " + req.params.id);
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -107,8 +101,8 @@ module.exports = function (RED) {
     })
 
     RED.httpAdmin.put(alexa_home.nodeSubPath + '/api/:username/:itemType/:id/state', function (req, res) {
-        var logger = debug("alexa-home:controller")
-        logger(req.params.itemType + " gets state set: " + req.params.id + ' by ' + req.connection.remoteAddress);
+
+        RED.log.debug(req.params.itemType + " gets state set: " + req.params.id + ' by ' + req.connection.remoteAddress);
         var node = getControllerNode(req, res);
         if (node === undefined) {
             RED.log.warn("ERROR: Could not find controller");
@@ -121,9 +115,6 @@ module.exports = function (RED) {
     function AlexaHomeController(config) {
 
         RED.nodes.createNode(this, config);
-
-        this._subclass = 'alexa-home:controller';
-        this._logger = debug(this._subclass)
 
         var node = this;
         node._commands = new Map();
@@ -155,17 +146,17 @@ module.exports = function (RED) {
         if (process.env.ALEXA_IP) {
             var publicIP = process.env.ALEXA_IP;
             if (publicIP.indexOf(":") > 0) {
-                this._logger("httpAddress using env.ALEXA_IP: " + publicIP);
+                RED.log.debug("httpAddress using env.ALEXA_IP: " + publicIP);
                 return publicIP;
             }
-            this._logger("httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + RED.settings.uiPort);
+            RED.log.debug("httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + RED.settings.uiPort);
             return publicIP + ":" + RED.settings.uiPort;
         }
         if (RED.settings.uiHost && RED.settings.uiHost != "0.0.0.0") {
-            this._logger("httpAddress using node-red settings: " + RED.settings.uiHost + ":" + RED.settings.uiPort);
+            RED.log.debug("httpAddress using node-red settings: " + RED.settings.uiHost + ":" + RED.settings.uiPort);
             return RED.settings.uiHost + ":" + RED.settings.uiPort;
         }
-        this._logger("Determining httpAddress...")
+        RED.log.debug("Determining httpAddress...")
         var os = require('os');
         var ifaces = os.networkInterfaces();
 
@@ -187,7 +178,7 @@ module.exports = function (RED) {
                     if (alexa_home.isDebug) {
                         RED.log.debug(ifname, iface.address);
                     }
-                    this._logger("httpAddress using interface address: " + iface.address + ":" + RED.settings.uiPort);
+                    RED.log.debug("httpAddress using interface address: " + iface.address + ":" + RED.settings.uiPort);
                     return iface.address + ":" + RED.settings.uiPort;
                 }
                 ++alias;
@@ -217,8 +208,8 @@ module.exports = function (RED) {
 
     AlexaHomeController.prototype.startSSDP = function (endpoint) {
 
-        this._logger("Starting SSDP");
         var node = this;
+        node.log("alexa-home - Starting SSDP");
         var hueuuid = alexa_home.formatHueBridgeUUID(node.id);
         const ssdp = require("node-ssdp").Server;
         node.server = new ssdp({
@@ -229,11 +220,11 @@ module.exports = function (RED) {
         node.server.reuseAddr = true;
         node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
         node.server.start();
-        this._logger("announcing: " + "http://" + endpoint + alexa_home.nodeSubPath + "/setup.xml");
+        RED.log.debug("announcing: " + "http://" + endpoint + alexa_home.nodeSubPath + "/setup.xml");
     }
 
     AlexaHomeController.prototype.handleSetup = function (request, response) {
-        this._logger("Handling setup request");
+        RED.log.debug("Handling setup request");
         var template = fs.readFileSync(__dirname + '/templates/setup.xml', 'utf8').toString();
         var data = {
             uuid: alexa_home.formatHueBridgeUUID(this.id),
@@ -248,7 +239,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.handleRegistration = function (request, response) {
-        this._logger("Handling registration request");
+        RED.log.debug("Handling registration request");
         var template = fs.readFileSync(__dirname + '/templates/registration.json', 'utf8').toString();
         var data = {
             username: alexa_home.HUE_USERNAME
@@ -263,25 +254,28 @@ module.exports = function (RED) {
 
     }
 
-    AlexaHomeController.prototype.handleLightsList = function (request, response) {
-        this._logger("handling api item list request");
+    AlexaHomeController.prototype.handleItemList = function (request, response) {
+        RED.log.debug("handling api item list request: " + request.params.itemType);
+        if (request.params.itemType !== "lights") {
+            response.status(404).end("");
+            return;
+        }
         var template = fs.readFileSync(__dirname + '/templates/items/list.json', 'utf8').toString();
         var data = {
             lights: this.generateAPIDeviceList(),
             date: new Date().toISOString().split('.').shift()
         }
         var content = Mustache.render(template, data);
-        this._logger("Sending all " + this._commands.size + " lights json to " + request.connection.remoteAddress);
-        this.setConnectionStatusMsg("yellow", "device list requested: " + this._commands.size);
+        RED.log.debug("Sending all " + this._commands.size + " " + request.params.itemType + " json to " + request.connection.remoteAddress);
+        this.setConnectionStatusMsg("yellow", request.params.itemType + " list requested: " + this._commands.size);
         response.set({
-            'Content-Type': 'application/json',
-            'Content-Encoding': 'gzip'
+            'Content-Type': 'application/json'
         });
         response.send(content);
     }
 
     AlexaHomeController.prototype.handleApiCall = function (request, response) {
-        this._logger("Hanlding API listing request");
+        RED.log.debug("Hanlding API listing request");
         var responseTemplate = fs.readFileSync(__dirname + '/templates/response.json', 'utf8').toString();
         var lights = fs.readFileSync(__dirname + '/templates/items/list.json', 'utf8').toString();
         var data = {
@@ -293,11 +287,10 @@ module.exports = function (RED) {
         var content = Mustache.render(responseTemplate, data, {
             itemsTemplate: lights
         });
-        this._logger("Sending all " + this._commands.size + " lights information to " + request.connection.remoteAddress);
+        RED.log.debug("Sending all " + this._commands.size + " lights information to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", "api requested");
         response.set({
-            'Content-Type': 'application/json',
-            'Content-Encoding': 'gzip'
+            'Content-Type': 'application/json'
         });
         response.send(content);
     }
@@ -331,6 +324,10 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.controlItem = function (request, response) {
+        if (request.params.itemType !== "lights") {
+            response.status(404).end("");
+            return;
+        }
 
         var template = fs.readFileSync(__dirname + '/templates/items/set-state.json', 'utf8').toString();
 
@@ -339,7 +336,7 @@ module.exports = function (RED) {
         uuid = uuid.replace("/", "");
         var targetNode = this.getDevice(uuid);
         if (targetNode === undefined) {
-            RED.log.warn("unknown alexa node was requested: " + uuid);
+            RED.log.warn("unknown alexa node of type " + request.params.itemType + " was requested: " + uuid);
             response.status(502).end();
             return
         }
@@ -364,13 +361,17 @@ module.exports = function (RED) {
         var data = this.generateAPIDevice(uuid, targetNode);
         var output = Mustache.render(template, data);
         response.set({
-            'Content-Type': 'application/json',
-            'Content-Encoding': 'gzip'
+            'Content-Type': 'application/json'
         });
         response.send(output);
     }
 
     AlexaHomeController.prototype.getItemInfo = function (request, response) {
+
+        if (request.params.itemType !== "lights") {
+            response.status(404).end("");
+            return;
+        }
 
         var template = fs.readFileSync(__dirname + '/templates/items/get-state.json', 'utf8').toString();
 
@@ -379,7 +380,7 @@ module.exports = function (RED) {
 
         var targetNode = this.getDevice(uuid);
         if (targetNode === undefined) {
-            RED.log.warn("unknown alexa node was requested: " + uuid);
+            RED.log.warn("unknown alexa node of type " + request.params.itemType + " was requested: " + uuid);
             response.status(502).end();
             return
         }
@@ -388,8 +389,7 @@ module.exports = function (RED) {
         data.date = new Date().toISOString().split('.').shift();
         var output = Mustache.render(template, data);
         response.set({
-            'Content-Type': 'application/json',
-            'Content-Encoding': 'gzip'
+            'Content-Type': 'application/json'
         });
         response.send(output);
 
