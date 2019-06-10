@@ -13,7 +13,6 @@
             ],
             "ct": {{ ct }},
             "colormode": "{{ colormode }}",
-            "mode": "homeautomation",
             "reachable": true
         },
         "swupdate": {

@@ -10,6 +10,7 @@ module.exports = function (RED) {
         var node = this;
         node.name = config.devicename;
         node.control = config.control;
+
         if (config.devicetype) {
             node.devicetype = config.devicetype;
         } else {
@@ -18,6 +19,7 @@ module.exports = function (RED) {
         node.inputTrigger = config.inputtrigger;
         node.state = false;
         node.bri = 0;
+        node.xy = [0, 0];
 
         node.on('input', function (msg) {
             msg.inputTrigger = true;
@@ -32,10 +34,10 @@ module.exports = function (RED) {
         })
 
         var controller = alexa_home.controllerNode;
-        
+
         if (controller) {
             controller.registerCommand(node);
-            return;            
+            return;
         }
         RED.log.debug("No Alexa Home Controller available")
         node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
@@ -73,13 +75,18 @@ module.exports = function (RED) {
                 msg.change_direction = 1;
         }
 
+        // set color 
+        if (msg.payload.xy) {
+            RED.log.debug(this.name + " - Setting values on xy: " + msg.payload.xy)
+            node.setConnectionStatusMsg("blue", "xy: " + msg.payload.xy);
+            msg.payload.command = "color";
+        }
         //Dimming or Temperature command
         if (msg.payload.bri) {
             RED.log.debug(this.name + " - Setting values on bri");
             msg.payload.on = msg.payload.bri > 0;
-
+            msg.payload.command = "dim";
             node.setConnectionStatusMsg("blue",
-                "dot",
                 "bri:" + msg.payload.bri
             );
         }
@@ -88,7 +95,7 @@ module.exports = function (RED) {
             RED.log.debug(this.name + " - Setting values on On/Off");
             var isOn = false;
             if (typeof msg.payload === "object") {
-                isOn = msg.payload.on
+                isOn = msg.payload.on;
             } else {
                 if (typeof msg.payload === "string") {
                     isOn = msg.payload === "1" || msg.payload === "on";
@@ -103,21 +110,27 @@ module.exports = function (RED) {
             msg.payload.on = isOn;
             msg.payload.bri = isOn ? 255.0 : 0.0;
 
-            //Node status
-            node.setConnectionStatusMsg(
-                "blue",
-                (isOn ? "On" : "Off")
-            );
+            if (msg.payload.xy == undefined) {
+                msg.payload.command = "switch";
+                //Node status
+                node.setConnectionStatusMsg(
+                    "blue",
+                    (isOn ? "On" : "Off")
+                );
+            }
         }
-        msg.payload.bri_normalized = msg.payload.bri / 255.0 * 100.0;
 
+        msg.payload.bri_normalized = Math.round(msg.payload.bri / 255.0 * 100.0);
         msg.device_name = this.name;
         msg.light_id = this.id;
 
         node.state = msg.payload.on;
         node.bri = msg.payload.bri;
-
-        if (msg.inputTrigger) {
+        node.xy = msg.payload.xy;
+        if (node.xy == undefined) {
+            node.xy = [0, 0]
+        }
+        if (msg.inputTrigger && !msg.output) {
             RED.log.debug(this.name + " - Set values on input");
             return;
         }

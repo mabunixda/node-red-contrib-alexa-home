@@ -3,5 +3,6 @@
     {"success":{"/lights/1/state/on": {{ on }} }},
     {"success":{"/lights/1/state/hue": {{ hue }} }},
     {"success":{"/lights/1/state/sat": {{ sat }} }},
+    {"success":{"/lights/1/state/xy": [{{ x }}, {{ y }} ] }},
     {"success":{"/lights/1/state/ct": {{ ct }} }}
   ]
