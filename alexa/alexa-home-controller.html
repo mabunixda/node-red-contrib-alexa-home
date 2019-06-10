@@ -1,8 +1,6 @@
 <script type="text/x-red" data-template-name="alexa-home-controller">
     <div class="form-row">
-        <label for="node-config-input-name">
-            <i class="icon-tag"></i> Name</label>
-        <input type="text" id="node-config-input-name" placeholder="Name">
+        No Configuration needed!
     </div>
 </script>
 <script type="text/javascript">
@@ -10,15 +8,15 @@
         category: 'alexa-home',
         color: '#3FADB5',
         defaults: {
-            name: {
-                value: ""
+            controllername: {
+                value: "Alexa Controller"
             }
         },
         inputs: 0,
         outputs: 0,
         icon: "alexa-home.png",
         label: function () {
-            return this.name || "Alexa Controller";
+            return this.controllername;
         }
     });
 </script>

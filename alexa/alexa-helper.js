@@ -1,7 +1,10 @@
 "use strict";
 
+const alexa_controller = require('./alexa-home-controller');
+
 module.exports = {
     controllerNode: undefined,
+    controllerDynamic: true,
     isDebug: process.env.DEBUG && process.env.DEBUG.indexOf("node-red-contrib-alexa-home") > 0 || false,
     bri_default: process.env.BRI_DEFAULT || 126,
     prefixUUID: "f6543a06-da50-11ba-8d8f-",
