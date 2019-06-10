@@ -12,11 +12,13 @@ cache:
 
 before_install:
   - npm install -g npm-check
+  - npm install -g mocha
 
 install:
   - npm install
 
 script:
+  - grep console alexa/* | grep -v "no controller id found" || echo "no console logging found"
   - npm-check
-  - echo "tests are still missing :("
+  - npm test
 

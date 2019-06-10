@@ -116,7 +116,6 @@ module.exports = function (RED) {
 
     function AlexaHomeController(config) {
 
-        console.log(config)
         RED.nodes.createNode(this, config);
 
         var node = this;
@@ -160,18 +159,19 @@ module.exports = function (RED) {
 
     AlexaHomeController.prototype.getHttpAddress = function () {
         var node = this;
+        var uiPort = RED.settings.uiPort || 1880;
         if (process.env.ALEXA_IP) {
             var publicIP = process.env.ALEXA_IP;
             if (publicIP.indexOf(":") > 0) {
                 RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP: " + publicIP);
                 return publicIP;
             }
-            RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + RED.settings.uiPort);
-            return publicIP + ":" + RED.settings.uiPort;
+            RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + uiPort);
+            return publicIP + ":" + uiPort;
         }
         if (RED.settings.uiHost && RED.settings.uiHost != "0.0.0.0") {
-            RED.log.debug(this.name + " - httpAddress using node-red settings: " + RED.settings.uiHost + ":" + RED.settings.uiPort);
-            return RED.settings.uiHost + ":" + RED.settings.uiPort;
+            RED.log.debug(this.name + " - httpAddress using node-red settings: " + RED.settings.uiHost + ":" + uiPort);
+            return RED.settings.uiHost + ":" +uiPort;
         }
         RED.log.debug(node.name + " - Determining httpAddress...")
         var os = require('os');
@@ -196,8 +196,8 @@ module.exports = function (RED) {
                     if (alexa_home.isDebug) {
                         RED.log.debug(node.name + " - " + ifname + "-" + iface.address);
                     }
-                    RED.log.debug(node.name + " - httpAddress using interface address: " + iface.address + ":" + RED.settings.uiPort);
-                    ssdpAddresses.push(iface.address + ":" + RED.settings.uiPort);
+                    RED.log.debug(node.name + " - httpAddress using interface address: " + iface.address + ":" + uiPort);
+                    ssdpAddresses.push(iface.address + ":" + uiPort);
                 }
                 ++alias;
             });
