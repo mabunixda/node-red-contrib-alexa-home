@@ -10,6 +10,7 @@ module.exports = function (RED) {
         var node = this;
         node.name = config.devicename;
         node.control = config.control;
+
         if (config.devicetype) {
             node.devicetype = config.devicetype;
         } else {
@@ -18,6 +19,7 @@ module.exports = function (RED) {
         node.inputTrigger = config.inputtrigger;
         node.state = false;
         node.bri = 0;
+        node.xy = [0, 0];
 
         node.on('input', function (msg) {
             msg.inputTrigger = true;
@@ -32,10 +34,10 @@ module.exports = function (RED) {
         })
 
         var controller = alexa_home.controllerNode;
-        
+
         if (controller) {
             controller.registerCommand(node);
-            return;            
+            return;
         }
         RED.log.debug("No Alexa Home Controller available")
         node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
@@ -73,13 +75,18 @@ module.exports = function (RED) {
                 msg.change_direction = 1;
         }
 
+        // set color 
+        if (msg.payload.xy) {
+            RED.log.debug(this.name + " - Setting values on xy: " + msg.payload.xy)
+            node.setConnectionStatusMsg("blue", "xy: " + msg.payload.xy);
+
+        }
         //Dimming or Temperature command
         if (msg.payload.bri) {
             RED.log.debug(this.name + " - Setting values on bri");
             msg.payload.on = msg.payload.bri > 0;
 
             node.setConnectionStatusMsg("blue",
-                "dot",
                 "bri:" + msg.payload.bri
             );
         }
@@ -116,7 +123,10 @@ module.exports = function (RED) {
 
         node.state = msg.payload.on;
         node.bri = msg.payload.bri;
-
+        node.xy = msg.payload.xy;
+        if(node.xy == undefined) {
+            node.xy = [0,0]
+        }
         if (msg.inputTrigger) {
             RED.log.debug(this.name + " - Set values on input");
             return;

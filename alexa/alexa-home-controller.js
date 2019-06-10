@@ -6,6 +6,25 @@ module.exports = function (RED) {
         fs = require('fs'),
         alexa_home = require('./alexa-helper');
 
+    var bodyParser = require('body-parser');
+
+    var app = RED.httpAdmin;
+    app.use(bodyParser.json({
+        verify: function (req, res, buf, encoding) {
+            console.log("test")
+            // sha1 content
+            var hash = crypto.createHash('sha1');
+            hash.update(buf);
+            req.hasha = hash.digest('hex');
+            console.log("hash", req.hasha);
+
+            // get rawBody        
+            req.rawBody = buf.toString();
+            console.log("rawBody", req.rawBody);
+
+        }
+    }));
+
     function findControllerNode() {
 
         RED.nodes.eachNode(function (node) {
@@ -150,7 +169,7 @@ module.exports = function (RED) {
         RED.nodes.eachNode(function (n) {
             if (n.type == "alexa-home") {
                 var x = RED.nodes.getNode(n.id);
-                if (x) {                    
+                if (x) {
                     node.registerCommand(x);
                 }
             }
@@ -171,7 +190,7 @@ module.exports = function (RED) {
         }
         if (RED.settings.uiHost && RED.settings.uiHost != "0.0.0.0") {
             RED.log.debug(this.name + " - httpAddress using node-red settings: " + RED.settings.uiHost + ":" + uiPort);
-            return RED.settings.uiHost + ":" +uiPort;
+            return RED.settings.uiHost + ":" + uiPort;
         }
         RED.log.debug(node.name + " - Determining httpAddress...")
         var os = require('os');
@@ -333,6 +352,8 @@ module.exports = function (RED) {
         var defaultAttributes = {
             on: node.state,
             bri: node.bri,
+            x: node.xy[0],
+            y: node.xy[1],
             hue: 0,
             sat: 254,
             ct: 199,
@@ -344,6 +365,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.controlItem = function (request, response) {
+        console.log(request.rawBody)
         if (request.params.itemType !== "lights") {
             response.status(404).end("");
             return;
@@ -361,7 +383,14 @@ module.exports = function (RED) {
             return
         }
 
-        var payloadRaw = Object.keys(request.body)[0];
+
+        var body = JSON.stringify(request.body);
+        var payloadRaw = undefined;
+        if (body.indexOf('xy') > 0) {
+            payloadRaw = body.replace("{\"{", "{").replace(" \":{\"", "[").replace("\":\"\"}", "]").replace(/\\/g, "");
+        } else {
+            payloadRaw = Object.keys(request.body)[0];
+        }
 
         var msg = {
             payload: JSON.parse(payloadRaw)

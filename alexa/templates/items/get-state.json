@@ -6,8 +6,8 @@
         "sat": {{ sat }},
         "effect": "none",
         "xy": [
-            0.0,
-            0.0
+            {{x}},
+            {{y}}
         ],
         "ct": {{ ct }},
         "alert": "none",
