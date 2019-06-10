@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-alexa-home",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Works directly with Alexa in your local network",
   "license": "MIT",
   "keywords": [
