@@ -6,24 +6,24 @@ module.exports = function (RED) {
         fs = require('fs'),
         alexa_home = require('./alexa-helper');
 
-    var bodyParser = require('body-parser');
+    // var bodyParser = require('body-parser');
 
-    var app = RED.httpAdmin;
-    app.use(bodyParser.json({
-        verify: function (req, res, buf, encoding) {
-            console.log("test")
-            // sha1 content
-            var hash = crypto.createHash('sha1');
-            hash.update(buf);
-            req.hasha = hash.digest('hex');
-            console.log("hash", req.hasha);
+    // var app = RED.httpAdmin;
+    // app.use(bodyParser.json({
+    //     verify: function (req, res, buf, encoding) {
+    //         console.log("test")
+    //         // sha1 content
+    //         var hash = crypto.createHash('sha1');
+    //         hash.update(buf);
+    //         req.hasha = hash.digest('hex');
+    //         console.log("hash", req.hasha);
 
-            // get rawBody        
-            req.rawBody = buf.toString();
-            console.log("rawBody", req.rawBody);
+    //         // get rawBody        
+    //         req.rawBody = buf.toString();
+    //         console.log("rawBody", req.rawBody);
 
-        }
-    }));
+    //     }
+    // }));
 
     function findControllerNode() {
 
