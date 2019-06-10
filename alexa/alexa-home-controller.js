@@ -142,17 +142,8 @@ module.exports = function (RED) {
         node._commands = new Map();
         alexa_home.controllerNode = node;
 
-        var ssdpURIs = node.getHttpAddress();
-        var ssdpURI = undefined
-        if (ssdpURIs.length == 0) {
-            RED.log.error("Could not determine ssdp uri");
-        } else {
-            ssdpURI = ssdpURIs[0];
-            if (ssdpURIs.length > 1) {
-                RED.log.warn("More than 1 URI available - using 1st: " + ssdpURIs);
-            }
-        }
-        node.startSSDP(ssdpURI);
+        node.uiPort = node.getUiPort();
+        node.startSSDP(node.uiPort);
 
         node.on('close', function (removed, doneFunction) {
             node.server.stop()
@@ -176,53 +167,17 @@ module.exports = function (RED) {
         });
     }
 
-    AlexaHomeController.prototype.getHttpAddress = function () {
+    AlexaHomeController.prototype.getUiPort = function () {
         var node = this;
         var uiPort = RED.settings.uiPort || 1880;
         if (process.env.ALEXA_IP) {
             var publicIP = process.env.ALEXA_IP;
             if (publicIP.indexOf(":") > 0) {
-                RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP: " + publicIP);
-                return publicIP;
+                RED.log.debug(this.name + " - uiPort using env.ALEXA_IP: " + publicIP);
+                uiPort = parseInt(publicIP.slice(publicIP.indexOf(":")+1));
             }
-            RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + uiPort);
-            return publicIP + ":" + uiPort;
         }
-        if (RED.settings.uiHost && RED.settings.uiHost != "0.0.0.0") {
-            RED.log.debug(this.name + " - httpAddress using node-red settings: " + RED.settings.uiHost + ":" + uiPort);
-            return RED.settings.uiHost + ":" + uiPort;
-        }
-        RED.log.debug(node.name + " - Determining httpAddress...")
-        var os = require('os');
-        var ifaces = os.networkInterfaces();
-        var keys = Object.keys(ifaces);
-        var ssdpAddresses = [];
-        for (let k in keys) {
-            var alias = 0;
-            var ifname = keys[k];
-            ifaces[ifname].forEach(function (iface) {
-                if ('IPv4' !== iface.family || iface.internal !== false) {
-                    // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-                    return;
-                }
-
-                if (alias >= 1) {
-                    // this single interface has multiple ipv4 addresses
-                    if (alexa_home.isDebug) {
-                        RED.log.debug(node.name + " - " + ifname + ':' + alias, iface.address);
-                    }
-                } else {
-                    if (alexa_home.isDebug) {
-                        RED.log.debug(node.name + " - " + ifname + "-" + iface.address);
-                    }
-                    RED.log.debug(node.name + " - httpAddress using interface address: " + iface.address + ":" + uiPort);
-                    ssdpAddresses.push(iface.address + ":" + uiPort);
-                }
-                ++alias;
-            });
-        }
-
-        return ssdpAddresses;
+        return uiPort;
     }
 
     AlexaHomeController.prototype.getDevices = function () {
@@ -245,21 +200,23 @@ module.exports = function (RED) {
         this._commands.delete(alexa_home.formatUUID(deviceNode.id))
     }
 
-    AlexaHomeController.prototype.startSSDP = function (endpoint) {
+    AlexaHomeController.prototype.startSSDP = function (uiPort) {
 
         var node = this;
         node.log(this.name + " - alexa-home - Starting SSDP");
         var hueuuid = alexa_home.formatHueBridgeUUID(node.id);
         const ssdp = require("node-ssdp").Server;
         node.server = new ssdp({
-            location: "http://" + endpoint + alexa_home.nodeSubPath + "/setup.xml",
+            location: { protocol: "http://",
+                        port: uiPort, 
+                        path: alexa_home.nodeSubPath + "/setup.xml" },
             udn: 'uuid:' + hueuuid
         });
         node.server.addUSN('upnp:rootdevice');
         node.server.reuseAddr = true;
         node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
         node.server.start();
-        RED.log.debug(this.name + " - announcing: " + "http://" + endpoint + alexa_home.nodeSubPath + "/setup.xml");
+        RED.log.debug(this.name + " - announcing: " + "http://*:" + uiPort + alexa_home.nodeSubPath + "/setup.xml");
     }
 
     AlexaHomeController.prototype.handleSetup = function (request, response) {
@@ -372,7 +329,6 @@ module.exports = function (RED) {
         }
 
         var template = fs.readFileSync(__dirname + '/templates/items/set-state.json', 'utf8').toString();
-
         var token = request.params.username;
         var uuid = request.params.id;
         uuid = uuid.replace("/", "");
@@ -382,7 +338,6 @@ module.exports = function (RED) {
             response.status(502).end();
             return
         }
-
 
         var body = JSON.stringify(request.body);
         var payloadRaw = undefined;

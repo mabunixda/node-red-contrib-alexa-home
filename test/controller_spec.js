@@ -34,12 +34,20 @@ describe('alexa-home-controller Node', function () {
         helper.load(controllerNode, flow, function () {
             var n1 = helper.getNode("n1");
             n1.should.have.property('name', 'Test');
+            n1.should.have.property('uiPort', 1880);
             n1.server.should.have.property("_started", true);
             n1.server.should.have.property("_sourcePort", 1900);
-            var location = n1.server._location;
-            var valid = isURL(location);
-            valid.should.equal(valid, true, "Not a valid URL");
 
+            done();
+        });
+    });
+    it("should use env-variable node-red port", function(done) {
+        process.env.ALEXA_IP="127.0.0.1:12345";
+        var flow = [{ id: "n1", type: "alexa-home-controller", controllername: "Test" }];
+        helper.load(controllerNode, flow, function () {
+            var n1 = helper.getNode("n1");
+            n1.should.have.property('name', 'Test');
+            n1.should.have.property('uiPort', 12345);
 
             done();
         });
