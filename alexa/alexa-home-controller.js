@@ -319,7 +319,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.controlItem = function (request, response) {
-        console.log(request.rawBody)
+
         if (request.params.itemType !== "lights") {
             response.status(404).end("");
             return;
