@@ -19,5 +19,14 @@
     "mustache": "3.0.1",
     "node-ssdp": "4.0.0"
   },
+  "devDependencies": {
+    "node-libnmap": "^0.2.15",
+    "node-red": "^0.20.5",
+    "node-red-node-test-helper": "^0.2.2",
+    "should": "^13.2.3"
+  },
+  "scripts": {
+    "test": "mocha \"test/**/*_spec.js\""
+  },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }

@@ -8,8 +8,8 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
 
         var node = this;
-        node.control = config.control;
         node.name = config.devicename;
+        node.control = config.control;
         if (config.devicetype) {
             node.devicetype = config.devicetype;
         } else {
@@ -31,9 +31,11 @@ module.exports = function (RED) {
             done();
         })
 
-        if (alexa_home.controllerNode) {
-            alexa_home.controllerNode.registerCommand(node);
-            return;
+        var controller = alexa_home.controllerNode;
+        
+        if (controller) {
+            controller.registerCommand(node);
+            return;            
         }
         RED.log.debug("No Alexa Home Controller available")
         node.setConnectionStatusMsg("red", "No Alexa Home Controller available");

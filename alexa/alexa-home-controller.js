@@ -4,7 +4,7 @@ module.exports = function (RED) {
 
     var Mustache = require('mustache'),
         fs = require('fs'),
-        alexa_home = require('./alexa-helper.js');
+        alexa_home = require('./alexa-helper');
 
     function findControllerNode() {
 
@@ -18,11 +18,13 @@ module.exports = function (RED) {
 
     function getControllerNode(req, res) {
 
+        var node = findControllerNode();
+
         if (alexa_home.controllerNode) {
             return alexa_home.controllerNode;
         }
-        var node = findControllerNode();
         if (node != undefined) {
+            alexa_home.controllerDynamic = false;
             alexa_home.controllerNode = node;
             return node;
         }
@@ -117,10 +119,21 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
 
         var node = this;
+        node.name = config.controllername;
         node._commands = new Map();
         alexa_home.controllerNode = node;
 
-        node.startSSDP(node.getHttpAddress());
+        var ssdpURIs = node.getHttpAddress();
+        var ssdpURI = undefined
+        if (ssdpURIs.length == 0) {
+            RED.log.error("Could not determine ssdp uri");
+        } else {
+            ssdpURI = ssdpURIs[0];
+            if (ssdpURIs.length > 1) {
+                RED.log.warn("More than 1 URI available - using 1st: " + ssdpURIs);
+            }
+        }
+        node.startSSDP(ssdpURI);
 
         node.on('close', function (removed, doneFunction) {
             node.server.stop()
@@ -132,10 +145,12 @@ module.exports = function (RED) {
         });
         node.setConnectionStatusMsg("green", "ok");
 
+        RED.log.info("Assigning alexa-home nodes to this controller");
+
         RED.nodes.eachNode(function (n) {
             if (n.type == "alexa-home") {
                 var x = RED.nodes.getNode(n.id);
-                if (x) {
+                if (x) {                    
                     node.registerCommand(x);
                 }
             }
@@ -143,26 +158,29 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.getHttpAddress = function () {
+        var node = this;
+        var uiPort = RED.settings.uiPort || 1880;
         if (process.env.ALEXA_IP) {
             var publicIP = process.env.ALEXA_IP;
             if (publicIP.indexOf(":") > 0) {
-                RED.log.debug("httpAddress using env.ALEXA_IP: " + publicIP);
+                RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP: " + publicIP);
                 return publicIP;
             }
-            RED.log.debug("httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + RED.settings.uiPort);
-            return publicIP + ":" + RED.settings.uiPort;
+            RED.log.debug(this.name + " - httpAddress using env.ALEXA_IP and node-red uiPort: " + publicIP + ":" + uiPort);
+            return publicIP + ":" + uiPort;
         }
         if (RED.settings.uiHost && RED.settings.uiHost != "0.0.0.0") {
-            RED.log.debug("httpAddress using node-red settings: " + RED.settings.uiHost + ":" + RED.settings.uiPort);
-            return RED.settings.uiHost + ":" + RED.settings.uiPort;
+            RED.log.debug(this.name + " - httpAddress using node-red settings: " + RED.settings.uiHost + ":" + uiPort);
+            return RED.settings.uiHost + ":" +uiPort;
         }
-        RED.log.debug("Determining httpAddress...")
+        RED.log.debug(node.name + " - Determining httpAddress...")
         var os = require('os');
         var ifaces = os.networkInterfaces();
-
-        Object.keys(ifaces).forEach(function (ifname) {
+        var keys = Object.keys(ifaces);
+        var ssdpAddresses = [];
+        for (let k in keys) {
             var alias = 0;
-
+            var ifname = keys[k];
             ifaces[ifname].forEach(function (iface) {
                 if ('IPv4' !== iface.family || iface.internal !== false) {
                     // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
@@ -172,18 +190,20 @@ module.exports = function (RED) {
                 if (alias >= 1) {
                     // this single interface has multiple ipv4 addresses
                     if (alexa_home.isDebug) {
-                        RED.log.debug(ifname + ':' + alias, iface.address);
+                        RED.log.debug(node.name + " - " + ifname + ':' + alias, iface.address);
                     }
                 } else {
                     if (alexa_home.isDebug) {
-                        RED.log.debug(ifname, iface.address);
+                        RED.log.debug(node.name + " - " + ifname + "-" + iface.address);
                     }
-                    RED.log.debug("httpAddress using interface address: " + iface.address + ":" + RED.settings.uiPort);
-                    return iface.address + ":" + RED.settings.uiPort;
+                    RED.log.debug(node.name + " - httpAddress using interface address: " + iface.address + ":" + uiPort);
+                    ssdpAddresses.push(iface.address + ":" + uiPort);
                 }
                 ++alias;
             });
-        });
+        }
+
+        return ssdpAddresses;
     }
 
     AlexaHomeController.prototype.getDevices = function () {
@@ -209,7 +229,7 @@ module.exports = function (RED) {
     AlexaHomeController.prototype.startSSDP = function (endpoint) {
 
         var node = this;
-        node.log("alexa-home - Starting SSDP");
+        node.log(this.name + " - alexa-home - Starting SSDP");
         var hueuuid = alexa_home.formatHueBridgeUUID(node.id);
         const ssdp = require("node-ssdp").Server;
         node.server = new ssdp({
@@ -220,11 +240,11 @@ module.exports = function (RED) {
         node.server.reuseAddr = true;
         node.server.addUSN('urn:schemas-upnp-org:device:basic:1')
         node.server.start();
-        RED.log.debug("announcing: " + "http://" + endpoint + alexa_home.nodeSubPath + "/setup.xml");
+        RED.log.debug(this.name + " - announcing: " + "http://" + endpoint + alexa_home.nodeSubPath + "/setup.xml");
     }
 
     AlexaHomeController.prototype.handleSetup = function (request, response) {
-        RED.log.debug("Handling setup request");
+        RED.log.debug(this.name + " - Handling setup request");
         var template = fs.readFileSync(__dirname + '/templates/setup.xml', 'utf8').toString();
         var data = {
             uuid: alexa_home.formatHueBridgeUUID(this.id),
@@ -239,7 +259,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.handleRegistration = function (request, response) {
-        RED.log.debug("Handling registration request");
+        RED.log.debug(this.name + " - Handling registration request");
         var template = fs.readFileSync(__dirname + '/templates/registration.json', 'utf8').toString();
         var data = {
             username: alexa_home.HUE_USERNAME
@@ -255,7 +275,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.handleItemList = function (request, response) {
-        RED.log.debug("handling api item list request: " + request.params.itemType);
+        RED.log.debug(this.name + " - handling api item list request: " + request.params.itemType);
         if (request.params.itemType !== "lights") {
             response.status(404).end("");
             return;
@@ -266,7 +286,7 @@ module.exports = function (RED) {
             date: new Date().toISOString().split('.').shift()
         }
         var content = Mustache.render(template, data);
-        RED.log.debug("Sending all " + this._commands.size + " " + request.params.itemType + " json to " + request.connection.remoteAddress);
+        RED.log.debug(this.name + " - Sending all " + this._commands.size + " " + request.params.itemType + " json to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", request.params.itemType + " list requested: " + this._commands.size);
         response.set({
             'Content-Type': 'application/json'
@@ -275,7 +295,7 @@ module.exports = function (RED) {
     }
 
     AlexaHomeController.prototype.handleApiCall = function (request, response) {
-        RED.log.debug("Hanlding API listing request");
+        RED.log.debug(this.name + " - Hanlding API listing request");
         var responseTemplate = fs.readFileSync(__dirname + '/templates/response.json', 'utf8').toString();
         var lights = fs.readFileSync(__dirname + '/templates/items/list.json', 'utf8').toString();
         var data = {
@@ -287,7 +307,7 @@ module.exports = function (RED) {
         var content = Mustache.render(responseTemplate, data, {
             itemsTemplate: lights
         });
-        RED.log.debug("Sending all " + this._commands.size + " lights information to " + request.connection.remoteAddress);
+        RED.log.debug(this.name + " - Sending all " + this._commands.size + " lights information to " + request.connection.remoteAddress);
         this.setConnectionStatusMsg("yellow", "api requested");
         response.set({
             'Content-Type': 'application/json'
