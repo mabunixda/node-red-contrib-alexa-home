@@ -12,7 +12,6 @@
         "ct": {{ ct }},
         "alert": "none",
         "colormode": "{{ colormode }}",
-        "mode": "homeautomation",
         "reachable": true
     },
     "swupdate": {

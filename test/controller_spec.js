@@ -1,6 +1,7 @@
 var should = require("should");
 var helper = require("node-red-node-test-helper");
 var controllerNode = require("../alexa/alexa-home-controller.js");
+var alexaNode = require("../alexa/alexa-home.js");
 
 const nmap = require('node-libnmap');
 
@@ -41,8 +42,8 @@ describe('alexa-home-controller Node', function () {
             done();
         });
     });
-    it("should use env-variable node-red port", function(done) {
-        process.env.ALEXA_IP="127.0.0.1:12345";
+    it("should use env-variable node-red port", function (done) {
+        process.env.ALEXA_IP = "127.0.0.1:12345";
         var flow = [{ id: "n1", type: "alexa-home-controller", controllername: "Test" }];
         helper.load(controllerNode, flow, function () {
             var n1 = helper.getNode("n1");
@@ -52,4 +53,57 @@ describe('alexa-home-controller Node', function () {
             done();
         });
     });
+    it("should respond to setup request", function (done) {
+        var flow = [
+            { id: "n1", type: "alexa-home-controller", controllername: "Test" }
+        ];
+        helper.load(controllerNode, flow, function () {
+            var n1 = helper.getNode("n1");
+            n1.should.have.property('name', 'Test');
+        });
+        helper.request().get('/alexa-home/setup.xml').expect(200).end(done);
+    });
+    it("should respond to config request", function (done) {
+        var flow = [
+            { id: "n1", type: "alexa-home-controller", controllername: "Test" }
+        ];
+        helper.load(controllerNode, flow, function () {
+            var n1 = helper.getNode("n1");
+            n1.should.have.property('name', 'Test');
+        });
+        var res = helper.request().get('/api/');
+        res.expect(200).end(done);
+    });
+    it("should respond to lights request", function (done) {
+        var flow = [
+            { id: "n1", type: "alexa-home-controller", controllername: "Test" }
+        ];
+        helper.load(controllerNode, flow, function () {
+            var n1 = helper.getNode("n1");
+            n1.should.have.property('name', 'Test');
+        });
+        helper.request().get('/api/my-username/lights').expect(200).end(done);
+    });
+    it("should respond to registration request", function (done) {
+        var flow = [
+            { id: "n1", type: "alexa-home-controller", controllername: "Test" }
+        ];
+        helper.load(controllerNode, flow, function () {
+            var n1 = helper.getNode("n1");
+            n1.should.have.property('name', 'Test');
+        });
+        helper.request().post('/api').expect(200).end(done);
+    });
+    it("should respond to single lights request", function (done) {
+        var flow = [
+            { id: "n1", type: "alexa-home-controller", controllername: "Test" }
+        ];
+        helper.load(controllerNode, flow, function () {
+            var n1 = helper.getNode("n1");
+            n1.should.have.property('name', 'Test');
+        });
+        helper.request().get('/api/my-username/lights/abc123').expect(502).end(done);
+    });
+
+
 });
