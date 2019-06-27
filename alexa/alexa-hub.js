@@ -24,7 +24,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
     var node = this;
     const graceMilliseconds = 250;
     var app = express();
-
+    node.app = app;
     node.httpServer = stoppable(require(protocol).createServer(options, app), graceMilliseconds);
     node.server = node.httpServer.listen(node.port, function (error) {
 
