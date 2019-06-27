@@ -19,6 +19,6 @@ install:
 
 script:
   - grep console alexa/* | grep -v "no controller id found" || echo "no console logging found"
-  - npm-check
+  - npm-check --skip-unused
   - npm test
 
