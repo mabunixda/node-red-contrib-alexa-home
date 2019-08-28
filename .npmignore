@@ -4,5 +4,5 @@ Dockerfile
 docker-package.json
 Makefile
 *.sh
-data
-
+data/
+test/

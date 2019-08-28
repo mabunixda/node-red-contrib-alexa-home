@@ -25,6 +25,7 @@
     "node-red": "^0.20.7",
     "node-red-node-test-helper": "^0.2.3",
     "should": "^13.2.3"
+    "js-yaml": ">=3.13.1"
   },
   "scripts": {
     "test": "mocha \"test/**/*_spec.js\""
