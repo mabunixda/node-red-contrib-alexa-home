@@ -32,6 +32,7 @@ describe('alexa-home Node', function () {
         helper.load(alexaNode, flow, function () {
             var n2 = helper.getNode("n2");
             var n1 = helper.getNode("n1");
+            n1.controller = n2;
             n2.on("input", function (msg) {
                 msg.payload.should.have.property('on', true);
                 msg.payload.should.have.property('bri', 127);
@@ -49,6 +50,8 @@ describe('alexa-home Node', function () {
         helper.load(alexaNode, flow, function () {
             var n2 = helper.getNode("n2");
             var n1 = helper.getNode("n1");
+            n1.controller = n2;
+
             n2.on("input", function (msg) {
                 msg.payload.should.have.property('on', true);
                 msg.payload.should.have.property('bri', 255);
@@ -66,6 +69,8 @@ describe('alexa-home Node', function () {
         helper.load(alexaNode, flow, function () {
             var n2 = helper.getNode("n2");
             var n1 = helper.getNode("n1");
+            n1.controller = n2;
+
             n2.on("input", function (msg) {
                 msg.payload.should.have.property('on', true);
                 msg.payload.should.have.property('bri_normalized', 100);

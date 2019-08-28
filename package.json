@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-alexa-home",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Works directly with Alexa in your local network",
   "license": "MIT",
   "keywords": [
@@ -16,15 +16,15 @@
     }
   },
   "dependencies": {
-    "mustache": "3.0.2",
+    "mustache": "^3.0.3",
     "node-ssdp": "4.0.0"
   },
   "devDependencies": {
+    "js-yaml": ">=3.13.1",
     "node-libnmap": "^0.2.15",
-    "node-red": "^0.20.5",
-    "node-red-node-test-helper": "0.2.2",
-    "should": "^13.2.3",
-    "js-yaml": ">=3.13.1"
+    "node-red": "^0.20.7",
+    "node-red-node-test-helper": "^0.2.3",
+    "should": "^13.2.3"
   },
   "scripts": {
     "test": "mocha \"test/**/*_spec.js\""
