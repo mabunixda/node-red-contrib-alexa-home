@@ -2,8 +2,6 @@
 const alexa_home = require('./alexa-helper');
 const express = require('express');
 const bodyParser = require('body-parser');
-const stoppable = require('stoppable');
-
 
 function AlexaHub(controller, id, options) {
 
@@ -22,10 +20,9 @@ function AlexaHub(controller, id, options) {
 AlexaHub.prototype.createServer = function (protocol, options) {
 
     var node = this;
-    const graceMilliseconds = 250;
     var app = express();
     node.app = app;
-    node.httpServer = stoppable(require(protocol).createServer(options, app), graceMilliseconds);
+    node.httpServer = require(protocol).createServer(options, app);
     node.server = node.httpServer.listen(node.port, function (error) {
 
         app.on('error', function (error) {
