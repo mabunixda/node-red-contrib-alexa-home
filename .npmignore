@@ -1,8 +1,9 @@
+data/
+test/
 .travis.yml
 *.md
+*.sh
 Dockerfile
 docker-package.json
 Makefile
-*.sh
-data/
-test/
+.dockerignore

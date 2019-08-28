@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 function AlexaHub(controller, id, options) {
 
     var node = this;
-
     node.controller = controller;
     node.id = id;
     node.port = alexa_home.hubPort + id;

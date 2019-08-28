@@ -4,7 +4,7 @@ module.exports = function (RED) {
     "use strict"
 
     const prefixUUID = "f6543a06-da50-11ba-8d8f-";
-    const maxItemCount = 30;
+    const maxItemCount = 25;
 
     var Mustache = require('mustache'),
         fs = require('fs'),
@@ -20,7 +20,6 @@ module.exports = function (RED) {
         node.name = config.controllername
         node._commands = new Map()
         node._hub = []
-        node._hub.push(new alexa_hub(node, 0, RED.settings.https))
 
         node.on('close', function (removed, done) {
 
@@ -67,7 +66,7 @@ module.exports = function (RED) {
         deviceNode.updateController(this)
         this._commands.set(this.formatUUID(deviceNode.id), deviceNode)
         var currentNeed = Math.ceil(this._commands.size / maxItemCount)
-        if (currentNeed <= this._hub.length) {
+        if (currentNeed <= this._hub.length && this._hub.length > 0) {
             return
         }
         RED.log.debug("upscaling: " + currentNeed + "/" + this._hub.length)
@@ -113,7 +112,7 @@ module.exports = function (RED) {
         var data = {
             id: id,
             uuid: this.formatHueBridgeUUID(this.id),
-            baseUrl: (RED.settings.https == undefined ? "https" : "http") + "://" + request.headers["host"]
+            baseUrl: (RED.settings.https == undefined ? "http" : "https") + "://" + request.headers["host"]
         }
         var content = Mustache.render(template, data)
         response.writeHead(200, {
@@ -126,7 +125,7 @@ module.exports = function (RED) {
         var template = fs.readFileSync(__dirname + '/templates/setup.xml', 'utf8').toString()
         var data = {
             uuid: this.formatHueBridgeUUID(this.id),
-            baseUrl: (RED.settings.https == undefined ? "https" : "http") + "://" + request.headers["host"]
+            baseUrl: (RED.settings.https == undefined ? "http" : "https") + "://" + request.headers["host"]
         }
         var content = Mustache.render(template, data)
         this.setConnectionStatusMsg("green", "setup requested")
