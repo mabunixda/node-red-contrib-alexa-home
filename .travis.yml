@@ -10,7 +10,6 @@ cache:
   directories:
     - "node_modules"
 
-sudo: false
 
 before_install:
   - npm install -g npm-check
@@ -21,9 +20,8 @@ install:
   - npm install
 
 script:
-  - export NODE_MAJOR=$(node --version | awk -F '.' '{print $1}')
   - grep console -R alexa | grep -v "no controller id found" || echo "no console logging found"
   - npm-check --skip-unused
-  - [ $NODE_MAJOR != "v7" && $NODE_MAJOR != "v6" ] && eslint alexa/*.js || echo "skipped eslint"
+  - ./scripts/lint.sh
   - npm test
 
