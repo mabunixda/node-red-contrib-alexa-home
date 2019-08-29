@@ -43,9 +43,9 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     });
 
     app.use(function(req, res, next) {
-      node.controller.log(node.port + ' -> ' + req.url);
+      node.controller.log(node.port + "/" + req.method + ' -> ' + req.url);
       if (Object.keys(req.body).length > 0) {
-        node.controller.log('Request body: ' + JSON.stringify(req.body));
+        node.controller.debug('Request body: ' + JSON.stringify(req.body));
       }
       next();
     });
@@ -80,9 +80,6 @@ AlexaHub.prototype.createServer = function(protocol, options) {
 
     app.put('/api/:username/:itemType/:id/state', function(req, res) {
       node.controller.controlItem(node.id, req, res);
-    });
-    app.get('/test', function(req, res) {
-      node.controller.test(req, res);
     });
   });
 };

@@ -24,6 +24,7 @@ module.exports = function(RED) {
     node.name = config.controllername;
     node._commands = new Map();
     node._hub = [];
+    node._hub.push(new AlexaHub(this, this._hub.length, RED.settings.https));
 
     node.on('close', function(removed, done) {
       try {
@@ -146,8 +147,13 @@ module.exports = function(RED) {
     RED.log.debug(this.name + '/' + id + ' - Handling registration request');
     const template = fs.readFileSync(__dirname +
         '/templates/registration.json', 'utf8').toString();
+    
+    var username = request.params.username;
+    if(username === undefined || username === null) { 
+      username = "c6260f982b43a226b5542b967f612ce";
+    }
     const data = {
-      username: request.params.username,
+        username: username
     };
     const content = Mustache.render(template, data);
     this.setConnectionStatusMsg('green', 'registration succeded');

@@ -10,4 +10,4 @@ npm install -g eslint
 cd /usr/src/node-red
 npm link /src
 
-su node -
+/bin/sh
