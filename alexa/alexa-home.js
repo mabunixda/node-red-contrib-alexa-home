@@ -1,145 +1,149 @@
-module.exports = function (RED) {
+module.exports = function(RED) {
+  'use strict';
+  const alexaHome = require('./alexa-helper');
 
-    "use strict";
-    var alexa_home = require('./alexa-helper');
+  /**
+  * creates a node which is reflected as command in alexa
+  * @constructor
+  * @param {map} config configuration injected by node-red
+  **/
+  function AlexaHomeNode(config) {
+    RED.nodes.createNode(this, config);
 
-    function AlexaHomeNode(config) {
+    const node = this;
+    node.name = config.devicename;
+    node.control = config.control;
 
-        RED.nodes.createNode(this, config);
+    if (config.devicetype) {
+      node.devicetype = config.devicetype;
+    } else {
+      node.devicetype = 'Extended color light';
+    }
+    node.inputTrigger = config.inputtrigger;
+    node.state = false;
+    node.bri = 0;
+    node.xy = [0, 0];
 
-        var node = this;
-        node.name = config.devicename;
-        node.control = config.control;
+    node.on('input', function(msg) {
+      msg.inputTrigger = true;
+      node.processCommand(msg);
+    });
 
-        if (config.devicetype) {
-            node.devicetype = config.devicetype;
+    node.on('close', function(done) {
+      if (node.controller) {
+        node.controller.deregisterCommand(node);
+      }
+      done();
+    });
+
+    const controller = alexaHome.controllerNode;
+
+    if (controller) {
+      controller.registerCommand(node);
+      return;
+    }
+    RED.log.debug('No Alexa Home Controller available');
+    node.setConnectionStatusMsg('red', 'No Alexa Home Controller available');
+  }
+
+  AlexaHomeNode.prototype.setConnectionStatusMsg = function(color,
+      text,
+      shape) {
+    shape = shape || 'dot';
+    this.status({
+      fill: color,
+      shape: shape,
+      text: text,
+    });
+  };
+
+  AlexaHomeNode.prototype.updateController = function(controllerNode) {
+    const node = this;
+    node.controller = controllerNode;
+    node.setConnectionStatusMsg('green', 'Ok');
+  };
+
+  AlexaHomeNode.prototype.processCommand = function(msg) {
+    const node = this;
+
+    if (node.controller == null || node.controller == undefined) {
+      node.warn('Ignoring process command - no controller available!');
+      node.setConnectionStatusMsg('red', 'No Alexa Home Controller available');
+      return;
+    }
+    // Detect increase/decrease command
+    msg.change_direction = 0;
+    if (msg.payload.bri) {
+      if (msg.payload.bri == alexaHome.bri_default - 64) {
+        msg.change_direction = -1;
+      }
+      if (msg.payload.bri == alexaHome.bri_default + 63) {
+        msg.change_direction = 1;
+      }
+    }
+
+    // set color
+    if (msg.payload.xy) {
+      RED.log.debug(this.name + ' - Setting values on xy: ' + msg.payload.xy);
+      node.setConnectionStatusMsg('blue', 'xy: ' + msg.payload.xy);
+      msg.payload.command = 'color';
+    }
+    // Dimming or Temperature command
+    if (msg.payload.bri) {
+      RED.log.debug(this.name + ' - Setting values on bri');
+      msg.payload.on = msg.payload.bri > 0;
+      msg.payload.command = 'dim';
+      node.setConnectionStatusMsg('blue',
+          'bri:' + msg.payload.bri
+      );
+    } else {
+      RED.log.debug(this.name + ' - Setting values on On/Off');
+      let isOn = false;
+      if (typeof msg.payload === 'object') {
+        isOn = msg.payload.on;
+      } else {
+        if (typeof msg.payload === 'string') {
+          isOn = msg.payload === '1' || msg.payload === 'on';
+        } else if (typeof msg.payload === 'number') {
+          isOn = msg.payload === 1;
         } else {
-            node.devicetype = "Extended color light"
+          node.setConnectionStatusMsg('orange', 'could not process input msg');
+          return;
         }
-        node.inputTrigger = config.inputtrigger;
-        node.state = false;
-        node.bri = 0;
-        node.xy = [0, 0];
+        msg.payload = {};
+      }
+      msg.payload.on = isOn;
+      msg.payload.bri = isOn ? 255.0 : 0.0;
 
-        node.on('input', function (msg) {
-            msg.inputTrigger = true;
-            node.processCommand(msg);
-        });
-
-        node.on('close', function (done) {
-            if (node.controller) {
-                node.controller.deregisterCommand(node);
-            }
-            done();
-        })
-
-        var controller = alexa_home.controllerNode;
-
-        if (controller) {
-            controller.registerCommand(node);
-            return;
-        }
-        RED.log.debug("No Alexa Home Controller available")
-        node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
+      if (msg.payload.xy == undefined) {
+        msg.payload.command = 'switch';
+        // Node status
+        node.setConnectionStatusMsg(
+            'blue',
+            (isOn ? 'On' : 'Off')
+        );
+      }
     }
 
-    AlexaHomeNode.prototype.setConnectionStatusMsg = function (color, text, shape) {
-        shape = shape || 'dot';
-        this.status({
-            fill: color,
-            shape: shape,
-            text: text
-        });
+    msg.payload.bri_normalized = Math.round(msg.payload.bri / 255.0 * 100.0);
+    msg.device_name = this.name;
+    msg.light_id = this.id;
+
+    node.state = msg.payload.on;
+    node.bri = msg.payload.bri;
+    node.xy = msg.payload.xy;
+    if (node.xy == undefined) {
+      node.xy = [0, 0];
+    }
+    if (msg.inputTrigger && !msg.output) {
+      RED.log.debug(this.name + ' - Set values on input');
+      return;
     }
 
-    AlexaHomeNode.prototype.updateController = function (controllerNode) {
-        var node = this;
-        node.controller = controllerNode;
-        node.setConnectionStatusMsg("green", "Ok")
-    }
+    RED.log.debug(this.name + ' - sending values');
 
-    AlexaHomeNode.prototype.processCommand = function (msg) {
-        var node = this;
+    node.send(msg);
+  };
 
-        if (node.controller == null || node.controller == undefined) {
-            node.warn("Ignoring process command - no controller available!");
-            node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
-            return;
-        }
-        //Detect increase/decrease command
-        msg.change_direction = 0;
-        if (msg.payload.bri) {
-            if (msg.payload.bri == alexa_home.bri_default - 64) //magic number
-                msg.change_direction = -1;
-            if (msg.payload.bri == alexa_home.bri_default + 63) //magic number
-                msg.change_direction = 1;
-        }
-
-        // set color 
-        if (msg.payload.xy) {
-            RED.log.debug(this.name + " - Setting values on xy: " + msg.payload.xy)
-            node.setConnectionStatusMsg("blue", "xy: " + msg.payload.xy);
-            msg.payload.command = "color";
-        }
-        //Dimming or Temperature command
-        if (msg.payload.bri) {
-            RED.log.debug(this.name + " - Setting values on bri");
-            msg.payload.on = msg.payload.bri > 0;
-            msg.payload.command = "dim";
-            node.setConnectionStatusMsg("blue",
-                "bri:" + msg.payload.bri
-            );
-        }
-        //On/off command
-        else {
-            RED.log.debug(this.name + " - Setting values on On/Off");
-            var isOn = false;
-            if (typeof msg.payload === "object") {
-                isOn = msg.payload.on;
-            } else {
-                if (typeof msg.payload === "string") {
-                    isOn = msg.payload === "1" || msg.payload === "on";
-                } else if (typeof msg.payload === "number") {
-                    isOn = msg.payload === 1;
-                } else {
-                    node.setConnectionStatusMsg("orange", "could not process input msg");
-                    return;
-                }
-                msg.payload = {};
-            }
-            msg.payload.on = isOn;
-            msg.payload.bri = isOn ? 255.0 : 0.0;
-
-            if (msg.payload.xy == undefined) {
-                msg.payload.command = "switch";
-                //Node status
-                node.setConnectionStatusMsg(
-                    "blue",
-                    (isOn ? "On" : "Off")
-                );
-            }
-        }
-
-        msg.payload.bri_normalized = Math.round(msg.payload.bri / 255.0 * 100.0);
-        msg.device_name = this.name;
-        msg.light_id = this.id;
-
-        node.state = msg.payload.on;
-        node.bri = msg.payload.bri;
-        node.xy = msg.payload.xy;
-        if (node.xy == undefined) {
-            node.xy = [0, 0]
-        }
-        if (msg.inputTrigger && !msg.output) {
-            RED.log.debug(this.name + " - Set values on input");
-            return;
-        }
-
-        RED.log.debug(this.name + " - sending values");
-
-        node.send(msg);
-    }
-
-    RED.nodes.registerType("alexa-home", AlexaHomeNode);
-
-}
+  RED.nodes.registerType('alexa-home', AlexaHomeNode);
+};

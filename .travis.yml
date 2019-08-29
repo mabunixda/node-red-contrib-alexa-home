@@ -1,5 +1,7 @@
 language: node_js
 node_js:
+  - "12"
+  - "11"
   - "10"
   - "9"
   - "8"
@@ -10,15 +12,18 @@ cache:
   directories:
     - "node_modules"
 
+
 before_install:
   - npm install -g npm-check
   - npm install -g mocha
+  - npm install -g eslint
 
 install:
   - npm install
 
 script:
-  - grep console alexa/* | grep -v "no controller id found" || echo "no console logging found"
+  - grep console -R alexa | grep -v "no controller id found" || echo "no console logging found"
   - npm-check --skip-unused
+  - ./scripts/lint.sh
   - npm test
 
