@@ -16,10 +16,16 @@
     }
   },
   "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
     "mustache": "^3.0.3",
-    "node-ssdp": "4.0.0"
+    "node-ssdp": "4.0.0",
+    "supertext": "^1.0.0"
   },
   "devDependencies": {
+    "eslint": "^6.2.2",
+    "eslint-config-google": "^0.13.0",
+    "eslint-plugin-standard": "^4.0.1",
     "js-yaml": ">=3.13.1",
     "node-libnmap": "^0.2.15",
     "node-red": "^0.20.7",

@@ -13,6 +13,7 @@ cache:
 before_install:
   - npm install -g npm-check
   - npm install -g mocha
+  - npm i -g eslint
 
 install:
   - npm install
@@ -20,5 +21,6 @@ install:
 script:
   - grep console alexa/* | grep -v "no controller id found" || echo "no console logging found"
   - npm-check --skip-unused
+  - eslint alexa/*.js
   - npm test
 
