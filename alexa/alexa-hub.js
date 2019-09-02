@@ -74,6 +74,14 @@ AlexaHub.prototype.createServer = function(protocol, options) {
       node.controller.handleItemList(node.id, req, res);
     });
 
+    app.post('/api/:username/:itemType', function(req, res) {
+      node.controller.handleItemList(node.id, req, res);
+    });
+
+    app.get('/api/:username/:itemType/new', function(req, res) {
+      node.controller.handleItemList(node.id, req, res);
+    });
+
     app.get('/api/:username/:itemType/:id', function(req, res) {
       node.controller.getItemInfo(node.id, req, res);
     });

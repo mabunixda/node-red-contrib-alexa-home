@@ -27,25 +27,6 @@
         "manufacturername": "Philips",
         "productname": "Hue color lamp",
         "swversion": "5.105.0.21169",
-        "capabilities":{
-            "certified":true,
-            "control":{
-                "mindimlevel":5000,
-                "maxlumen":600,
-                "colorgamuttype":"B",
-                "colorgamut":[[0.675,0.322],[0.409,0.518],[0.167,0.04]],
-                "ct":{"min":153,"max":500}
-            },
-            "streaming":{
-                "renderer":true,
-                "proxy":false
-            }
-        },
-        "config":{
-            "archetype":"sultanbulb",
-            "function":"mixed",
-            "direction":"omnidirectional"
-        },
         "uniqueid":"00:11:22:33:44:55:66:77-88"
     },
   {{/lights}}

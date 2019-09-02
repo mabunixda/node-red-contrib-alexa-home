@@ -2,9 +2,6 @@
 module.exports = function(RED) {
   'use strict';
 
-  const prefixUUID = 'f6543a06-da50-11ba-8d8f-';
-  const maxItemCount = 30;
-
   const Mustache = require('mustache');
   const fs = require('fs');
   const alexaHome = require('./alexa-helper');
@@ -14,7 +11,7 @@ module.exports = function(RED) {
    * generates a controller node which manages the creation
    * of hubs to communicate with alexa devices
    * @constructor
-   * @param {*} config nodered configuration
+   * @param {map} config nodered configuration
    */
   function AlexaHomeController(config) {
     RED.nodes.createNode(this, config);
@@ -71,11 +68,10 @@ module.exports = function(RED) {
   };
 
   AlexaHomeController.prototype.registerCommand = function(deviceNode) {
-    const node = this;
-    deviceNode.updateController(node);
-    node._commands.set(node.formatUUID(deviceNode.id), deviceNode);
-    const currentNeed = Math.ceil(node._commands.size / maxItemCount);
-    if (currentNeed <= node._hub.length && node._hub.length > 0) {
+    deviceNode.updateController(this);
+    this._commands.set(this.formatUUID(deviceNode.id), deviceNode);
+    const currentNeed = Math.ceil(this._commands.size / alexaHome.maxItemCount);
+    if (currentNeed <= this._hub.length && this._hub.length > 0) {
       return;
     }
     RED.log.debug('upscaling: ' + currentNeed + '/' + node._hub.length);
@@ -87,7 +83,7 @@ module.exports = function(RED) {
     if (this._commands.size == 0) {
       return;
     }
-    const currentNeed = Math.ceil(this._commands.size / maxItemCount);
+    const currentNeed = Math.ceil(this._commands.size / alexaHome.maxItemCount);
     if (currentNeed >= this._hub.length) {
       return;
     }
@@ -175,7 +171,7 @@ module.exports = function(RED) {
     RED.log.debug(this.name + '/' + id +
       ' - handling api item list request: ' + request.params.itemType);
     if (request.params.itemType !== 'lights') {
-      response.status(404).end('');
+      response.status(200).end('{}');
       return;
     }
     const template = fs.readFileSync(__dirname +
@@ -226,8 +222,8 @@ module.exports = function(RED) {
 
   AlexaHomeController.prototype.generateAPIDeviceList = function(id) {
     const deviceList = [];
-    const startItem = (id * maxItemCount) + 1;
-    const endItem = ((id + 1) * maxItemCount) + 1;
+    const startItem = (id * alexaHome.maxItemCount) + 1;
+    const endItem = ((id + 1) * alexaHome.maxItemCount) + 1;
     let count = 0;
     RED.log.debug(this.name + '/' + id + ' - starting at ' + (startItem - 1) +
       ' till ' + (endItem - 1) + ' at #' + this._commands.size);
@@ -267,7 +263,7 @@ module.exports = function(RED) {
 
   AlexaHomeController.prototype.controlItem = function(id, request, response) {
     if (request.params.itemType !== 'lights') {
-      response.status(404).end('');
+      response.status(200).end('{}');
       return;
     }
 
@@ -313,7 +309,7 @@ module.exports = function(RED) {
 
   AlexaHomeController.prototype.getItemInfo = function(id, request, response) {
     if (request.params.itemType !== 'lights') {
-      response.status(404).end('');
+      response.status(200).end('{}');
       return;
     }
 
@@ -364,7 +360,7 @@ module.exports = function(RED) {
     if (lightId === null || lightId === undefined) {
       return '';
     }
-    let uuid = prefixUUID;
+    let uuid = alexaHome.prefixUUID;
     uuid += this.formatUUID(lightId);
     return uuid;
   };
