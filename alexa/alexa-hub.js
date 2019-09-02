@@ -10,11 +10,11 @@ const bodyParser = require('body-parser');
  * @param {number} id - counting number which is maintained in controller node
  * @param {map} options - options for webserver
  */
-function AlexaHub(controller, id) {
+function AlexaHub(controller, port, id) {
   const node = this;
   node.controller = controller;
   node.id = id;
-  node.port = alexaHome.hubPort + id;
+  node.port = port + id;
 
   const protocol = 'http';
   const options = undefined;
