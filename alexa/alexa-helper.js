@@ -13,4 +13,6 @@ module.exports = {
   )
            || false,
   bri_default: process.env.BRI_DEFAULT || 254,
+  maxItemCount: 20,
+  prefixUUID: 'f6543a06-da50-11ba-8d8f-',
 };

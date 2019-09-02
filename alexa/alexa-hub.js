@@ -1,20 +1,19 @@
 'use strict';
 
-const alexaHome = require('./alexa-helper');
 const express = require('express');
 const bodyParser = require('body-parser');
 /**
  * Hub to create communication with alexa devices
  * @constructor
  * @param {AlexaHomeController} controller - Controller node
+ * @param {number} port - base port where controllerhub starts
  * @param {number} id - counting number which is maintained in controller node
- * @param {map} options - options for webserver
  */
-function AlexaHub(controller, id) {
+function AlexaHub(controller, port, id) {
   const node = this;
   node.controller = controller;
   node.id = id;
-  node.port = alexaHome.hubPort + id;
+  node.port = port + id;
 
   const protocol = 'http';
   const options = undefined;
@@ -72,6 +71,14 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     });
 
     app.get('/api/:username/:itemType', function(req, res) {
+      node.controller.handleItemList(node.id, req, res);
+    });
+
+    app.post('/api/:username/:itemType', function(req, res) {
+      node.controller.handleItemList(node.id, req, res);
+    });
+
+    app.get('/api/:username/:itemType/new', function(req, res) {
       node.controller.handleItemList(node.id, req, res);
     });
 
