@@ -53,7 +53,7 @@ describe('alexa-home Node', function() {
 
       n2.on('input', function(msg) {
         msg.payload.should.have.property('on', true);
-        msg.payload.should.have.property('bri', 255);
+        msg.payload.should.have.property('bri', 254);
         msg.payload.should.have.property('bri_normalized', 100);
         done();
       });

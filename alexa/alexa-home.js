@@ -125,7 +125,7 @@ module.exports = function(RED) {
       }
     }
 
-    msg.payload.bri_normalized = Math.round(msg.payload.bri / 255.0 * 100.0);
+    msg.payload.bri_normalized = Math.round(msg.payload.bri / 254.0 * 100.0);
     msg.device_name = this.name;
     msg.light_id = this.id;
 
