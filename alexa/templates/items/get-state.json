@@ -12,14 +12,15 @@
         "ct": {{ ct }},
         "alert": "none",
         "colormode": "{{ colormode }}",
+        "mode": "homeautomation",
         "reachable": true
     },
     "swupdate": {
         "state": "noupdates",
         "lastinstall": "{{ date }}"
     },
-    "type": "Color Temperature Light",
+    "type": "{{ devicetype }}",
     "name": "{{ name }}",
     "modelid": "LTW011",
     "swversion": "1.29.0_r21169"
-  }
+}
