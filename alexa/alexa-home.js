@@ -113,7 +113,7 @@ module.exports = function(RED) {
         msg.payload = {};
       }
       msg.payload.on = isOn;
-      msg.payload.bri = node.bri
+      msg.payload.bri = node.bri;
 
       if (msg.payload.xy == undefined) {
         msg.payload.command = 'switch';
