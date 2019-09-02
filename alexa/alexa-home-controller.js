@@ -116,7 +116,7 @@ module.exports = function(RED) {
     const data = {
       id: id,
       uuid: this.formatHueBridgeUUID(this.id),
-      baseUrl:  'http://' + request.headers['host'],
+      baseUrl: 'http://' + request.headers['host'],
     };
     const content = Mustache.render(template, data);
     response.writeHead(200, {
