@@ -21,7 +21,7 @@ module.exports = function(RED) {
     }
     node.inputTrigger = config.inputtrigger;
     node.state = false;
-    node.bri = 0;
+    node.bri = alexaHome.bri_default;
     node.xy = [0, 0];
 
     node.on('input', function(msg) {
@@ -74,10 +74,10 @@ module.exports = function(RED) {
     // Detect increase/decrease command
     msg.change_direction = 0;
     if (msg.payload.bri) {
-      if (msg.payload.bri == alexaHome.bri_default - 64) {
+      if (msg.payload.bri < node.bri) {
         msg.change_direction = -1;
       }
-      if (msg.payload.bri == alexaHome.bri_default + 63) {
+      if (msg.payload.bri > node.bri) {
         msg.change_direction = 1;
       }
     }
@@ -113,7 +113,7 @@ module.exports = function(RED) {
         msg.payload = {};
       }
       msg.payload.on = isOn;
-      msg.payload.bri = isOn ? 255.0 : 0.0;
+      msg.payload.bri = node.bri
 
       if (msg.payload.xy == undefined) {
         msg.payload.command = 'switch';
