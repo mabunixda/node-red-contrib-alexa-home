@@ -10,13 +10,14 @@ const bodyParser = require('body-parser');
  * @param {number} id - counting number which is maintained in controller node
  * @param {map} options - options for webserver
  */
-function AlexaHub(controller, id, options) {
+function AlexaHub(controller, id) {
   const node = this;
   node.controller = controller;
   node.id = id;
   node.port = alexaHome.hubPort + id;
 
-  const protocol = (options === undefined) ? 'http' : 'https';
+  const protocol = 'http';
+  const options = undefined;
   node.createServer( protocol, options);
   node.startSsdp( protocol);
 }

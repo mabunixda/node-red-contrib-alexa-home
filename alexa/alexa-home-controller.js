@@ -24,7 +24,7 @@ module.exports = function(RED) {
     node.name = config.controllername;
     node._commands = new Map();
     node._hub = [];
-    node._hub.push(new AlexaHub(this, this._hub.length, RED.settings.https));
+    node._hub.push(new AlexaHub(this, this._hub.length));
 
     node.on('close', function(removed, done) {
       try {
@@ -73,7 +73,7 @@ module.exports = function(RED) {
       return;
     }
     RED.log.debug('upscaling: ' + currentNeed + '/' + this._hub.length);
-    this._hub.push(new AlexaHub(this, this._hub.length, RED.settings.https));
+    this._hub.push(new AlexaHub(this, this._hub.length));
   };
 
   AlexaHomeController.prototype.deregisterCommand = function(deviceNode) {
@@ -116,7 +116,7 @@ module.exports = function(RED) {
     const data = {
       id: id,
       uuid: this.formatHueBridgeUUID(this.id),
-      baseUrl: (RED.settings.https == undefined ? 'https' : 'http') + '://' + request.headers['host'],
+      baseUrl: 'http://' + request.headers['host'],
     };
     const content = Mustache.render(template, data);
     response.writeHead(200, {
@@ -130,8 +130,7 @@ module.exports = function(RED) {
         '/templates/setup.xml', 'utf8').toString();
     const data = {
       uuid: this.formatHueBridgeUUID(this.id),
-      baseUrl: (RED.settings.https == undefined ? 'https' : 'http')
-        + '://' + request.headers['host'],
+      baseUrl: 'http://' + request.headers['host'],
     };
     const content = Mustache.render(template, data);
     this.setConnectionStatusMsg('green', 'setup requested');
