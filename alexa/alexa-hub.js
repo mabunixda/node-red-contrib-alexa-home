@@ -1,14 +1,13 @@
 'use strict';
 
-const alexaHome = require('./alexa-helper');
 const express = require('express');
 const bodyParser = require('body-parser');
 /**
  * Hub to create communication with alexa devices
  * @constructor
  * @param {AlexaHomeController} controller - Controller node
+ * @param {number} port - base port where controllerhub starts
  * @param {number} id - counting number which is maintained in controller node
- * @param {map} options - options for webserver
  */
 function AlexaHub(controller, port, id) {
   const node = this;

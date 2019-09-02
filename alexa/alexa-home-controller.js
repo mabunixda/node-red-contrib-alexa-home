@@ -1,5 +1,5 @@
 
-module.exports = function (RED) {
+module.exports = function(RED) {
   'use strict';
 
   const prefixUUID = 'f6543a06-da50-11ba-8d8f-';
@@ -23,7 +23,7 @@ module.exports = function (RED) {
 
     node.name = config.controllername;
     if (config.port === undefined || config.port === null) {
-      node.port = alexaHome.hubPort
+      node.port = alexaHome.hubPort;
     } else {
       node.port = parseInt(config.port);
     }
@@ -31,7 +31,7 @@ module.exports = function (RED) {
     node._hub = [];
     node._hub.push(new AlexaHub(this, node.port, this._hub.length));
 
-    node.on('close', function (removed, done) {
+    node.on('close', function(removed, done) {
       try {
         while (node._hub.length > 0) {
           const hub = node._hub.pop();
@@ -48,7 +48,7 @@ module.exports = function (RED) {
 
     RED.log.info('Assigning alexa-home nodes to this controller');
 
-    RED.nodes.eachNode(function (n) {
+    RED.nodes.eachNode(function(n) {
       if (n.type == 'alexa-home') {
         const x = RED.nodes.getNode(n.id);
         if (x) {
@@ -59,18 +59,18 @@ module.exports = function (RED) {
     node.setConnectionStatusMsg('green', 'ok');
   }
 
-  AlexaHomeController.prototype.getDevices = function () {
+  AlexaHomeController.prototype.getDevices = function() {
     return this._commands;
   };
 
-  AlexaHomeController.prototype.getDevice = function (uuid) {
+  AlexaHomeController.prototype.getDevice = function(uuid) {
     if (this._commands.has(uuid)) {
       return this._commands.get(uuid);
     }
     return undefined;
   };
 
-  AlexaHomeController.prototype.registerCommand = function (deviceNode) {
+  AlexaHomeController.prototype.registerCommand = function(deviceNode) {
     const node = this;
     deviceNode.updateController(node);
     node._commands.set(node.formatUUID(deviceNode.id), deviceNode);
@@ -82,7 +82,7 @@ module.exports = function (RED) {
     node._hub.push(new AlexaHub(node, node.port, node._hub.length));
   };
 
-  AlexaHomeController.prototype.deregisterCommand = function (deviceNode) {
+  AlexaHomeController.prototype.deregisterCommand = function(deviceNode) {
     this._commands.delete(this.formatUUID(deviceNode.id));
     if (this._commands.size == 0) {
       return;
@@ -93,10 +93,10 @@ module.exports = function (RED) {
     }
     RED.log.debug('downscale');
     const hub = this._hub.pop();
-    hub.stopServers(function () { });
+    hub.stopServers(function() { });
   };
 
-  AlexaHomeController.prototype.test = function (req, res) {
+  AlexaHomeController.prototype.test = function(req, res) {
     res.set({
       'Content-Type': 'text/plain',
     });
@@ -108,14 +108,14 @@ module.exports = function (RED) {
     res.send(content);
   };
 
-  AlexaHomeController.prototype.stripSpace = function (content) {
+  AlexaHomeController.prototype.stripSpace = function(content) {
     while (content.indexOf('  ') > 0) {
       content = content.replace(/  /g, '');
     }
     content = content.replace(/\r?\n/g, '');
     return content;
   };
-  AlexaHomeController.prototype.handleIndex = function (id, request, response) {
+  AlexaHomeController.prototype.handleIndex = function(id, request, response) {
     RED.log.debug(this.name + '/' + id + ' - Handling index request');
     const template = fs.readFileSync(__dirname +
       '/templates/index.html', 'utf8').toString();
@@ -130,7 +130,7 @@ module.exports = function (RED) {
     });
     response.end(content);
   };
-  AlexaHomeController.prototype.handleSetup = function (id, request, response) {
+  AlexaHomeController.prototype.handleSetup = function(id, request, response) {
     RED.log.debug(this.name + '/' + id + ' - Handling setup request');
     const template = fs.readFileSync(__dirname +
       '/templates/setup.xml', 'utf8').toString();
@@ -146,9 +146,9 @@ module.exports = function (RED) {
     response.end(content);
   };
 
-  AlexaHomeController.prototype.handleRegistration = function (id,
-    request,
-    response) {
+  AlexaHomeController.prototype.handleRegistration = function(id,
+      request,
+      response) {
     RED.log.debug(this.name + '/' + id + ' - Handling registration request');
     const template = fs.readFileSync(__dirname +
       '/templates/registration.json', 'utf8').toString();
@@ -169,9 +169,9 @@ module.exports = function (RED) {
   };
 
   // max response size of alexa seems at content-length=14173
-  AlexaHomeController.prototype.handleItemList = function (id,
-    request,
-    response) {
+  AlexaHomeController.prototype.handleItemList = function(id,
+      request,
+      response) {
     RED.log.debug(this.name + '/' + id +
       ' - handling api item list request: ' + request.params.itemType);
     if (request.params.itemType !== 'lights') {
@@ -197,9 +197,9 @@ module.exports = function (RED) {
     response.send(this.stripSpace(content));
   };
 
-  AlexaHomeController.prototype.handleApiCall = function (id,
-    request,
-    response) {
+  AlexaHomeController.prototype.handleApiCall = function(id,
+      request,
+      response) {
     RED.log.debug(this.name + '/' + id + ' - Hanlding API listing request');
     const responseTemplate = fs.readFileSync(__dirname +
       '/templates/response.json', 'utf8').toString();
@@ -224,7 +224,7 @@ module.exports = function (RED) {
     response.send(this.stripSpace(content));
   };
 
-  AlexaHomeController.prototype.generateAPIDeviceList = function (id) {
+  AlexaHomeController.prototype.generateAPIDeviceList = function(id) {
     const deviceList = [];
     const startItem = (id * maxItemCount) + 1;
     const endItem = ((id + 1) * maxItemCount) + 1;
@@ -249,7 +249,7 @@ module.exports = function (RED) {
     return deviceList;
   };
 
-  AlexaHomeController.prototype.generateAPIDevice = function (uuid, node) {
+  AlexaHomeController.prototype.generateAPIDevice = function(uuid, node) {
     const defaultAttributes = {
       on: node.state,
       bri: node.bri,
@@ -265,7 +265,7 @@ module.exports = function (RED) {
     return defaultAttributes;
   };
 
-  AlexaHomeController.prototype.controlItem = function (id, request, response) {
+  AlexaHomeController.prototype.controlItem = function(id, request, response) {
     if (request.params.itemType !== 'lights') {
       response.status(404).end('');
       return;
@@ -297,7 +297,7 @@ module.exports = function (RED) {
 
     if (alexaHome.isDebug) {
       const httpHeader = Object.keys(request.headers);
-      httpHeader.forEach(function (key) {
+      httpHeader.forEach(function(key) {
         msg['http_header_' + key] = request.headers[key];
       });
     }
@@ -311,7 +311,7 @@ module.exports = function (RED) {
     response.send(output);
   };
 
-  AlexaHomeController.prototype.getItemInfo = function (id, request, response) {
+  AlexaHomeController.prototype.getItemInfo = function(id, request, response) {
     if (request.params.itemType !== 'lights') {
       response.status(404).end('');
       return;
@@ -340,9 +340,9 @@ module.exports = function (RED) {
     response.send(output);
   };
 
-  AlexaHomeController.prototype.setConnectionStatusMsg = function (color,
-    text,
-    shape) {
+  AlexaHomeController.prototype.setConnectionStatusMsg = function(color,
+      text,
+      shape) {
     shape = shape || 'dot';
     this.status({
       fill: color,
@@ -351,7 +351,7 @@ module.exports = function (RED) {
     });
   };
 
-  AlexaHomeController.prototype.formatUUID = function (lightId) {
+  AlexaHomeController.prototype.formatUUID = function(lightId) {
     if (lightId === null || lightId === undefined) {
       return '';
     }
@@ -360,7 +360,7 @@ module.exports = function (RED) {
     return string.replace('.', '').trim();
   };
 
-  AlexaHomeController.prototype.formatHueBridgeUUID = function (lightId) {
+  AlexaHomeController.prototype.formatHueBridgeUUID = function(lightId) {
     if (lightId === null || lightId === undefined) {
       return '';
     }
