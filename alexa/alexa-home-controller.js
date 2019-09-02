@@ -68,10 +68,11 @@ module.exports = function(RED) {
   };
 
   AlexaHomeController.prototype.registerCommand = function(deviceNode) {
+    const node = this;
     deviceNode.updateController(this);
-    this._commands.set(this.formatUUID(deviceNode.id), deviceNode);
-    const currentNeed = Math.ceil(this._commands.size / alexaHome.maxItemCount);
-    if (currentNeed <= this._hub.length && this._hub.length > 0) {
+    node._commands.set(node.formatUUID(deviceNode.id), deviceNode);
+    const currentNeed = Math.ceil(node._commands.size / alexaHome.maxItemCount);
+    if (currentNeed <= node._hub.length && node._hub.length > 0) {
       return;
     }
     RED.log.debug('upscaling: ' + currentNeed + '/' + node._hub.length);
@@ -79,16 +80,17 @@ module.exports = function(RED) {
   };
 
   AlexaHomeController.prototype.deregisterCommand = function(deviceNode) {
-    this._commands.delete(this.formatUUID(deviceNode.id));
-    if (this._commands.size == 0) {
+    const node = this;
+    node._commands.delete(this.formatUUID(deviceNode.id));
+    if (node._commands.size == 0) {
       return;
     }
-    const currentNeed = Math.ceil(this._commands.size / alexaHome.maxItemCount);
-    if (currentNeed >= this._hub.length) {
+    const currentNeed = Math.ceil(node._commands.size / alexaHome.maxItemCount);
+    if (currentNeed >= node._hub.length) {
       return;
     }
     RED.log.debug('downscale');
-    const hub = this._hub.pop();
+    const hub = node._hub.pop();
     hub.stopServers(function() { });
   };
 
