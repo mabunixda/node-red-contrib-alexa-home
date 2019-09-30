@@ -29,7 +29,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "js-yaml": ">=3.13.1",
     "node-libnmap": "^0.2.15",
-    "node-red": "^0.20.7",
+    "node-red": "^1.0.0",
     "node-red-node-test-helper": "^0.2.3",
     "should": "^13.2.3"
   },
