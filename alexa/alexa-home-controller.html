@@ -9,6 +9,11 @@
             <i class="icon-tag"></i> Port</label>
         <input type="text" id="node-input-port" placeholder="60000">
     </div>
+    <div class="form-row">
+        <label for="node-input-maxItems">
+            <i class="icon-tag"></i> MaxItems</label>
+        <input type="text" id="node-input-maxItems" placeholder="25">
+    </div>
 </script>
 <script type="text/javascript">
     
@@ -21,6 +26,11 @@
             },
             port: {
                 value: 60000,
+                required: true,
+                validate: RED.validators.number()
+            },
+            maxItems: { 
+                value: 25,
                 required: true,
                 validate: RED.validators.number()
             }
