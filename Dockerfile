@@ -11,5 +11,5 @@ RUN npm install
 ## link dev code
 RUN npm link /usr/src/alexa-node/
 
-USER node-red
+# USER node-red
 

@@ -84,20 +84,20 @@ module.exports = function(RED) {
 
     // set color
     if (msg.payload.xy) {
-      RED.log.debug(this.name + ' - Setting values on xy: ' + msg.payload.xy);
+      RED.log.debug(node.name + ' - Setting values on xy: ' + msg.payload.xy);
       node.setConnectionStatusMsg('blue', 'xy: ' + msg.payload.xy);
       msg.payload.command = 'color';
     }
     // Dimming or Temperature command
     if (msg.payload.bri) {
-      RED.log.debug(this.name + ' - Setting values on bri');
+      RED.log.debug(node.name + ' - Setting values on bri');
       msg.payload.on = msg.payload.bri > 0;
       msg.payload.command = 'dim';
       node.setConnectionStatusMsg('blue',
           'bri:' + msg.payload.bri
       );
     } else {
-      RED.log.debug(this.name + ' - Setting values on On/Off');
+      RED.log.debug(node.name + ' - Setting values on On/Off');
       let isOn = false;
       if (typeof msg.payload === 'object') {
         isOn = msg.payload.on;
@@ -126,8 +126,8 @@ module.exports = function(RED) {
     }
 
     msg.payload.bri_normalized = Math.round(msg.payload.bri / 254.0 * 100.0);
-    msg.device_name = this.name;
-    msg.light_id = this.id;
+    msg.device_name = node.name;
+    msg.light_id = node.id;
 
     node.state = msg.payload.on;
     node.bri = msg.payload.bri;
@@ -136,11 +136,11 @@ module.exports = function(RED) {
       node.xy = [0, 0];
     }
     if (msg.inputTrigger && !msg.output) {
-      RED.log.debug(this.name + ' - Set values on input');
+      RED.log.debug(node.name + ' - Set values on input');
       return;
     }
 
-    RED.log.debug(this.name + ' - sending values');
+    RED.log.debug(node.name + ' - sending values');
 
     node.send(msg);
   };

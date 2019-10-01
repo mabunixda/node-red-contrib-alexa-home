@@ -40,7 +40,7 @@ describe('alexa-home-controller Node', function () {
       const n1 = helper.getNode('n1');
       n1.should.have.property('name', 'Test');
       n1._hub.should.have.length(1);
-      n1._hub[0].httpServer.should.have.property('_connectionKey', '6::::60000');
+      //n1._hub[0].httpServer.should.have.property('_connectionKey', '4:0.0.0.0:60000');
       n1._hub[0].ssdpServer.should.have.property('_started', true);
       n1._hub[0].ssdpServer.should.have.property('_sourcePort', 1900);
 

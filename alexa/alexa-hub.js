@@ -17,16 +17,21 @@ function AlexaHub(controller, port, id) {
 
   const protocol = 'http';
   const options = undefined;
-  node.createServer( protocol, options);
-  node.startSsdp( protocol);
+  node.createServer(protocol, options);
+  node.startSsdp(protocol);
 }
 
 AlexaHub.prototype.createServer = function(protocol, options) {
   const node = this;
   const app = express();
   node.app = app;
+  node.ip = '0.0.0.0';
+  if (process.env.ALEXA_IP !== undefined ) {
+    node.ip = process.env.ALEXA_IP;
+    node.controller.log('Using ' + node.ip + ' to listing to alexa commands');
+  }
   node.httpServer = require(protocol).createServer(options, app);
-  node.server = node.httpServer.listen(node.port, function(error) {
+  node.server = node.httpServer.listen(node.port, node.ip, function(error) {
     app.on('error', function(error) {
       node.controller.log(error);
       return;
@@ -37,13 +42,16 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     app.use(function(err, req, res, next) {
       if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         node.controller.log('Error: Invalid JSON request: ' +
-                             JSON.stringify(err.body));
+          JSON.stringify(err.body));
       }
       next();
     });
 
     app.use(function(req, res, next) {
-      node.controller.log(node.port + '/' + req.method + ' -> ' + req.url);
+      node.controller.log(req.connection.remoteAddress + '-' +
+      node.port + '/' +
+      req.method + ' -> ' +
+      req.url);
       if (Object.keys(req.body).length > 0) {
         node.controller.debug('Request body: ' + JSON.stringify(req.body));
       }
@@ -101,7 +109,7 @@ AlexaHub.prototype.stopServers = function() {
     node.controller.log('stopped http');
   });
 };
-AlexaHub.prototype.startSsdp = function( protocol) {
+AlexaHub.prototype.startSsdp = function(protocol) {
   const node = this;
   node.controller.log(node.id + ' - alexa-home - Starting SSDP');
   const hueuuid = node.controller.formatHueBridgeUUID(node.id);
@@ -119,7 +127,9 @@ AlexaHub.prototype.startSsdp = function( protocol) {
   node.ssdpServer.reuseAddr = true;
   node.ssdpServer.start();
 
-  node.controller.log(node.id + ' - announcing: ' + protocol + '://*:' + node.port + '/alexa-home/setup.xml');
+  node.controller.log(node.id + ' - announcing: ' +
+  protocol + '://*:' +
+  node.port + '/alexa-home/setup.xml');
 };
 
 
