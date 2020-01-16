@@ -18,7 +18,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
-    "mustache": "^3.1.0",
+    "mustache": "^4.0.0",
     "node-ssdp": "4.0.0",
     "supertext": "^1.0.0"
   },
