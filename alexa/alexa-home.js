@@ -1,4 +1,4 @@
-module.exports = function (RED) {
+module.exports = function(RED) {
   'use strict';
   const alexaHome = require('./alexa-helper');
 
@@ -24,12 +24,12 @@ module.exports = function (RED) {
     node.bri = alexaHome.bri_default;
     node.xy = [0, 0];
 
-    node.on('input', function (msg) {
+    node.on('input', function(msg) {
       msg.inputTrigger = true;
       node.processCommand(msg);
     });
 
-    node.on('close', function (done) {
+    node.on('close', function(done) {
       if (node.controller) {
         node.controller.deregisterCommand(node);
       }
@@ -46,9 +46,9 @@ module.exports = function (RED) {
     node.setConnectionStatusMsg('red', 'No Alexa Home Controller available');
   }
 
-  AlexaHomeNode.prototype.setConnectionStatusMsg = function (color,
-    text,
-    shape) {
+  AlexaHomeNode.prototype.setConnectionStatusMsg = function(color,
+      text,
+      shape) {
     shape = shape || 'dot';
     this.status({
       fill: color,
@@ -57,13 +57,13 @@ module.exports = function (RED) {
     });
   };
 
-  AlexaHomeNode.prototype.updateController = function (controllerNode) {
+  AlexaHomeNode.prototype.updateController = function(controllerNode) {
     const node = this;
     node.controller = controllerNode;
     node.setConnectionStatusMsg('green', 'Ok');
   };
 
-  AlexaHomeNode.prototype.processCommand = function (msg) {
+  AlexaHomeNode.prototype.processCommand = function(msg) {
     const node = this;
 
     if (node.controller == null || node.controller == undefined) {
@@ -94,7 +94,7 @@ module.exports = function (RED) {
       msg.payload.on = msg.payload.bri > 0;
       msg.payload.command = 'dim';
       node.setConnectionStatusMsg('blue',
-        'bri:' + msg.payload.bri,
+          'bri:' + msg.payload.bri,
       );
     } else {
       RED.log.debug(node.name + ' - Setting values on On/Off');
@@ -119,8 +119,8 @@ module.exports = function (RED) {
         msg.payload.command = 'switch';
         // Node status
         node.setConnectionStatusMsg(
-          'blue',
-          (isOn ? 'On' : 'Off'),
+            'blue',
+            (isOn ? 'On' : 'Off'),
         );
       }
     }
