@@ -3,10 +3,10 @@ module.exports = function(RED) {
   const alexaHome = require('./alexa-helper');
 
   /**
-  * creates a node which is reflected as command in alexa
-  * @constructor
-  * @param {map} config configuration injected by node-red
-  **/
+   * creates a node which is reflected as command in alexa
+   * @constructor
+   * @param {map} config configuration injected by node-red
+   **/
   function AlexaHomeNode(config) {
     RED.nodes.createNode(this, config);
 
@@ -94,7 +94,7 @@ module.exports = function(RED) {
       msg.payload.on = msg.payload.bri > 0;
       msg.payload.command = 'dim';
       node.setConnectionStatusMsg('blue',
-          'bri:' + msg.payload.bri
+          'bri:' + msg.payload.bri,
       );
     } else {
       RED.log.debug(node.name + ' - Setting values on On/Off');
@@ -120,7 +120,7 @@ module.exports = function(RED) {
         // Node status
         node.setConnectionStatusMsg(
             'blue',
-            (isOn ? 'On' : 'Off')
+            (isOn ? 'On' : 'Off'),
         );
       }
     }
