@@ -28,7 +28,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-standard": "^4.0.1",
     "js-yaml": ">=3.13.1",
-    "node-red": "^1.0.5",
+    "node-red": "^1.0.6",
     "node-red-node-test-helper": "^0.2.3",
     "should": "^13.2.3",
     "supertext": "^1.0.0"
