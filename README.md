@@ -2,7 +2,7 @@
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/mabunixda/node-red-contrib-alexa-home.svg)](https://greenkeeper.io/)
 
-[![Build Status](https://travis-ci.org/mabunixda/node-red-contrib-alexa-home.svg?branch=master)](https://travis-ci.org/mabunixda/node-red-contrib-alexa-home)
+![Build and Publish](https://github.com/mabunixda/node-red-contrib-alexa-home/workflows/Build%20and%20Publish/badge.svg)
 
 The node just works wihtin your local network - no extra cloud stuff is required.
 
