@@ -205,7 +205,7 @@ module.exports = function(RED) {
       request.connection.remoteAddress);
     node.setConnectionStatusMsg('yellow', request.params.itemType +
       ' list requested: ' + node._commands.size);
-      response.set({
+    response.set({
       'Content-Type': 'application/json; charset=utf-8',
     });
     response.send(node.stripSpace(content));
