@@ -102,16 +102,16 @@ module.exports = function(RED) {
     hub.stopServers(function() { });
   };
 
-  AlexaHomeController.prototype.test = function(req, res) {
-    res.set({
-      'Content-Type': 'text/plain',
-    });
+  AlexaHomeController.prototype.test = function(req, response) {
     let content = '--\n';
     const node = this;
     for (const [, v] of node._hub) {
       content += JSON.stringify(v) + '\n';
     }
-    res.send(content);
+    response.set({
+      'Content-Type': 'text/plain; charset=utf-8',
+    });
+    response.send(content);
   };
 
   AlexaHomeController.prototype.stripSpace = function(content) {
@@ -175,7 +175,7 @@ module.exports = function(RED) {
     const content = Mustache.render(template, data);
     node.setConnectionStatusMsg('green', 'registration succeded');
     response.set({
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     });
     response.send(content);
   };
@@ -205,8 +205,8 @@ module.exports = function(RED) {
       request.connection.remoteAddress);
     node.setConnectionStatusMsg('yellow', request.params.itemType +
       ' list requested: ' + node._commands.size);
-    response.set({
-      'Content-Type': 'application/json',
+      response.set({
+      'Content-Type': 'application/json; charset=utf-8',
     });
     response.send(node.stripSpace(content));
   };
@@ -235,7 +235,7 @@ module.exports = function(RED) {
       ' api information to ' + request.connection.remoteAddress);
     node.setConnectionStatusMsg('yellow', 'api requested');
     response.set({
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     });
     response.send(node.stripSpace(content));
   };
@@ -325,7 +325,7 @@ module.exports = function(RED) {
     const data = node.generateAPIDevice(uuid, targetNode);
     const output = Mustache.render(template, data).replace(/\s/g, '');
     response.set({
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     });
     response.send(output);
   };
@@ -355,7 +355,7 @@ module.exports = function(RED) {
     data.date = new Date().toISOString().split('.').shift();
     const output = Mustache.render(template, data).replace(/\s/g, '');
     response.set({
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     });
     response.send(output);
   };
