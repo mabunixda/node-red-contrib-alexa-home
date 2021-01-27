@@ -48,7 +48,7 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     });
 
     app.use(function(req, res, next) {
-      node.controller.log(req.connection.remoteAddress + '-' +
+      node.controller.debug(req.connection.remoteAddress + '-' +
       node.port + '/' +
       req.method + ' -> ' +
       req.url);
