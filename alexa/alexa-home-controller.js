@@ -198,7 +198,7 @@ module.exports = function(RED) {
       lights: node.generateAPIDeviceList(id),
       date: new Date().toISOString().split('.').shift(),
     };
-    const content = Mustache.render(template, data);
+    const content = Mustache.render(template, data).replace(/,?[^,]+_emptyIteratorStopper": \{\}/g, '');
     RED.log.debug(node.name + + '/' + id +
       ' - listing ' + request.params.username +
       ' #' + data.lights.length + ' api information to ' +
@@ -269,7 +269,7 @@ module.exports = function(RED) {
 
   AlexaHomeController.prototype.generateAPIDevice = function(uuid, node) {
     const defaultAttributes = {
-      on: node.state,
+      on: node.state || false,
       bri: node.bri,
       devicetype: node.devicetype,
       x: node.xy[0],
