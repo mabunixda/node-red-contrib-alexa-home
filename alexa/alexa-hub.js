@@ -26,7 +26,7 @@ AlexaHub.prototype.createServer = function(protocol, options) {
   const app = express();
   node.app = app;
   node.ip = '0.0.0.0';
-  if (process.env.ALEXA_IP !== undefined ) {
+  if (process.env.ALEXA_IP !== undefined) {
     node.ip = process.env.ALEXA_IP;
     node.controller.log('Using ' + node.ip + ' to listing to alexa commands');
   }
@@ -37,7 +37,9 @@ AlexaHub.prototype.createServer = function(protocol, options) {
       return;
     });
 
-    app.use(bodyParser.json({type: '*/*'}));
+    app.use(bodyParser.json({
+      type: '*/*',
+    }));
 
     app.use(function(err, req, res, next) {
       if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
@@ -48,10 +50,10 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     });
 
     app.use(function(req, res, next) {
-      node.controller.debug(req.connection.remoteAddress + '-' +
-      node.port + '/' +
-      req.method + ' -> ' +
-      req.url);
+      node.controller.log(req.connection.remoteAddress + '-' +
+        node.port + '/' +
+        req.method + ' -> ' +
+        req.url);
       if (Object.keys(req.body).length > 0) {
         node.controller.debug('Request body: ' + JSON.stringify(req.body));
       }
@@ -114,12 +116,16 @@ AlexaHub.prototype.startSsdp = function(protocol) {
   node.controller.log(node.id + ' - alexa-home - Starting SSDP');
   const hueuuid = node.controller.formatHueBridgeUUID(node.id);
   const Ssdp = require('node-ssdp').Server;
-  node.ssdpServer = new Ssdp({
-    location: {
+  let location = process.env.ALEXA_URI + '/alexa-home/setup.xml';
+  if (process.env.ALEXA_URI == undefined) {
+    location = {
       protocol: protocol + '://',
       port: node.port,
       path: '/alexa-home/setup.xml',
-    },
+    };
+  }
+  node.ssdpServer = new Ssdp({
+    location: location,
     udn: 'uuid:' + hueuuid,
   });
   node.ssdpServer.addUSN('upnp:rootdevice');
@@ -127,9 +133,7 @@ AlexaHub.prototype.startSsdp = function(protocol) {
   node.ssdpServer.reuseAddr = true;
   node.ssdpServer.start();
 
-  node.controller.log(node.id + ' - announcing: ' +
-  protocol + '://*:' +
-  node.port + '/alexa-home/setup.xml');
+  node.controller.log(node.id + ' - announcing location is ' + location);
 };
 
 
