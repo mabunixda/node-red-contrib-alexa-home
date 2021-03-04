@@ -10,6 +10,4 @@ globals:
   SharedArrayBuffer: readonly
 parserOptions:
   ecmaVersion: 2018
-rules: {
-  "max-len": ["warn", {"code": 80}]
-}
+rules: {}

@@ -26,6 +26,7 @@
     "eslint": "^7.21.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-standard": "^5.0.0",
+    "node-red": "^1.2.9",
     "node-red-node-test-helper": "^0.2.7",
     "should": "^13.2.3",
     "supertest": "^6.1.3"
