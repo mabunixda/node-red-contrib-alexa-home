@@ -53,6 +53,6 @@ jobs:
           changelog-file: CHANGELOG.md
       - name: Publish
         if: steps.semrel.outputs.version != ''
-      - run: npm publish
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
