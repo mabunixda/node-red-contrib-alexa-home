@@ -1,5 +1,7 @@
-.travis.yml
-*.md
 Dockerfile
 Makefile
+data
+node_modules
+.travis.yml
+*.md
 *.sh

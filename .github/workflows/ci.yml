@@ -1,0 +1,57 @@
+name: CI
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        node: [10, 12]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/checkout@master
+      - name: Shell Linter
+        uses: azohra/shell-linter@v0.3.0
+      - name: Cache node_modules
+        id: cache-modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.OS }}-build-${{ hashFiles('package.json') }}
+      - name: install check deps
+        run: npm install npm-check mocha eslint
+      - name: npm-check
+        run: ./node_modules/npm-check/bin/cli.js --skip-unused
+      - name: eslint
+        run: ./scripts/lint.sh
+      - run: npm ci
+      - run: npm test
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: 'https://registry.npmjs.org'
+      - uses: go-semantic-release/action@v1
+        id: semrel
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          update-file: package.json
+          changelog-generator-opt: "emojis=true"
+      - run: npm publish
+        if: steps.semrel.outputs.version != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
