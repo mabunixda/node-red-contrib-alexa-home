@@ -198,12 +198,8 @@ module.exports = function(RED) {
       lights: node.generateAPIDeviceList(id),
       date: new Date().toISOString().split('.').shift(),
     };
-<<<<<<< HEAD
     const content = Mustache.render(template, data)
         .replace(/(\{\s+)?,?[^,]+_emptyIteratorStopper": \{\}/g, '$1');
-=======
-    const content = Mustache.render(template, data).replace(/(\{\s+)?,?[^,]+_emptyIteratorStopper": \{\}/g, '$1');
->>>>>>> master
     RED.log.debug(node.name + + '/' + id +
       ' - listing ' + request.params.username +
       ' #' + data.lights.length + ' api information to ' +
