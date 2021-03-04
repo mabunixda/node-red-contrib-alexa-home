@@ -1,12 +1,16 @@
 # node-red-contrib-alexa-home
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/mabunixda/node-red-contrib-alexa-home.svg)](https://greenkeeper.io/)
 
-![Build and Publish](https://github.com/mabunixda/node-red-contrib-alexa-home/workflows/Build%20and%20Publish/badge.svg)
+[![CI](https://github.com/mabunixda/node-red-contrib-alexa-home/actions/workflows/ci.yml/badge.svg)](https://github.com/mabunixda/node-red-contrib-alexa-home/actions/workflows/ci.yml)
+
+[![Known Vulnerabilities](https://snyk.io/test/github/mabunixda/node-red-contrib-alexa-home/badge.svg)](https://snyk.io/test/github/mabunixda/node-red-contrib-alexa-home)
+
+[npmjs package registry](https://www.npmjs.com/package/node-red-contrib-alexa-home)
 
 The node just works wihtin your local network - no extra cloud stuff is required.
 
 ## Installation
+
 Install directory from your Node-RED Settings Pallete
 
 or
@@ -15,14 +19,14 @@ Install using npm
 
     $ npm install node-red-contrib-alexa-home
 
-## Alexa Generation 3 devices 
+## Alexa Generation 3 devices
 
 Alexa devices of generation #3 are not using the information used within the detection process.
 They do rely that all communication is done on port 80! To estatlish this you got 2 different ways to go.
 
 ### ALEXA_PORT and running as root
 
-You must define an environment variable **ALEXA_PORT** and set its value to 80. When running node-red as systemd unit as 
+You must define an environment variable **ALEXA_PORT** and set its value to 80. When running node-red as systemd unit as
 
 `
 Environment=ALEXA_PORT=80
