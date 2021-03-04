@@ -50,7 +50,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           update-file: package.json
-          changelog-generator-opt: "emojis=true"
+          changelog-file: CHANGELOG.md
       - run: npm publish
         if: steps.semrel.outputs.version != ''
         env:
