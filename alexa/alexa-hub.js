@@ -39,7 +39,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
     });
 
     app.use(bodyParser.json({
-      type: '*/*'
+      type: '*/*',
     }));
 
     app.use(function (err, req, res, next) {
@@ -50,7 +50,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
       next();
     });
 
-    app.use(function (req, res, next) {
+    app.use(function(req, res, next) {
       node.controller.log(req.connection.remoteAddress + '-' +
         node.port + '/' +
         req.method + ' -> ' +
@@ -117,13 +117,13 @@ AlexaHub.prototype.startSsdp = function (protocol) {
   node.controller.log(node.id + ' - alexa-home - Starting SSDP');
   const hueuuid = node.controller.formatHueBridgeUUID(node.id);
   const Ssdp = require('node-ssdp').Server;
-  var location = process.env.ALEXA_URI + '/alexa-home/setup.xml'
+  let location = process.env.ALEXA_URI + '/alexa-home/setup.xml';
   if (process.env.ALEXA_URI == undefined) {
     location = {
       protocol: protocol + '://',
       port: node.port,
       path: '/alexa-home/setup.xml',
-    }
+    };
   }
   node.ssdpServer = new Ssdp({
     location: location,
