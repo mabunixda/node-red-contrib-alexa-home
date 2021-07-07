@@ -164,7 +164,7 @@
 <a name="1.1.3"></a>
 # [Fix detection of gen3 devices (1.1.3)](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/1.1.3) - 02 Sep 2019
 
-Thanks to @nepee for the input to fix some json stuff within the detection process. 
+Thanks to @nepee for the input to fix some json stuff within the detection process.
 
 
 [Changes][1.1.3]
@@ -173,9 +173,9 @@ Thanks to @nepee for the input to fix some json stuff within the detection proce
 <a name="1.1.2"></a>
 # [Codecleanup + Registration fix for gen3 devices (1.1.2)](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/1.1.2) - 29 Aug 2019
 
-Internal Code cleanup because of introduction of linting the Code... but 
+Internal Code cleanup because of introduction of linting the Code... but
 
-Also take fix from [derSebbl](https://github.com/mabunixda/node-red-contrib-alexa-home/issues/16#issuecomment-526085758) to get Alexa Gen3 devices to work and hopefully fix #16 
+Also take fix from [derSebbl](https://github.com/mabunixda/node-red-contrib-alexa-home/issues/16#issuecomment-526085758) to get Alexa Gen3 devices to work and hopefully fix #16
 
 The change of the port is not made per default, because i expect not everybody to have port 80 open and available. It might also cause permissions problems, because that port might not be used by a default linux user e.g.
 
@@ -218,7 +218,7 @@ Also a finding was that alexa does not support endless response bodies. To get a
 <a name="1.0.3"></a>
 # [fix ssdp location announcement (1.0.3)](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/1.0.3) - 10 Jun 2019
 
-fix #16 
+fix #16
 
 [Changes][1.0.3]
 
@@ -247,6 +247,7 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
+=======
 [v1.4.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.4...v1.4.0
 [v1.3.4]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.3...v1.3.4
 [v1.3.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.2...v1.3.3
