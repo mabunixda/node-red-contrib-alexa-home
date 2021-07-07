@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        node: [10, 12]
+        node: [10, 12, 14]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -57,6 +57,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       - uses: rhysd/changelog-from-release/action@v2
+        if: steps.semrel.outputs.version != ''
         with:
           file: CHANGELOG.md
           github_token: ${{ secrets.GITHUB_TOKEN }}
