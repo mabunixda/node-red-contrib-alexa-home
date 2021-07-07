@@ -247,11 +247,9 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
-<<<<<<< HEAD
 =======
 [v1.4.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.4...v1.4.0
 [v1.3.4]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.3...v1.3.4
->>>>>>> master
 [v1.3.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.2...v1.3.3
 [v1.3.2]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.1...v1.3.2
 [v1.3.1]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.0...v1.3.1
