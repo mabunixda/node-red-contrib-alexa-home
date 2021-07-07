@@ -1,3 +1,108 @@
+<a name="v1.4.0"></a>
+# [v1.4.0](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v1.4.0) - 07 Jul 2021
+
+## 1.4.0 (2021-07-07)
+
+#### Feature
+
+* update to semantic versioning (96a3b9fd)
+
+#### Bug Fixes
+
+* ci release bugs (448f50a4)
+* valid gh actions def (3dfbb696)
+* cicd changelog automation (921a6861)
+* merge artifacts... (efeb9044)
+* missing supertest dependency... (91d5b8d2)
+* updates from master (73d9dc7e)
+* revert linting script (be247603)
+* ci gh action (c3dce598)
+* allow linting bypass argument 1 (a51a240b)
+* upgrade mustache from 4.0.1 to 4.1.0 (#85) (65c476db)
+* upgrade mustache from 4.0.1 to 4.1.0 (#85) (279d50f7)
+* package update and set all responses to utf-8 (#83) (fc745d61)
+* pin node-red-node-test-helper to 0.2.2 (#35) (2cd2613d)
+* **package:** update mustache to version 3.0.2 (3b0ca3d1)
+* **package:** update node-persist to version 3.0.0 (512c95c0)
+
+#### Documentation
+
+* **readme:** add Greenkeeper badge (487944f4)
+
+#### Code Refactoring
+
+* ci update (#97) (1dbbf227)
+* also update changelog file (04013cf6)
+* github actions magic (0eb4824c)
+* github actions split (edd78182)
+
+#### Chores
+
+* **package:** update lockfile package-lock.json (8fcc0427)
+
+#### doc
+
+* update readme (6fec0210)
+
+#### linting
+
+* fix eslint not globally installed (497f00e0)
+
+#### ghaction
+
+* fix linter (95a63c66)
+* fix linter (4fa0cd2e)
+* introduction and remove traevis (96fa859b)
+* introduction and remove traevis (4efdf747)
+
+#### wip
+
+* fix limitations .. unit tests (6ab82b2a)
+* fix limitation of about 33 devices... (d759c147)
+* fix limitation of about 33 devices... (36466dc8)
+
+
+
+[Changes][v1.4.0]
+
+
+<a name="v1.3.4"></a>
+# [v1.3.4](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v1.3.4) - 07 Jul 2021
+
+## 1.3.4 (2021-07-07)
+
+#### Bug Fixes
+
+* upgrade mustache from 4.1.0 to 4.2.0 (#95) (48b81f81)
+
+
+
+[Changes][v1.3.4]
+
+
+<a name="v1.3.3"></a>
+# [v1.3.3](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v1.3.3) - 07 Jul 2021
+
+## 1.3.3 (2021-07-07)
+
+#### Bug Fixes
+
+* ci release bugs (448f50a4)
+
+#### Code Refactoring
+
+* ci update (#97) (1dbbf227)
+* also update changelog file (04013cf6)
+
+#### doc
+
+* update readme (6fec0210)
+
+
+
+[Changes][v1.3.3]
+
+
 <a name="v1.3.2"></a>
 # [v1.3.2](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v1.3.2) - 04 Mar 2021
 
@@ -142,6 +247,9 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
+[v1.4.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.4...v1.4.0
+[v1.3.4]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.3...v1.3.4
+[v1.3.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.2...v1.3.3
 [v1.3.2]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.1...v1.3.2
 [v1.3.1]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v1.3.0...v1.3.1
 [v1.3.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/1.1.3...v1.3.0
