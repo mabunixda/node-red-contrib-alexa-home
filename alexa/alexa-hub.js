@@ -2,6 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+require('./alexa-home');
 /**
  * Hub to create communication with alexa devices
  * @constructor
