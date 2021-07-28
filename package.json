@@ -21,7 +21,7 @@
     "mustache": "^4.2.0",
     "node-ssdp": "^4.0.1",
     "npm-check": "^5.9.2",
-    "snyk": "^1.657.0"
+    "snyk": "^1.667.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
