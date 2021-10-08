@@ -4,7 +4,13 @@ const helper = require('node-red-node-test-helper');
 const controllerNode = require('../alexa/alexa-home-controller.js');
 const alexaNode = require('../alexa/alexa-home.js');
 
-const hubPort = 60000;
+
+
+function between(min, max) {
+  return Math.floor(
+    Math.random() * (max - min) + min
+  )
+}
 
 function IsJsonString(str) {
   try {
@@ -35,6 +41,7 @@ describe('alexa-home-controller Node', function () {
   });
 
   it('should be loaded with correct default params', function (done) {
+    hubPort = between(50000, 60000);
     const flow = [{ id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort }];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');
@@ -54,6 +61,7 @@ describe('alexa-home-controller Node', function () {
     });
   });
   it('should respond to setup request', function (done) {
+    hubPort = between(50000, 60000);
     const flow = [{ id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort }];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');
@@ -70,6 +78,7 @@ describe('alexa-home-controller Node', function () {
     });
   });
   it('should respond to config request', function (done) {
+    hubPort = between(50000, 60000);
     const flow = [
       { id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort },
     ];
@@ -93,6 +102,7 @@ describe('alexa-home-controller Node', function () {
     });
   });
   it('should respond to lights request', function (done) {
+    hubPort = between(50000, 60000);
     const flow = [
       { id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort },
     ];
@@ -116,6 +126,7 @@ describe('alexa-home-controller Node', function () {
     });
   });
   it('should respond to registration request', function (done) {
+    hubPort = between(50000, 60000);
     const flow = [
       { id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort },
     ];
