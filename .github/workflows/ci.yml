@@ -30,8 +30,6 @@ jobs:
           key: ${{ runner.OS }}-build-${{ hashFiles('package.json') }}
       - name: install check deps
         run: npm install npm-check mocha eslint
-      - name: npm-check
-        run: ./node_modules/npm-check/bin/cli.js --skip-unused
       - name: eslint
         run: ./scripts/lint.sh
       - run: npm ci
@@ -43,7 +41,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
           registry-url: 'https://registry.npmjs.org'
       - uses: go-semantic-release/action@v1
         id: semrel
