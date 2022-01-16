@@ -9,7 +9,6 @@ module.exports = function(RED) {
    **/
   function AlexaHomeNode(config) {
     RED.nodes.createNode(this, config);
-
     const node = this;
     node.name = config.devicename;
     node.control = config.control;
@@ -23,6 +22,7 @@ module.exports = function(RED) {
     node.state = false;
     node.bri = alexaHome.bri_default;
     node.xy = [0, 0];
+    node.uniqueid = node.generateUniqueId(config.id);
 
     node.on('input', function(msg) {
       msg.inputTrigger = true;
@@ -143,6 +143,15 @@ module.exports = function(RED) {
     RED.log.debug(node.name + ' - sending values');
 
     node.send(msg);
+  };
+
+  AlexaHomeNode.prototype.generateUniqueId = function(uuid) {
+    let i = 9;
+    const base = '00:11:22:33:44:55:66:77-88';
+    const nodeid = uuid.split('');
+    const uniqueid = base.replace(/\d/g, () =>
+      nodeid.shift() || Math.max(--i, 0), 'g');
+    return uniqueid;
   };
 
   RED.nodes.registerType('alexa-home', AlexaHomeNode);

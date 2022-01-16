@@ -24,6 +24,9 @@ module.exports = function(RED) {
     } else {
       node.port = parseInt(config.port);
     }
+    const mac = node.generateMacAddress(config.id);
+    node.macaddress = mac;
+    node.bridgeid = node.getBridgeIdFromMacAddress(mac);
     node.maxItems = config.maxItems;
     node._commands = new Map();
     node._hub = [];
@@ -56,6 +59,21 @@ module.exports = function(RED) {
     });
     node.setConnectionStatusMsg('green', 'Ok');
   }
+
+  AlexaHomeController.prototype.generateMacAddress = function(id) {
+    let i = 9;
+    const base = '00:11:22:33:44:55';
+    const nodeid = id.replace(/[^a-fA-F0-9]/g, 'f').toUpperCase().split('');
+    const bridgeid = base.replace(/\d/g, () =>
+      nodeid.shift() || Math.max(--i, 0), 'g');
+    return bridgeid;
+  };
+
+  AlexaHomeController.prototype.getBridgeIdFromMacAddress = function(mac) {
+    const id = mac.replace(/[:]/g, '');
+    const bridgeid = id.slice(0, 6) + 'FFFE' + id.slice(6);
+    return bridgeid;
+  };
 
   AlexaHomeController.prototype.getDevices = function() {
     const node = this;
@@ -212,26 +230,57 @@ module.exports = function(RED) {
     response.send(node.stripSpace(content));
   };
 
+  AlexaHomeController.prototype.handleConfigList = function(id,
+      request,
+      response) {
+    const node = this;
+
+    RED.log.debug(node.name + '/' + id + ' - Handling Config listing request');
+    const config = fs.readFileSync(__dirname +
+      '/templates/items/config.json', 'utf8').toString();
+    const data = {
+      address: request.hostname,
+      username: request.params.username,
+      date: new Date().toISOString().split('.').shift(),
+      bridgeid: node.bridgeid,
+      macaddress: node.macaddress,
+    };
+    const content = Mustache.render(config, data);
+    RED.log.debug(node.name + '/' + id + ' - Sending ' +
+      (request.params.username ? 'full ': '') +
+      'config information to ' + request.connection.remoteAddress);
+    node.setConnectionStatusMsg('yellow', 'config requested');
+    response.set({
+      'Content-Type': 'application/json; charset=utf-8',
+    });
+    response.send(node.stripSpace(content));
+  };
+
   AlexaHomeController.prototype.handleApiCall = function(id,
       request,
       response) {
     const node = this;
 
-    RED.log.debug(node.name + '/' + id + ' - Hanlding API listing request');
+    RED.log.debug(node.name + '/' + id + ' - Handling API listing request');
     const responseTemplate = fs.readFileSync(__dirname +
       '/templates/response.json', 'utf8').toString();
     const lights = fs.readFileSync(__dirname +
       '/templates/items/list.json', 'utf8').toString();
+    const config = fs.readFileSync(__dirname +
+      '/templates/items/config.json', 'utf8').toString();
     const data = {
       lights: node.generateAPIDeviceList(id),
       address: request.hostname,
       username: request.params.username,
       date: new Date().toISOString().split('.').shift(),
+      bridgeid: node.bridgeid,
+      macaddress: node.macaddress,
     };
     const content = Mustache.render(responseTemplate, data, {
       itemsTemplate: lights,
+      configTemplate: config,
     });
-    RED.log.debug(node.name + + '/' + id + ' - Sending ' +
+    RED.log.debug(node.name + '/' + id + ' - Sending ' +
       request.params.username + ' #' + data.lights.length +
       ' api information to ' + request.connection.remoteAddress);
     node.setConnectionStatusMsg('yellow', 'api requested');
@@ -279,6 +328,7 @@ module.exports = function(RED) {
       sat: 254,
       ct: 199,
       colormode: 'ct',
+      uniqueid: node.uniqueid,
     };
 
     return defaultAttributes;
