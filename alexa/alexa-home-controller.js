@@ -218,7 +218,7 @@ module.exports = function(RED) {
     };
     const content = Mustache.render(template, data)
         .replace(/(\{\s+)?,?[^,]+_emptyIteratorStopper": \{\}/g, '$1');
-    RED.log.debug(node.name + + '/' + id +
+    RED.log.debug(node.name + '/' + id +
       ' - listing ' + request.params.username +
       ' #' + data.lights.length + ' api information to ' +
       request.connection.remoteAddress);
