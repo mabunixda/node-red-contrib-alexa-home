@@ -16,6 +16,8 @@ function AlexaHub(controller, port, id) {
   node.id = id;
   node.port = port + id;
 
+  node.willClose = false;
+
   const protocol = 'http';
   const options = undefined;
   node.createServer(protocol, options);
@@ -57,6 +59,11 @@ AlexaHub.prototype.createServer = function(protocol, options) {
         req.url);
       if (Object.keys(req.body).length > 0) {
         node.controller.debug('Request body: ' + JSON.stringify(req.body));
+      }
+      if (node.willClose) {
+        res.set('Connection', 'close');
+        res.status(503).json({error: 'Temporarly Unavailable'});
+        return;
       }
       next();
     });
@@ -113,6 +120,7 @@ AlexaHub.prototype.createServer = function(protocol, options) {
 
 AlexaHub.prototype.stopServers = function() {
   const node = this;
+  node.willClose = true;
   node.controller.log('Stopping ssdp');
   node.ssdpServer.stop();
   node.controller.log('Stopping app');
