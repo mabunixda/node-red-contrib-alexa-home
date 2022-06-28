@@ -22,16 +22,20 @@
     "node-ssdp": "^4.0.1"
   },
   "devDependencies": {
-    "babel-eslint": "^10.1.0",
+    "@babel/eslint-parser": "^7.5.4",
     "eslint": "^8.18.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.3",
+    "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
-    "npm-check": "^5.9.2",
     "node-red": "^2.2.2",
     "node-red-node-test-helper": "^0.3.0",
+    "npm-check": "^5.9.2",
     "should": "^13.2.3",
-    "supertest": "^6.2.3",
-    "snyk": "^1.958.0"
+    "snyk": "^1.961.0",
+    "supertest": "^6.2.3"
   },
   "scripts": {
     "test": "mocha \"test/**/*_spec.js\"",

@@ -5,6 +5,8 @@ if hash docker ; then
     cmd="docker"
 fi
 
+$cmd pull docker.io/nodered/node-red:latest-minimal
+
 $cmd run \
     -u root \
     --rm -it \

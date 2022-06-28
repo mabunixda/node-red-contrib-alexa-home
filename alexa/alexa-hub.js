@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const express = require('express');
-const bodyParser = require('body-parser');
-require('./alexa-home');
+const express = require('express')
+const bodyParser = require('body-parser')
+require('./alexa-home')
 /**
  * Hub to create communication with alexa devices
  * @constructor
@@ -10,148 +10,148 @@ require('./alexa-home');
  * @param {number} port - base port where controllerhub starts
  * @param {number} id - counting number which is maintained in controller node
  */
-function AlexaHub(controller, port, id) {
-  const node = this;
-  node.controller = controller;
-  node.id = id;
-  node.port = port + id;
+function AlexaHub (controller, port, id) {
+  const node = this
+  node.controller = controller
+  node.id = id
+  node.port = port + id
 
-  const protocol = 'http';
-  const options = undefined;
-  node.startSsdp(protocol);
-  if(node.controller.useNode) {
+  const protocol = 'http'
+  const options = undefined
+  node.startSsdp(protocol)
+  if (node.controller.useNode) {
     return
   }
-  node.createServer(protocol, options);
+  node.createServer(protocol, options)
 }
 
-AlexaHub.prototype.createServer = function(protocol, options) {
-  const node = this;
-  const app = express();
-  node.app = app;
-  node.ip = '0.0.0.0';
+AlexaHub.prototype.createServer = function (protocol, options) {
+  const node = this
+  const app = express()
+  node.app = app
+  node.ip = '0.0.0.0'
   if (process.env.ALEXA_IP !== undefined) {
-    node.ip = process.env.ALEXA_IP;
-    node.controller.log('Using ' + node.ip + ' to listing to alexa commands');
+    node.ip = process.env.ALEXA_IP
+    node.controller.log('Using ' + node.ip + ' to listing to alexa commands')
   }
-  node.httpServer = require(protocol).createServer(options, app);
-  node.server = node.httpServer.listen(node.port, node.ip, function(error) {
-    app.on('error', function(error) {
-      node.controller.log(error);
-      return;
-    });
+  node.httpServer = require(protocol).createServer(options, app)
+  node.server = node.httpServer.listen(node.port, node.ip, function (error) {
+    if (error) {
+      node.controller.log(error)
+    }
+    app.on('error', function (error) {
+      node.controller.log(error)
+    })
 
     app.use(bodyParser.json({
-      type: '*/*',
-    }));
+      type: '*/*'
+    }))
 
-    app.use(function(err, req, res, next) {
+    app.use(function (err, req, res, next) {
       if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         node.controller.log('Error: Invalid JSON request: ' +
-          JSON.stringify(err.body));
+          JSON.stringify(err.body))
       }
-      next();
-    });
+      next()
+    })
 
-    app.use(function(req, res, next) {
-
-      let alexa_ip = req.headers['x-forwarded-for'] ||
+    app.use(function (req, res, next) {
+      const alexaIp = req.headers['x-forwarded-for'] ||
                      req.connection.remoteAddress ||
                      req.socket.remoteAddress ||
                      req.connection.socket.remoteAddress ||
-                     undefined;
+                     undefined
 
-      req.alexa_ip = alexa_ip;
+      req.alexaIp = alexaIp
 
-      node.controller.log('Request data: ' + alexa_ip + '-' +
+      node.controller.log('Request data: ' + alexaIp + '-' +
         node.port + '/' +
         req.method + ' -> ' +
-        req.url);
+        req.url)
       if (Object.keys(req.body).length > 0) {
-        node.controller.debug('Request body: ' + JSON.stringify(req.body));
+        node.controller.debug('Request body: ' + JSON.stringify(req.body))
       }
 
-      return next();
-    });
+      return next()
+    })
 
-    app.get('/', function(req, res) {
-      node.controller.handleIndex(node.id, req, res);
-    });
+    app.get('/', function (req, res) {
+      node.controller.handleIndex(node.id, req, res)
+    })
 
-    app.get('/alexa-home/setup.xml', function(req, res) {
-      node.controller.handleSetup(node.id, req, res);
-    });
+    app.get('/alexa-home/setup.xml', function (req, res) {
+      node.controller.handleSetup(node.id, req, res)
+    })
 
-    app.post('/api', function(req, res) {
-      node.controller.handleRegistration(node.id, req, res);
-    });
+    app.post('/api', function (req, res) {
+      node.controller.handleRegistration(node.id, req, res)
+    })
 
-    app.get('/api/', function(req, res) {
-      node.controller.handleApiCall(node.id, req, res);
-    });
+    app.get('/api/', function (req, res) {
+      node.controller.handleApiCall(node.id, req, res)
+    })
 
-    app.get('/api/:username', function(req, res) {
-      node.controller.handleApiCall(node.id, req, res);
-    });
+    app.get('/api/:username', function (req, res) {
+      node.controller.handleApiCall(node.id, req, res)
+    })
 
-    app.get('/api/:username/:itemType', function(req, res) {
-      node.controller.handleItemList(node.id, req, res);
-    });
+    app.get('/api/:username/:itemType', function (req, res) {
+      node.controller.handleItemList(node.id, req, res)
+    })
 
-    app.post('/api/:username/:itemType', function(req, res) {
-      node.controller.handleItemList(node.id, req, res);
-    });
+    app.post('/api/:username/:itemType', function (req, res) {
+      node.controller.handleItemList(node.id, req, res)
+    })
 
-    app.get('/api/:username/:itemType/new', function(req, res) {
-      node.controller.handleItemList(node.id, req, res);
-    });
+    app.get('/api/:username/:itemType/new', function (req, res) {
+      node.controller.handleItemList(node.id, req, res)
+    })
 
-    app.get('/api/:username/:itemType/:id', function(req, res) {
-      node.controller.getItemInfo(node.id, req, res);
-    });
+    app.get('/api/:username/:itemType/:id', function (req, res) {
+      node.controller.getItemInfo(node.id, req, res)
+    })
 
-    app.put('/api/:username/:itemType/:id/state', function(req, res) {
-      node.controller.controlItem(node.id, req, res);
-    });
-  });
-};
+    app.put('/api/:username/:itemType/:id/state', function (req, res) {
+      node.controller.controlItem(node.id, req, res)
+    })
+  })
+}
 
-AlexaHub.prototype.stopServers = function() {
-  const node = this;
-  node.controller.log('Stopping ssdp');
-  node.ssdpServer.stop();
-  if(!node.server) {
+AlexaHub.prototype.stopServers = function () {
+  const node = this
+  node.controller.log('Stopping ssdp')
+  node.ssdpServer.stop()
+  if (!node.server) {
     return
   }
-  node.controller.log('Stopping app');
-  node.server.close(function() {
-    node.controller.log('stopped http');
-  });
-};
-AlexaHub.prototype.startSsdp = function(protocol) {
-  const node = this;
-  node.controller.log(node.id + ' - alexa-home - Starting SSDP');
-  const hueuuid = node.controller.formatHueBridgeUUID(node.id);
-  const Ssdp = require('node-ssdp').Server;
-  let location = process.env.ALEXA_URI + '/alexa-home/setup.xml';
-  if (process.env.ALEXA_URI == undefined) {
+  node.controller.log('Stopping app')
+  node.server.close(function () {
+    node.controller.log('stopped http')
+  })
+}
+AlexaHub.prototype.startSsdp = function (protocol) {
+  const node = this
+  node.controller.log(node.id + ' - alexa-home - Starting SSDP')
+  const hueuuid = node.controller.formatHueBridgeUUID(node.id)
+  const Ssdp = require('node-ssdp').Server
+  let location = process.env.ALEXA_URI + '/alexa-home/setup.xml'
+  if (process.env.ALEXA_URI === undefined) {
     location = {
       protocol: protocol + '://',
       port: node.port,
-      path: '/alexa-home/setup.xml',
-    };
+      path: '/alexa-home/setup.xml'
+    }
   }
   node.ssdpServer = new Ssdp({
-    location: location,
-    udn: 'uuid:' + hueuuid,
-  });
-  node.ssdpServer.addUSN('upnp:rootdevice');
-  node.ssdpServer.addUSN('urn:schemas-upnp-org:device:basic:1');
-  node.ssdpServer.reuseAddr = true;
-  node.ssdpServer.start();
+    location,
+    udn: 'uuid:' + hueuuid
+  })
+  node.ssdpServer.addUSN('upnp:rootdevice')
+  node.ssdpServer.addUSN('urn:schemas-upnp-org:device:basic:1')
+  node.ssdpServer.reuseAddr = true
+  node.ssdpServer.start()
 
-  node.controller.log(node.id + ' - announcing location is ' + location);
-};
+  node.controller.log(node.id + ' - announcing location is ' + location)
+}
 
-
-module.exports = AlexaHub;
+module.exports = AlexaHub
