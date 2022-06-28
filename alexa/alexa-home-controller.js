@@ -50,34 +50,25 @@ module.exports = function (RED) {
     node.handleRegistration(node.id, req, res)
   })
 
-  RED.httpNode.get('/api/', function (req, res) {
+  RED.httpNode.post('/api/config', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
-    if (!node) {
+    if (node === undefined) {
       return
     }
-    node.handleApiCall(node.id, req, res)
+    node.handleConfigList(node.id, req, res)
   })
 
-  RED.httpNode.get('/api/:username', function (req, res) {
+  RED.httpNode.get('/api/:username/config', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (!node) {
       return
     }
-    node.handleApiCall(node.id, req, res)
+    node.handleConfigList(node.id, req, res)
   })
 
   RED.httpNode.get('/api/:username/:itemType', function (req, res) {
-    const nodeId = getControllerId()
-    const node = RED.nodes.getNode(nodeId)
-    if (!node) {
-      return
-    }
-    node.handleItemList(node.id, req, res)
-  })
-
-  RED.httpNode.post('/api/:username/:itemType', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (!node) {
@@ -125,9 +116,18 @@ module.exports = function (RED) {
     const node = this
     alexaHome.controllerNode = node
     node.name = config.controllername
+    if (config.port === undefined || config.port === null) {
+      node.port = alexaHome.hubPort
+    } else {
+      node.port = parseInt(config.port)
+    }
+    const mac = node.generateMacAddress(config.id)
+    node.macaddress = mac
+    node.bridgeid = node.getBridgeIdFromMacAddress(mac)
     node.maxItems = config.maxItems
-    node.useNode = config.useNode
-    node.port = config.port
+    node._commands = new Map()
+    node._hub = []
+    node._hub.push(new AlexaHub(this, node.port, this._hub.length))
 
     node._commands = new Map()
     node._hub = []
@@ -164,6 +164,21 @@ module.exports = function (RED) {
       }
     })
     node.setConnectionStatusMsg('green', 'Ok')
+  }
+
+  AlexaHomeController.prototype.generateMacAddress = function (id) {
+    let i = 9
+    const base = '00:11:22:33:44:55'
+    const nodeid = id.replace(/[^a-fA-F0-9]/g, 'f').toUpperCase().split('')
+    const bridgeid = base.replace(/\d/g, () =>
+      nodeid.shift() || Math.max(--i, 0), 'g')
+    return bridgeid
+  }
+
+  AlexaHomeController.prototype.getBridgeIdFromMacAddress = function (mac) {
+    const id = mac.replace(/[:]/g, '')
+    const bridgeid = id.slice(0, 6) + 'FFFE' + id.slice(6)
+    return bridgeid
   }
 
   AlexaHomeController.prototype.getDevices = function () {
@@ -299,7 +314,7 @@ module.exports = function (RED) {
     }
     const content = Mustache.render(template, data)
       .replace(/(\{\s+)?,?[^,]+_emptyIteratorStopper": \{\}/g, '$1')
-    RED.log.debug(node.name + +'/' + id +
+    RED.log.debug(node.name + '/' + id +
       ' - listing ' + request.params.username +
       ' #' + data.lights.length + ' api information to ' +
       request.connection.remoteAddress)
@@ -310,26 +325,55 @@ module.exports = function (RED) {
     response.type('json').send(this.stripSpace(content))
   }
 
+  AlexaHomeController.prototype.handleConfigList = function (id,
+    request,
+    response) {
+    const node = this
+
+    RED.log.debug(node.name + '/' + id + ' - Handling Config listing request')
+    const config = fs.readFileSync(path.join(__dirname,
+      '/templates/items/config.json'), 'utf8').toString()
+    const data = {
+      address: request.hostname,
+      username: request.params.username,
+      date: new Date().toISOString().split('.').shift(),
+      bridgeid: node.bridgeid,
+      macaddress: node.macaddress
+    }
+    const content = Mustache.render(config, data)
+    RED.log.debug(node.name + '/' + id + ' - Sending ' +
+      (request.params.username ? 'full ' : '') +
+      'config information to ' + request.connection.remoteAddress)
+    node.setConnectionStatusMsg('yellow', 'config requested')
+
+    response.type('json').send(this.stripSpace(content))
+  }
+
   AlexaHomeController.prototype.handleApiCall = function (id,
     request,
     response) {
     const node = this
 
-    RED.log.debug(node.name + '/' + id + ' - Hanlding API listing request')
+    RED.log.debug(node.name + '/' + id + ' - Handling API listing request')
     const responseTemplate = fs.readFileSync(path.join(__dirname,
       '/templates/response.json'), 'utf8').toString()
     const lights = fs.readFileSync(path.join(__dirname,
       '/templates/items/list.json'), 'utf8').toString()
+    const config = fs.readFileSync(path.join(__dirname,
+      '/templates/items/config.json'), 'utf8').toString()
     const data = {
       lights: node.generateAPIDeviceList(id),
       address: request.hostname,
       username: request.params.username,
-      date: new Date().toISOString().split('.').shift()
+      date: new Date().toISOString().split('.').shift(),
+      bridgeid: node.bridgeid,
+      macaddress: node.macaddress
     }
     const content = Mustache.render(responseTemplate, data, {
-      itemsTemplate: lights
+      itemsTemplate: lights,
+      configTemplate: config
     })
-    RED.log.debug(node.name + +'/' + id + ' - Sending ' +
+    RED.log.debug(node.name + '/' + id + ' - Sending ' +
       request.params.username + ' #' + data.lights.length +
       ' api information to ' + request.connection.remoteAddress)
     node.setConnectionStatusMsg('yellow', 'api requested')
@@ -374,7 +418,8 @@ module.exports = function (RED) {
       hue: 0,
       sat: 254,
       ct: 199,
-      colormode: 'ct'
+      colormode: 'ct',
+      uniqueid: node.uniqueid
     }
 
     return defaultAttributes

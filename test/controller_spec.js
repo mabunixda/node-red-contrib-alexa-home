@@ -100,7 +100,7 @@ describe('alexa-home-controller Node', function () {
       n1.should.have.property('name', 'Test');
       n1._hub.should.have.length(1);
       request(n1._hub[0].app)
-        .get('/api')
+        .get('/api/config')
         .expect('Content-Type', /json/)
         .expect(200)
         .end(function (err, res) {
