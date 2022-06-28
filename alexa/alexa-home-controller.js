@@ -50,7 +50,7 @@ module.exports = function (RED) {
     node.handleRegistration(node.id, req, res)
   })
 
-  RED.httpNode.get('/api/', function(req, res) {
+  RED.httpNode.get('/api/', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (node === undefined) {
@@ -68,7 +68,7 @@ module.exports = function (RED) {
     node.handleConfigList(node.id, req, res)
   })
 
-  RED.httpNode.get('/api/:username', function(req, res) {
+  RED.httpNode.get('/api/:username', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (!node) {
@@ -95,7 +95,7 @@ module.exports = function (RED) {
     node.handleItemList(node.id, req, res)
   })
 
-  RED.httpNode.post('/api/:username/:itemType', function(req, res) {
+  RED.httpNode.post('/api/:username/:itemType', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (!node) {

@@ -91,9 +91,9 @@ AlexaHub.prototype.createServer = function (protocol, options) {
       node.controller.handleRegistration(node.id, req, res)
     })
 
-    app.get('/api/', function(req, res) {
-      node.controller.handleApiCall(node.id, req, res);
-    });
+    app.get('/api/', function (req, res) {
+      node.controller.handleApiCall(node.id, req, res)
+    })
 
     app.get('/api/config', function (req, res) {
       node.controller.handleConfigList(node.id, req, res)
@@ -111,7 +111,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
       node.controller.handleItemList(node.id, req, res)
     })
 
-    app.post('/api/:username/:itemType', function(req, res) {
+    app.post('/api/:username/:itemType', function (req, res) {
       node.controller.handleItemList(node.id, req, res)
     })
 
