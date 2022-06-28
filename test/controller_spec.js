@@ -4,7 +4,8 @@ const helper = require('node-red-node-test-helper');
 const controllerNode = require('../alexa/alexa-home-controller.js');
 const alexaNode = require('../alexa/alexa-home.js');
 
-
+let alexaHelper = require('../alexa/alexa-helper.js');
+alexaHelper.hubPort = 60000
 
 function between(min, max) {
   return Math.floor(
@@ -42,7 +43,7 @@ describe('alexa-home-controller Node', function () {
 
   it('should be loaded with correct default params', function (done) {
     hubPort = between(50000, 60000);
-    const flow = [{ id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort }];
+    const flow = [{ id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort, useNode: false }];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');
       n1.should.have.property('name', 'Test');
@@ -62,7 +63,13 @@ describe('alexa-home-controller Node', function () {
   });
   it('should respond to setup request', function (done) {
     hubPort = between(50000, 60000);
-    const flow = [{ id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort }];
+    const flow = [{
+      id: 'n1',
+      type: 'alexa-home-controller',
+      controllername: 'Test',
+      port: hubPort,
+      useNode: false
+    }];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');
       n1.should.have.property('name', 'Test');
@@ -80,14 +87,20 @@ describe('alexa-home-controller Node', function () {
   it('should respond to config request', function (done) {
     hubPort = between(50000, 60000);
     const flow = [
-      { id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort },
+      {
+        id: 'n1',
+        type: 'alexa-home-controller',
+        controllername: 'Test',
+        port: hubPort,
+        useNode: false
+      },
     ];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');
       n1.should.have.property('name', 'Test');
       n1._hub.should.have.length(1);
       request(n1._hub[0].app)
-        .get('/api')
+        .get('/api/config')
         .expect('Content-Type', /json/)
         .expect(200)
         .end(function (err, res) {
@@ -104,7 +117,13 @@ describe('alexa-home-controller Node', function () {
   it('should respond to lights request', function (done) {
     hubPort = between(50000, 60000);
     const flow = [
-      { id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort },
+      {
+        id: 'n1',
+        type: 'alexa-home-controller',
+        controllername: 'Test',
+        port: hubPort,
+        useNode: false
+      },
     ];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');
@@ -128,7 +147,13 @@ describe('alexa-home-controller Node', function () {
   it('should respond to registration request', function (done) {
     hubPort = between(50000, 60000);
     const flow = [
-      { id: 'n1', type: 'alexa-home-controller', controllername: 'Test', port: hubPort },
+      {
+        id: 'n1',
+        type: 'alexa-home-controller',
+        controllername: 'Test',
+        port: hubPort,
+        useNode: false
+      },
     ];
     helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode('n1');

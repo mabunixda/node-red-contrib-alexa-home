@@ -1,3 +1,13 @@
+<script type="text/markdown" data-help-name="alexa-home-controller">
+    <p>
+    This node is setting up the controller node for alexa interaction. It starts a SSDP Service on Port 1900/udp and is also able to start a seperate webserver on the configured port.
+    But it is also possible to use node-red as webserver and donot start a second webserver.
+    </p>
+    <p>
+        Be aware that alexa requires a response server running on port 80!
+    </p>
+</script>
+
 <script type="text/x-red" data-template-name="alexa-home-controller">
     <div class="form-row">
         <label for="node-input-controllername">
@@ -5,18 +15,23 @@
         <input type="text" id="node-input-controllername" placeholder="Alexa Hub">
     </div>
     <div class="form-row">
+        <label for=node-input-useNode">
+            <i class="icon-tag"/>Use Node as Webserver</label>
+        <input type="checkbox" id="node-input-useNode">
+    </div>
+    <div class="form-row">
         <label for="node-input-port">
             <i class="icon-tag"></i> Port</label>
-        <input type="text" id="node-input-port" placeholder="60000">
+        <input type="text" id="node-input-port" placeholder="80">
     </div>
     <div class="form-row">
         <label for="node-input-maxItems">
             <i class="icon-tag"></i> MaxItems</label>
-        <input type="text" id="node-input-maxItems" placeholder="25">
+        <input type="text" id="node-input-maxItems" placeholder="-1">
     </div>
 </script>
 <script type="text/javascript">
-    
+
     RED.nodes.registerType('alexa-home-controller', {
         category: 'alexa-home',
         color: '#3FADB5',
@@ -24,13 +39,17 @@
             controllername: {
                 value: "Alexa Controller"
             },
+            useNode: {
+                value: false,
+                required: false
+            },
             port: {
-                value: 60000,
+                value: 80,
                 required: true,
                 validate: RED.validators.number()
             },
-            maxItems: { 
-                value: 25,
+            maxItems: {
+                value: -1,
                 required: true,
                 validate: RED.validators.number()
             }

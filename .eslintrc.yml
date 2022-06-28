@@ -1,13 +1,9 @@
 env:
-  node: true
+  browser: true
   commonjs: true
-  es6: true
+  es2021: true
 extends:
-  - google
-parser: babel-eslint
-globals:
-  Atomics: readonly
-  SharedArrayBuffer: readonly
+  - standard
 parserOptions:
-  ecmaVersion: 2018
+  ecmaVersion: latest
 rules: {}

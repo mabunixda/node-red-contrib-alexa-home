@@ -1,5 +1,5 @@
 
 
 docker:
-	docker build -t mabunixda/node-red:alexa-dev .
-	docker push mabunixda/node-red:alexa-dev
+	docker build --no-cache --rm -t registry.home.nitram.at/node-red/alexa-dev .
+	docker push registry.home.nitram.at/node-red/alexa-dev
