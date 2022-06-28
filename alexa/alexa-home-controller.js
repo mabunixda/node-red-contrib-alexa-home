@@ -50,13 +50,31 @@ module.exports = function (RED) {
     node.handleRegistration(node.id, req, res)
   })
 
-  RED.httpNode.post('/api/config', function (req, res) {
+  RED.httpNode.get('/api/', function(req, res) {
+    const nodeId = getControllerId()
+    const node = RED.nodes.getNode(nodeId)
+    if (node === undefined) {
+      return
+    }
+    node.handleApiCall(node.id, req, res)
+  })
+
+  RED.httpNode.get('/api/config', function (req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (node === undefined) {
       return
     }
     node.handleConfigList(node.id, req, res)
+  })
+
+  RED.httpNode.get('/api/:username', function(req, res) {
+    const nodeId = getControllerId()
+    const node = RED.nodes.getNode(nodeId)
+    if (!node) {
+      return
+    }
+    node.handleApiCall(node.id, req, res)
   })
 
   RED.httpNode.get('/api/:username/config', function (req, res) {
@@ -69,6 +87,15 @@ module.exports = function (RED) {
   })
 
   RED.httpNode.get('/api/:username/:itemType', function (req, res) {
+    const nodeId = getControllerId()
+    const node = RED.nodes.getNode(nodeId)
+    if (!node) {
+      return
+    }
+    node.handleItemList(node.id, req, res)
+  })
+
+  RED.httpNode.post('/api/:username/:itemType', function(req, res) {
     const nodeId = getControllerId()
     const node = RED.nodes.getNode(nodeId)
     if (!node) {
@@ -125,10 +152,6 @@ module.exports = function (RED) {
     node.macaddress = mac
     node.bridgeid = node.getBridgeIdFromMacAddress(mac)
     node.maxItems = config.maxItems
-    node._commands = new Map()
-    node._hub = []
-    node._hub.push(new AlexaHub(this, node.port, this._hub.length))
-
     node._commands = new Map()
     node._hub = []
 
