@@ -1,0 +1,39 @@
+{
+    "name": "Philips hue",
+    "zigbeechannel": 25,
+    "bridgeid": "{{ bridgeid }}",
+    "mac": "{{ macaddress }}",
+    "dhcp":true,
+    "apiversion": "1.10.0",
+    "swversion": "01028090",
+    "replacesbridgeid": null,
+    "factorynew": false,
+    {{#username}}
+    "ipaddress":"{{ address }}",
+    "netmask":"0.0.0.0",
+    "gateway":"0.0.0.0",
+    "proxyaddress":"none",
+    "proxyport":0,
+    "UTC":"{{ date }}",
+    "localtime": "none",
+    "timezone": "none",
+    "whitelist":{
+        "{{ username }}":{
+        "last use date":"{{ date }}",
+        "create date":"{{ date }}",
+        "name":"Echo"
+        }
+    },
+    "swversion":"01003372",
+    "swupdate":{
+        "updatestate":0,
+        "url":"",
+        "text":"",
+        "notify":false
+    },
+    "linkbutton":false,
+    "portalservices":false,
+    {{/username}}
+    "modelid": "BSB001",
+    "starterkitid": ""
+}

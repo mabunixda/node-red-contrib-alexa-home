@@ -15,7 +15,7 @@ function AlexaHub (controller, port, id) {
   node.controller = controller
   node.id = id
   node.port = port + id
-
+  node.willClose = false
   const protocol = 'http'
   const options = undefined
   node.startSsdp(protocol)
@@ -71,8 +71,12 @@ AlexaHub.prototype.createServer = function (protocol, options) {
       if (Object.keys(req.body).length > 0) {
         node.controller.debug('Request body: ' + JSON.stringify(req.body))
       }
-
-      return next()
+      if (node.willClose) {
+        res.set('Connection', 'close')
+        res.status(503).json({ error: 'Temporarly Unavailable' })
+        return
+      }
+      next()
     })
 
     app.get('/', function (req, res) {
@@ -87,19 +91,23 @@ AlexaHub.prototype.createServer = function (protocol, options) {
       node.controller.handleRegistration(node.id, req, res)
     })
 
-    app.get('/api/', function (req, res) {
-      node.controller.handleApiCall(node.id, req, res)
+    app.get('/api/config', function (req, res) {
+      node.controller.handleConfigList(node.id, req, res)
     })
 
     app.get('/api/:username', function (req, res) {
       node.controller.handleApiCall(node.id, req, res)
     })
 
+    app.get('/api/:username/config', function (req, res) {
+      node.controller.handleConfigList(node.id, req, res)
+    })
+
     app.get('/api/:username/:itemType', function (req, res) {
       node.controller.handleItemList(node.id, req, res)
     })
 
-    app.post('/api/:username/:itemType', function (req, res) {
+    app.get('/api/:username/:itemType', function (req, res) {
       node.controller.handleItemList(node.id, req, res)
     })
 
