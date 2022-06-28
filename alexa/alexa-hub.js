@@ -18,8 +18,11 @@ function AlexaHub(controller, port, id) {
 
   const protocol = 'http';
   const options = undefined;
-  node.createServer(protocol, options);
   node.startSsdp(protocol);
+  if(node.controller.useNode) {
+    return
+  }
+  node.createServer(protocol, options);
 }
 
 AlexaHub.prototype.createServer = function(protocol, options) {
@@ -51,14 +54,24 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     });
 
     app.use(function(req, res, next) {
-      node.controller.log(req.connection.remoteAddress + '-' +
+
+      let alexa_ip = req.headers['x-forwarded-for'] ||
+                     req.connection.remoteAddress ||
+                     req.socket.remoteAddress ||
+                     req.connection.socket.remoteAddress ||
+                     undefined;
+
+      req.alexa_ip = alexa_ip;
+
+      node.controller.log('Request data: ' + alexa_ip + '-' +
         node.port + '/' +
         req.method + ' -> ' +
         req.url);
       if (Object.keys(req.body).length > 0) {
         node.controller.debug('Request body: ' + JSON.stringify(req.body));
       }
-      next();
+
+      return next();
     });
 
     app.get('/', function(req, res) {
@@ -107,6 +120,9 @@ AlexaHub.prototype.stopServers = function() {
   const node = this;
   node.controller.log('Stopping ssdp');
   node.ssdpServer.stop();
+  if(!node.server) {
+    return
+  }
   node.controller.log('Stopping app');
   node.server.close(function() {
     node.controller.log('stopped http');

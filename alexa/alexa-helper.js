@@ -4,7 +4,7 @@ module.exports = {
   hubPort: ( process.env.ALEXA_PORT != undefined &&
              parseInt(process.env.ALEXA_PORT)
   ) ||
-           60000,
+           80,
   controllerNode: undefined,
   isDebug: ( process.env.DEBUG &&
              process.env.DEBUG.indexOf('node-red-contrib-alexa-home') > 0

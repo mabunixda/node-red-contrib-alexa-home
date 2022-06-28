@@ -90,7 +90,7 @@ module.exports = function(RED) {
     }
     // Dimming or Temperature command
     if (msg.payload.bri) {
-      RED.log.debug(node.name + ' - Setting values on bri');
+      RED.log.debug(node.name + ' - Setting values on bri: ' + msg.payload.bri);
       msg.payload.on = msg.payload.bri > 0;
       msg.payload.command = 'dim';
       node.setConnectionStatusMsg('blue',
@@ -128,7 +128,6 @@ module.exports = function(RED) {
     msg.payload.bri_normalized = Math.round(msg.payload.bri / 254.0 * 100.0);
     msg.device_name = node.name;
     msg.light_id = node.id;
-
     node.state = msg.payload.on;
     node.bri = msg.payload.bri;
     node.xy = msg.payload.xy;
@@ -140,7 +139,7 @@ module.exports = function(RED) {
       return;
     }
 
-    RED.log.debug(node.name + ' - sending values');
+    RED.log.debug(node.name + ' - Pass values to output');
 
     node.send(msg);
   };
