@@ -36,11 +36,5 @@
     "should": "^13.2.3",
     "supertest": "^6.2.3"
   },
-  "scripts": {
-    "test": "mocha \"test/**/*_spec.js\"",
-    "snyk-protect": "snyk protect",
-    "prepare": "npm run snyk-protect"
-  },
-  "repository": "mabunixda/node-red-contrib-alexa-home",
-  "snyk": true
+  "repository": "mabunixda/node-red-contrib-alexa-home"
 }
