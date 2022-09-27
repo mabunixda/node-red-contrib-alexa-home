@@ -14,7 +14,7 @@ module.exports = {
   prefixUUID: 'f6543a06-da50-11ba-8d8f-',
 
   AlexaIPAddress: function (req) {
-    if (req.headers['x-forwarded-for'] != undefined) {
+    if (req.headers['x-forwarded-for'] !== undefined) {
       return req.headers['x-forwarded-for']
     }
     if (req.socket.remoteAddress !== undefined) {
@@ -23,7 +23,7 @@ module.exports = {
     if (req.connection.remoteAddress !== undefined) {
       return req.connection.remoteAddress
     }
-    if( (req.connection.socket) && (req.connection.socket.remoteAddress)) {
+    if ((req.connection.socket) && (req.connection.socket.remoteAddress)) {
       return req.connection.socket.remoteAddress
     }
     return undefined
