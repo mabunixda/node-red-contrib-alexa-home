@@ -4,7 +4,7 @@ module.exports = function (RED) {
   const Mustache = require('mustache')
   const fs = require('fs')
   const alexaHome = require('./alexa-helper')
-  const alexaHub = require('./alexa-hub')
+  const AlexaHub = require('./alexa-hub')
   const path = require('path')
 
   function getControllerId () {
@@ -149,7 +149,7 @@ module.exports = function (RED) {
     node._hub = []
 
     node.port = alexaHome.hubPort
-    node._hub.push(new alexaHub(this, node.port, this._hub.length))
+    node._hub.push(new AlexaHub(this, node.port, this._hub.length))
 
     node.on('close', function (removed, done) {
       try {
@@ -223,7 +223,7 @@ module.exports = function (RED) {
     if (currentNeed <= node._hub.length && node._hub.length > 0) {
       return
     }
-    node._hub.push(new alexaHub(node, node.port, node._hub.length))
+    node._hub.push(new AlexaHub(node, node.port, node._hub.length))
   }
 
   AlexaHomeController.prototype.deregisterCommand = function (deviceNode) {
