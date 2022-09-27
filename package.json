@@ -30,7 +30,7 @@
     "eslint-plugin-n": "^15.2.3",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
-    "node-red": "^2.2.2",
+    "node-red": "^3.0.2",
     "node-red-node-test-helper": "^0.3.0",
     "npm-check": "^5.9.2",
     "should": "^13.2.3",
