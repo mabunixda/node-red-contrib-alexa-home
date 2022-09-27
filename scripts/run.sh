@@ -1,16 +1,19 @@
 #!/bin/bash
 
+set -ex
 cmd="podman"
 if hash docker ; then
     cmd="docker"
 fi
+BASEIMG=$(grep FROM Dockerfile  | sed 's/FROM //')
+$cmd pull "${BASEIMG}"
 
-$cmd pull docker.io/nodered/node-red:latest-minimal
+cid=$($cmd run \
+            -u root --rm -d \
+            --entrypoint "" \
+            "${BASEIMG}" \
+            /bin/bash -c 'trap exit INT TERM; while true; do echo waiting..; sleep 10; done;')
 
-$cmd run \
-    -u root \
-    --rm -it \
-    --network host \
-    --entrypoint /src/scripts/docker-run.sh \
-    -v "$PWD/:/src" \
-    docker.io/nodered/node-red:latest-minimal
+docker cp "${PWD}/" "${cid}:/src/"
+
+docker exec -it -w "/src/" "${cid}" /bin/bash
