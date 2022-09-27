@@ -11,5 +11,21 @@ module.exports = {
   ) ||
            false,
   bri_default: process.env.BRI_DEFAULT || 254,
-  prefixUUID: 'f6543a06-da50-11ba-8d8f-'
+  prefixUUID: 'f6543a06-da50-11ba-8d8f-',
+
+  AlexaIPAddress: function (req) {
+    if (req.headers['x-forwarded-for'] !== undefined) {
+      return req.headers['x-forwarded-for']
+    }
+    if (req.socket.remoteAddress !== undefined) {
+      return req.socket.remoteAddress
+    }
+    if (req.connection.remoteAddress !== undefined) {
+      return req.connection.remoteAddress
+    }
+    if ((req.connection.socket) && (req.connection.socket.remoteAddress)) {
+      return req.connection.socket.remoteAddress
+    }
+    return undefined
+  }
 }

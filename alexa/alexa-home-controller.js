@@ -21,14 +21,7 @@ module.exports = function (RED) {
   }
 
   RED.httpNode.use(function (req, res, next) {
-    const alexaIp = req.headers['x-forwarded-for'] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      req.connection.socket.remoteAddress ||
-      undefined
-
-    req.alexaIp = alexaIp
-
+    req.headers.alexaIp = alexaHome.AlexaIPAddress(req)
     return next()
   })
 
@@ -473,7 +466,7 @@ module.exports = function (RED) {
       payload: request.body
     }
 
-    msg.alexa_ip = request.alexa_ip
+    msg.alexa_ip = alexaHome.AlexaIPAddress(request)
 
     if (alexaHome.isDebug) {
       const httpHeader = Object.keys(request.headers)
