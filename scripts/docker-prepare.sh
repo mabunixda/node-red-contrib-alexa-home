@@ -15,4 +15,4 @@ npm install -g eslint
 
 echo "linking /src to node-red..."
 cd /usr/src/node-red || exit 2
-npm link ${MODDIR}
+npm link "${MODDIR}"
