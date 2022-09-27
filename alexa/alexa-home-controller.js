@@ -21,9 +21,7 @@ module.exports = function (RED) {
   }
 
   RED.httpNode.use(function (req, res, next) {
-
-    req.headers["alexaIp"] = alexaHome.AlexaIPAddress(req)
-
+    req.headers.alexaIp = alexaHome.AlexaIPAddress(req)
     return next()
   })
 

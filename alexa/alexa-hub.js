@@ -56,9 +56,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
     })
 
     app.use(function (req, res, next) {
-
-      req.headers["alexaIp"] = alexaHome.AlexaIPAddress(req)
-
+      req.headers.alexaIp = alexaHome.AlexaIPAddress(req)
       node.controller.log('Request data: ' + req.alexaIp + '-' +
         node.port + '/' +
         req.method + ' -> ' +
