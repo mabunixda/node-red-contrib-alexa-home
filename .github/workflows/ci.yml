@@ -15,24 +15,36 @@ jobs:
       matrix:
         node: [14,16]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-      - uses: actions/checkout@master
-      - name: Shell Linter
-        uses: azohra/shell-linter@v0.3.0
-      - name: Cache node_modules
-        id: cache-modules
+
+     - name: Cache node modules
+        id: cache
         uses: actions/cache@v1
         with:
-          path: node_modules
-          key: ${{ runner.OS }}-build-${{ hashFiles('package.json') }}
-      - name: install check deps
-        run: npm install npm-check mocha eslint
-      - name: eslint
-        run: ./scripts/lint.sh
-      - run: npm ci
+          path: node_modules # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Prettier
+        run: npm run fmt:check
+
+      - name: ESlint
+        run: npm run eslint:github-action
+
+      - name: Shell Linter
+        uses: azohra/shell-linter@v0.3.0
+
 #      - run: npm test
   release:
     runs-on: ubuntu-latest
