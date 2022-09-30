@@ -20,11 +20,6 @@ module.exports = function(RED) {
     return results[0].id;
   }
 
-  RED.httpNode.use(function(req, res, next) {
-    req.headers.alexaIp = alexaHome.AlexaIPAddress(req);
-    return next();
-  });
-
   RED.httpNode.get("/alexa-home/setup.xml", function(req, res) {
     const nodeId = getControllerId();
     const node = RED.nodes.getNode(nodeId);
@@ -213,6 +208,22 @@ module.exports = function(RED) {
 
     if (node._commands.has(uuid)) {
       return node._commands.get(uuid);
+    }
+    return undefined;
+  };
+
+  AlexaHomeController.prototype.getAlexaIPAddress = function(req) {
+    if (req.headers["x-forwarded-for"] !== undefined) {
+      return req.headers["x-forwarded-for"];
+    }
+    if (req.socket.remoteAddress !== undefined) {
+      return req.socket.remoteAddress;
+    }
+    if (req.connection.remoteAddress !== undefined) {
+      return req.connection.remoteAddress;
+    }
+    if (req.connection.socket && req.connection.socket.remoteAddress) {
+      return req.connection.socket.remoteAddress;
     }
     return undefined;
   };
@@ -576,7 +587,7 @@ module.exports = function(RED) {
       payload: request.body
     };
 
-    msg.alexa_ip = alexaHome.AlexaIPAddress(request);
+    msg.alexa_ip = node.getAlexaIPAddress(request);
 
     if (alexaHome.isDebug) {
       const httpHeader = Object.keys(request.headers);

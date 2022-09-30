@@ -1,27 +1,29 @@
 name: CI
 on:
   push:
-    branches:
-      - '**'
+    branches: ['main']
   pull_request:
-    branches:
-      - 'main'
+    branches: ['main']
 
 jobs:
+
   build:
+
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
         node: [14,16]
+
     steps:
+
       - uses: actions/checkout@v3
-      
+
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
 
-     - name: Cache node modules
+      - name: Cache node modules
         id: cache
         uses: actions/cache@v1
         with:
@@ -44,14 +46,17 @@ jobs:
 
       - name: Shell Linter
         uses: azohra/shell-linter@v0.3.0
+        with:
+          path: "scripts"
 
-#      - run: npm test
+      - run: npm run test
+
   release:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
           registry-url: 'https://registry.npmjs.org'

@@ -2,7 +2,6 @@
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const alexaHome = require("./alexa-home");
 /**
  * Hub to create communication with alexa devices
  * @constructor
@@ -59,10 +58,10 @@ AlexaHub.prototype.createServer = function(protocol, options) {
     });
 
     app.use(function(req, res, next) {
-      req.headers.alexaIp = alexaHome.AlexaIPAddress(req);
+      req.headers.alexaIp = node.controller.getAlexaIPAddress(req);
       node.controller.log(
         "Request data: " +
-          req.alexaIp +
+          req.headers.alexaIp +
           "-" +
           node.port +
           "/" +

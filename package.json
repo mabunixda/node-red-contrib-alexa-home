@@ -23,13 +23,14 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.5.4",
-    "eslint": "^8.24.0",
+    "eslint": "^8.18.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.2.3",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
+    "mocha": "^10.0.0",
     "node-red": "^3.0.2",
     "node-red-node-test-helper": "^0.3.0",
     "npm-check": "^6.0.1",
@@ -38,7 +39,7 @@
     "supertest": "^6.2.3"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --recursive test",
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
