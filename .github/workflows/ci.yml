@@ -48,7 +48,8 @@ jobs:
         uses: azohra/shell-linter@v0.3.0
         with:
           path: "scripts"
-#      - run: npm test
+
+      - run: npm run test
 
   release:
     runs-on: ubuntu-latest
