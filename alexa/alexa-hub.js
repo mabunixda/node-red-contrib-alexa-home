@@ -21,11 +21,16 @@ function AlexaHub(controller, port, id) {
   
   const options = undefined;
   node.startSsdp(node.protocol);
+
   if (node.controller.useNode) {
+    node.warn("Using Node-RED node for Alexa Hub, skipping server creation");
     return;
   }
-  node.createServer(node.protocol, options);
-}AlexaHub.prototype.createServer = function (protocol, options) {
+
+  node.createServer(options);
+}
+
+AlexaHub.prototype.createServer = function (options) {
   const node = this;
   const app = express();
   node.app = app;
