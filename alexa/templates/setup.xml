@@ -7,22 +7,22 @@
     <URLBase>{{baseUrl}}</URLBase>
     <device>
         <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
-        <friendlyName>Amazon-Echo-NodeRed-Bridge {{baseUrl}}</friendlyName>
+        <friendlyName>Philips hue ({{baseUrl}})</friendlyName>
         <manufacturer>Royal Philips Electronics</manufacturer>
-        <manufacturerURL>https://nitram.at</manufacturerURL>
+        <manufacturerURL>http://www.philips.com</manufacturerURL>
         <modelDescription>Philips hue Personal Wireless Lighting</modelDescription>
         <modelName>Philips hue bridge 2012</modelName>
-        <modelNumber>1100110011001100</modelNumber>
-        <modelURL>http://meethue.com</modelURL>
-        <serialNumber>93eadbeef14</serialNumber>
+        <modelNumber>929000226503</modelNumber>
+        <modelURL>http://www.meethue.com</modelURL>
+        <serialNumber>{{bridgeid}}</serialNumber>
         <UDN>uuid:{{uuid}}</UDN>
         <serviceList>
             <service>
-                <serviceType>(null)</serviceType>
-                <serviceId>(null)</serviceId>
-                <controlURL>(null)</controlURL>
-                <eventSubURL>(null)</eventSubURL>
-                <SCPDURL>(null)</SCPDURL>
+                <serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
+                <serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
+                <controlURL>/upnp/control/ContentDirectory1</controlURL>
+                <eventSubURL>/upnp/event/ContentDirectory1</eventSubURL>
+                <SCPDURL>/ContentDirectory1.xml</SCPDURL>
             </service>
         </serviceList>
         <presentationURL>index.html</presentationURL>

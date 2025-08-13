@@ -7,15 +7,12 @@
             "hue": {{ hue }},
             "sat": {{ sat }},
             "effect": "none",
-            "xy": [
-                0.0,
-                0.0
-            ],
+            "xy": {{ xy }},
             "ct": {{ ct }},
             "colormode": "{{ colormode }}",
             "reachable": true,
-            "alert":"none",
-            "mode":"homeautomation"
+            "alert": "none",
+            "mode": "homeautomation"
         },
         "swupdate": {
             "state": "noupdates",
@@ -23,10 +20,29 @@
         },
         "type": "{{ devicetype }}",
         "name": "{{ name }}",
-        "modelid": "LCT007",
+        "modelid": "LCT015",
         "manufacturername": "Philips",
         "productname": "Hue color lamp",
-        "swversion": "5.105.0.21169",
+        "capabilities": {
+            "certified": true,
+            "control": {
+                "mindimlevel": 5000,
+                "maxlumen": 800,
+                "colorgamuttype": "C",
+                "colorgamut": [[0.6915, 0.3083], [0.17, 0.7], [0.1532, 0.0475]],
+                "ct": {"min": 153, "max": 500}
+            },
+            "streaming": {
+                "renderer": true,
+                "proxy": false
+            }
+        },
+        "config": {
+            "archetype": "sultanbulb",
+            "function": "mixed",
+            "direction": "omnidirectional"
+        },
+        "swversion": "1.88.1",
         "uniqueid":"{{ uniqueid }}"
     },
   {{/lights}}

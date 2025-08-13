@@ -50,11 +50,29 @@ AlexaHub.prototype.createServer = function (protocol, options) {
 
     app.use(function (err, req, res, next) {
       if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-        node.controller.log(
-          "Error: Invalid JSON request: " + JSON.stringify(err.body),
+        node.controller.error(
+          "Error: Invalid JSON request from " + req.ip + ": " + err.message,
         );
+        // Return proper Hue bridge error format for Alexa compatibility
+        res.status(400).json([{
+          error: {
+            type: 2,
+            address: req.url,
+            description: "Body contains invalid JSON"
+          }
+        }]);
+        return;
       }
-      next();
+      
+      // Handle other errors gracefully for Alexa
+      node.controller.error("Request error: " + err.message);
+      res.status(500).json([{
+        error: {
+          type: 901,
+          address: req.url,
+          description: "Internal bridge error"
+        }
+      }]);
     });
 
     app.use(function (req, res, next) {
@@ -77,6 +95,16 @@ AlexaHub.prototype.createServer = function (protocol, options) {
         res.status(503).json({ error: "Temporarly Unavailable" });
         return;
       }
+      
+      // Add Alexa-compatible response headers
+      res.set({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Cache-Control': 'no-cache',
+        'Server': 'nginx/1.10.3 (Ubuntu)'
+      });
+      
       next();
     });
 
@@ -155,16 +183,34 @@ AlexaHub.prototype.startSsdp = function (protocol) {
       path: "/alexa-home/setup.xml",
     };
   }
+  
+  // Enhanced SSDP configuration for better Alexa compatibility
   node.ssdpServer = new Ssdp({
     location,
     udn: "uuid:" + hueuuid,
+    // Add more specific UPnP device information for Alexa
+    description: "Philips hue Personal Wireless Lighting",
+    ttl: 1800, // Standard TTL for UPnP announcements
+    ssdpSig: "Linux/3.14.0 UPnP/1.0 IpBridge/1.26.0", // Mimic real Hue bridge signature
   });
+  
+  // Add essential USN entries for Alexa discovery
   node.ssdpServer.addUSN("upnp:rootdevice");
   node.ssdpServer.addUSN("urn:schemas-upnp-org:device:basic:1");
+  node.ssdpServer.addUSN("urn:schemas-upnp-org:device:Basic:1"); // Case variation for compatibility
+  
+  // Configure for better network discovery
   node.ssdpServer.reuseAddr = true;
-  node.ssdpServer.start();
+  
+  // Set multicast options for better Alexa discovery
+  try {
+    node.ssdpServer.start();
+    node.controller.log(node.id + " - SSDP server started successfully");
+  } catch (error) {
+    node.controller.error("Failed to start SSDP server: " + error.message);
+  }
 
-  node.controller.log(node.id + " - announcing location is " + location);
+  node.controller.log(node.id + " - announcing location is " + JSON.stringify(location));
 };
 
 module.exports = AlexaHub;
