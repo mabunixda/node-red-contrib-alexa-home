@@ -139,7 +139,11 @@ module.exports = function (RED) {
     node.name = config.controllername;
 
     // Configure port: use custom port from config, fallback to environment variable or default
-    if (config.port !== undefined && config.port !== null && config.port !== "") {
+    if (
+      config.port !== undefined &&
+      config.port !== null &&
+      config.port !== ""
+    ) {
       node.port = parseInt(config.port);
       if (isNaN(node.port) || node.port <= 0 || node.port > 65535) {
         node.warn(`Invalid port number: ${config.port}. Using default port.`);

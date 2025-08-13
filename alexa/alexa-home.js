@@ -97,12 +97,14 @@ module.exports = function (RED) {
       // Add validation for brightness values when they exist
       const brightness = parseInt(msg.payload.bri);
       if (isNaN(brightness) || brightness < 0 || brightness > 254) {
-        node.warn(`Invalid brightness value: ${msg.payload.bri}. Must be 0-254.`);
+        node.warn(
+          `Invalid brightness value: ${msg.payload.bri}. Must be 0-254.`,
+        );
         node.setConnectionStatusMsg("orange", "Invalid brightness");
         return;
       }
       msg.payload.bri = brightness; // Ensure it's a proper integer
-      
+
       if (brightness < node.bri) {
         msg.change_direction = -1;
       }
@@ -155,12 +157,16 @@ module.exports = function (RED) {
     node.state = msg.payload.on;
     node.bri = msg.payload.bri;
     node.xy = msg.payload.xy;
-    if (!Array.isArray(node.xy) || node.xy.length !== 2 || 
-        typeof node.xy[0] !== 'number' || typeof node.xy[1] !== 'number') {
+    if (
+      !Array.isArray(node.xy) ||
+      node.xy.length !== 2 ||
+      typeof node.xy[0] !== "number" ||
+      typeof node.xy[1] !== "number"
+    ) {
       // Default to warm white color coordinates for better Alexa compatibility
-      node.xy = [0.3127, 0.3290];
+      node.xy = [0.3127, 0.329];
     }
-    
+
     // Ensure XY coordinates are within valid CIE 1931 color space bounds
     node.xy[0] = Math.max(0.0, Math.min(1.0, node.xy[0]));
     node.xy[1] = Math.max(0.0, Math.min(1.0, node.xy[1]));
