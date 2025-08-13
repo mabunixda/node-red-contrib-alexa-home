@@ -40,8 +40,8 @@
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
-    "fmt": "prettier --write **/*.{js,yml,md}",
-    "fmt:check": "prettier --check **/*.{js,yml,md}"
+    "fmt": "prettier --write **/*.{js,yml}",
+    "fmt:check": "prettier --check **/*.{js,yml}"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }
