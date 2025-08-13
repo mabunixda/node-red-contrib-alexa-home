@@ -7,6 +7,10 @@ module.exports = function (RED) {
   const AlexaHub = require("./alexa-hub");
   const path = require("path");
 
+  /**
+   * Get the ID of the first alexa-home-controller node
+   * @returns {string|undefined} Controller node ID or undefined if none found
+   */
   function getControllerId() {
     const results = [];
     RED.nodes.eachNode(function (n) {
@@ -24,6 +28,7 @@ module.exports = function (RED) {
     const nodeId = getControllerId();
     const node = RED.nodes.getNode(nodeId);
     if (!node) {
+      res.status(503).send("Alexa Home Controller not available");
       return;
     }
     node.handleSetup(node.id, req, res);
@@ -32,7 +37,8 @@ module.exports = function (RED) {
   RED.httpNode.post("/api", function (req, res) {
     const nodeId = getControllerId();
     const node = RED.nodes.getNode(nodeId);
-    if (node === undefined) {
+    if (!node) {
+      res.status(503).json({ error: "Alexa Home Controller not available" });
       return;
     }
     node.handleRegistration(node.id, req, res);

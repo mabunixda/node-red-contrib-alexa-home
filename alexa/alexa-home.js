@@ -65,8 +65,21 @@ module.exports = function (RED) {
     node.setConnectionStatusMsg("green", "Ok");
   };
 
+  /**
+   * Process commands from Alexa or input messages
+   * @param {Object} msg - Message object containing payload with device commands
+   * @param {Object} msg.payload - Command payload (on/off, brightness, color, etc.)
+   * @param {boolean} msg.inputTrigger - Whether triggered from input vs Alexa
+   */
   AlexaHomeNode.prototype.processCommand = function (msg) {
     const node = this;
+
+    // Basic input validation
+    if (!msg || msg.payload === null || msg.payload === undefined) {
+      node.warn("Received message without valid payload");
+      node.setConnectionStatusMsg("orange", "Invalid message");
+      return;
+    }
 
     if (node.controller === null || node.controller === undefined) {
       node.warn("Ignoring process command - no controller available!");
@@ -76,10 +89,19 @@ module.exports = function (RED) {
     // Detect increase/decrease command
     msg.change_direction = 0;
     if (msg.payload.bri) {
-      if (msg.payload.bri < node.bri) {
+      // Add validation for brightness values when they exist
+      const brightness = parseInt(msg.payload.bri);
+      if (isNaN(brightness) || brightness < 0 || brightness > 254) {
+        node.warn(`Invalid brightness value: ${msg.payload.bri}. Must be 0-254.`);
+        node.setConnectionStatusMsg("orange", "Invalid brightness");
+        return;
+      }
+      msg.payload.bri = brightness; // Ensure it's a proper integer
+      
+      if (brightness < node.bri) {
         msg.change_direction = -1;
       }
-      if (msg.payload.bri > node.bri) {
+      if (brightness > node.bri) {
         msg.change_direction = 1;
       }
     }
