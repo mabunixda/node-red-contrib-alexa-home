@@ -39,7 +39,7 @@
     "supertest": "^6.2.3"
   },
   "scripts": {
-    "test": "mocha --recursive test",
+    "test": "for f in $(ls test/*.js); do mocha $f; done",
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
