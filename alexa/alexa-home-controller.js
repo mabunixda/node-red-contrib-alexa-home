@@ -138,8 +138,6 @@ module.exports = function (RED) {
     alexaHome.controllerNode = node;
     node.name = config.controllername;
 
-    node.warn("config parameters: " + JSON.stringify(config));
-
     // Configure port: use custom port from config, fallback to environment variable or default
     if (config.port !== undefined && config.port !== null && config.port !== "") {
       node.port = parseInt(config.port);
@@ -150,8 +148,6 @@ module.exports = function (RED) {
     } else {
       node.port = alexaHome.hubPort;
     }
-
-    node.warn("current port:" + node.port);
 
     const mac = node.generateMacAddress(config.id);
     node.macaddress = mac;
