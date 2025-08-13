@@ -61,7 +61,8 @@ describe("alexa-home Node", function() {
     helper.load(alexaNode, flow, function() {
       const n2 = helper.getNode("n2");
       const n1 = helper.getNode("n1");
-      n1.controller = n2;
+      // Mock controller to allow message flow
+      n1.controller = { deregisterCommand: function() {} };
 
       n2.on("input", function(msg) {
         msg.payload.should.have.property("on", true);
@@ -85,7 +86,8 @@ describe("alexa-home Node", function() {
     helper.load(alexaNode, flow, function() {
       const n2 = helper.getNode("n2");
       const n1 = helper.getNode("n1");
-      n1.controller = n2;
+      // Mock controller to allow message flow
+      n1.controller = { deregisterCommand: function() {} };
 
       n2.on("input", function(msg) {
         msg.payload.should.have.property("on", true);
