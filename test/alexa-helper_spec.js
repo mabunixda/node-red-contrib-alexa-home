@@ -1,8 +1,8 @@
 const should = require("should");
 const alexaHelper = require("../alexa/alexa-helper.js");
 
-describe("alexa-helper", function() {
-  it("should have correct default values", function() {
+describe("alexa-helper", function () {
+  it("should have correct default values", function () {
     // Test default port (considering it may have been modified in other tests)
     alexaHelper.hubPort.should.be.a.Number();
     if (process.env.ALEXA_PORT === undefined) {
@@ -32,7 +32,7 @@ describe("alexa-helper", function() {
     }
   });
 
-  it("should handle environment variables correctly", function() {
+  it("should handle environment variables correctly", function () {
     const originalPort = process.env.ALEXA_PORT;
     const originalBri = process.env.BRI_DEFAULT;
     const originalDebug = process.env.DEBUG;

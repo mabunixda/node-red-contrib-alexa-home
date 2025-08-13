@@ -4,42 +4,42 @@ const alexaNode = require("../alexa/alexa-home.js");
 
 helper.init(require.resolve("node-red"));
 
-describe("alexa-home Node", function() {
-  beforeEach(function(done) {
+describe("alexa-home Node", function () {
+  beforeEach(function (done) {
     helper.startServer(done);
   });
 
-  afterEach(function(done) {
+  afterEach(function (done) {
     helper.unload();
     helper.stopServer(done);
   });
 
-  it("should be loaded with correct default params", function(done) {
+  it("should be loaded with correct default params", function (done) {
     const flow = [
-      { id: "n1", type: "alexa-home", devicename: "Kitchen Light" }
+      { id: "n1", type: "alexa-home", devicename: "Kitchen Light" },
     ];
-    helper.load(alexaNode, flow, function() {
+    helper.load(alexaNode, flow, function () {
       const n1 = helper.getNode("n1");
       n1.should.have.property("name", "Kitchen Light");
       n1.should.have.property("devicetype", "Extended color light");
       done();
     });
   });
-  it("should round bri 127 to 50% normalized", function(done) {
+  it("should round bri 127 to 50% normalized", function (done) {
     const flow = [
       {
         id: "n1",
         type: "alexa-home",
         devicename: "Kitchen Light",
-        wires: [["n2"]]
+        wires: [["n2"]],
       },
-      { id: "n2", type: "helper" }
+      { id: "n2", type: "helper" },
     ];
-    helper.load(alexaNode, flow, function() {
+    helper.load(alexaNode, flow, function () {
       const n2 = helper.getNode("n2");
       const n1 = helper.getNode("n1");
       n1.controller = n2;
-      n2.on("input", function(msg) {
+      n2.on("input", function (msg) {
         msg.payload.should.have.property("on", true);
         msg.payload.should.have.property("bri", 127);
         msg.payload.should.have.property("bri_normalized", 50);
@@ -48,23 +48,23 @@ describe("alexa-home Node", function() {
       n1.receive({ payload: { bri: 127 }, output: true });
     });
   });
-  it("should switch to on", function(done) {
+  it("should switch to on", function (done) {
     const flow = [
       {
         id: "n1",
         type: "alexa-home",
         devicename: "Kitchen Light",
-        wires: [["n2"]]
+        wires: [["n2"]],
       },
-      { id: "n2", type: "helper" }
+      { id: "n2", type: "helper" },
     ];
-    helper.load(alexaNode, flow, function() {
+    helper.load(alexaNode, flow, function () {
       const n2 = helper.getNode("n2");
       const n1 = helper.getNode("n1");
       // Mock controller to allow message flow
-      n1.controller = { deregisterCommand: function() {} };
+      n1.controller = { deregisterCommand: function () {} };
 
-      n2.on("input", function(msg) {
+      n2.on("input", function (msg) {
         msg.payload.should.have.property("on", true);
         msg.payload.should.have.property("bri", 254);
         msg.payload.should.have.property("bri_normalized", 100);
@@ -73,23 +73,23 @@ describe("alexa-home Node", function() {
       n1.receive({ payload: { on: true }, output: true });
     });
   });
-  it("should set color to defined", function(done) {
+  it("should set color to defined", function (done) {
     const flow = [
       {
         id: "n1",
         type: "alexa-home",
         devicename: "Kitchen Light",
-        wires: [["n2"]]
+        wires: [["n2"]],
       },
-      { id: "n2", type: "helper" }
+      { id: "n2", type: "helper" },
     ];
-    helper.load(alexaNode, flow, function() {
+    helper.load(alexaNode, flow, function () {
       const n2 = helper.getNode("n2");
       const n1 = helper.getNode("n1");
       // Mock controller to allow message flow
-      n1.controller = { deregisterCommand: function() {} };
+      n1.controller = { deregisterCommand: function () {} };
 
-      n2.on("input", function(msg) {
+      n2.on("input", function (msg) {
         msg.payload.should.have.property("on", true);
         msg.payload.should.have.property("bri_normalized", 100);
         msg.payload.should.have.property("xy", [0.3, 0.3]);

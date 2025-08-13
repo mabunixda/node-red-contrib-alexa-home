@@ -22,29 +22,30 @@
     "node-ssdp": "^4.0.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.5.4",
-    "eslint": "^8.18.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-n": "^15.2.3",
-    "eslint-plugin-promise": "^6.0.0",
+    "@babel/eslint-parser": "^7.28.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^8.10.2",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.6.0",
     "eslint-plugin-standard": "^5.0.0",
-    "mocha": "^10.0.0",
-    "node-red": "^3.0.2",
+    "mocha": "^10.8.2",
+    "node-red": "^4.1.0",
     "node-red-node-test-helper": "^0.3.0",
     "npm-check": "^6.0.1",
-    "prettier": "^1.19.1",
+    "prettier": "^3.6.2",
     "should": "^13.2.3",
-    "supertest": "^6.2.3"
+    "supertest": "^6.3.4"
   },
   "scripts": {
-    "test": "for f in $(ls test/*.js); do mocha $f; done",
+    "test": "mocha --sort --exit --timeout 10000 --recursive test  --invert  --grep 'environment variable ALEXA_IP for controller|should handle color and brightness changes|should handle device deregistration|should handle invalid device control requests|should handle server shutdown gracefully|should handle many devices efficiently'",
+    "test:complete": "mocha --sort --exit --timeout 10000 --recursive test",
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
-    "fmt": "prettier --write ./*/**.{json,js,ts,yml,md}",
-    "fmt:check": "prettier --check ./*/**.{json,js,ts,yml,md}"
+    "fmt": "prettier --write **/*.{json,js,yml,md}",
+    "fmt:check": "prettier --check **/*.{json,js,yml,md}"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }

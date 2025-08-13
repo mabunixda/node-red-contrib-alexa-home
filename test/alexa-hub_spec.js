@@ -4,50 +4,50 @@ const AlexaHub = require("../alexa/alexa-hub.js");
 // Mock controller for testing
 const mockController = {
   id: "test-controller-id",
-  log: function(message) {
+  log: function (message) {
     /* console.log('Controller:', message); */
   },
-  debug: function(message) {
+  debug: function (message) {
     /* console.log('Debug:', message); */
   },
   useNode: false,
-  getAlexaIPAddress: function(req) {
+  getAlexaIPAddress: function (req) {
     return req.connection.remoteAddress || "127.0.0.1";
   },
-  handleIndex: function(id, req, res) {
+  handleIndex: function (id, req, res) {
     res.send("Index");
   },
-  handleSetup: function(id, req, res) {
+  handleSetup: function (id, req, res) {
     res.send("Setup");
   },
-  handleRegistration: function(id, req, res) {
+  handleRegistration: function (id, req, res) {
     res.json({});
   },
-  handleApiCall: function(id, req, res) {
+  handleApiCall: function (id, req, res) {
     res.json({});
   },
-  handleConfigList: function(id, req, res) {
+  handleConfigList: function (id, req, res) {
     res.json({});
   },
-  handleItemList: function(id, req, res) {
+  handleItemList: function (id, req, res) {
     res.json({});
   },
-  getItemInfo: function(id, req, res) {
+  getItemInfo: function (id, req, res) {
     res.json({});
   },
-  controlItem: function(id, req, res) {
+  controlItem: function (id, req, res) {
     res.json({});
   },
-  formatHueBridgeUUID: function(id) {
+  formatHueBridgeUUID: function (id) {
     return "test-uuid-" + id;
-  }
+  },
 };
 
-describe("AlexaHub", function() {
+describe("AlexaHub", function () {
   let hub;
   const testPort = 60000;
 
-  beforeEach(function() {
+  beforeEach(function () {
     // Clean up any previous instances
     if (hub) {
       try {
@@ -58,7 +58,7 @@ describe("AlexaHub", function() {
     }
   });
 
-  afterEach(function(done) {
+  afterEach(function (done) {
     if (hub) {
       try {
         hub.stopServers();
@@ -69,8 +69,8 @@ describe("AlexaHub", function() {
     setTimeout(done, 100); // Give time for cleanup
   });
 
-  describe("Hub Initialization", function() {
-    it("should create hub with correct properties", function() {
+  describe("Hub Initialization", function () {
+    it("should create hub with correct properties", function () {
       hub = new AlexaHub(mockController, testPort, 1);
 
       hub.should.have.property("controller", mockController);
@@ -79,14 +79,14 @@ describe("AlexaHub", function() {
       hub.should.have.property("willClose", false);
     });
 
-    it("should start SSDP server", function() {
+    it("should start SSDP server", function () {
       hub = new AlexaHub(mockController, testPort, 2);
 
       hub.should.have.property("ssdpServer");
       hub.ssdpServer.should.have.property("_started", true);
     });
 
-    it("should create HTTP server when useNode is false", function() {
+    it("should create HTTP server when useNode is false", function () {
       hub = new AlexaHub(mockController, testPort, 3);
 
       hub.should.have.property("httpServer");
@@ -94,9 +94,9 @@ describe("AlexaHub", function() {
       hub.should.have.property("server");
     });
 
-    it("should not create HTTP server when useNode is true", function() {
+    it("should not create HTTP server when useNode is true", function () {
       const mockControllerUseNode = Object.assign({}, mockController, {
-        useNode: true
+        useNode: true,
       });
       hub = new AlexaHub(mockControllerUseNode, testPort, 4);
 
@@ -105,7 +105,7 @@ describe("AlexaHub", function() {
       hub.should.not.have.property("server");
     });
 
-    it("should use custom IP from environment variable", function() {
+    it("should use custom IP from environment variable", function () {
       const originalIp = process.env.ALEXA_IP;
       process.env.ALEXA_IP = "127.0.0.1"; // Use localhost instead of a potentially unavailable IP
 
@@ -121,7 +121,7 @@ describe("AlexaHub", function() {
       }
     });
 
-    it("should use default IP when no environment variable", function() {
+    it("should use default IP when no environment variable", function () {
       const originalIp = process.env.ALEXA_IP;
       delete process.env.ALEXA_IP;
 
@@ -136,8 +136,8 @@ describe("AlexaHub", function() {
     });
   });
 
-  describe("SSDP Configuration", function() {
-    it("should configure SSDP with correct location when no ALEXA_URI", function() {
+  describe("SSDP Configuration", function () {
+    it("should configure SSDP with correct location when no ALEXA_URI", function () {
       const originalUri = process.env.ALEXA_URI;
       delete process.env.ALEXA_URI;
 
@@ -152,7 +152,7 @@ describe("AlexaHub", function() {
       }
     });
 
-    it("should use ALEXA_URI environment variable for location", function() {
+    it("should use ALEXA_URI environment variable for location", function () {
       const originalUri = process.env.ALEXA_URI;
       process.env.ALEXA_URI = "http://custom-host:8080";
 
@@ -168,7 +168,7 @@ describe("AlexaHub", function() {
       }
     });
 
-    it("should add correct USN values", function() {
+    it("should add correct USN values", function () {
       hub = new AlexaHub(mockController, testPort, 9);
 
       // We can't easily test the internal USN array, but we can verify the server started
@@ -176,84 +176,84 @@ describe("AlexaHub", function() {
     });
   });
 
-  describe("HTTP Server and Express App", function() {
-    it("should handle body parsing", function(done) {
+  describe("HTTP Server and Express App", function () {
+    it("should handle body parsing", function (done) {
       hub = new AlexaHub(mockController, testPort, 10);
 
       // Wait a bit for server to start
-      setTimeout(function() {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .post("/api")
           .send({ test: "data" })
           .expect(200)
-          .end(function(err, res) {
+          .end(function (err, res) {
             if (err) throw err;
             done();
           });
       }, 100);
     });
 
-    it("should log requests", function(done) {
+    it("should log requests", function (done) {
       let logCalled = false;
       const mockControllerWithLog = Object.assign({}, mockController, {
-        log: function(message) {
+        log: function (message) {
           if (message.includes("Request data:")) {
             logCalled = true;
           }
-        }
+        },
       });
 
       hub = new AlexaHub(mockControllerWithLog, testPort, 11);
 
-      setTimeout(function() {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/")
-          .end(function(err, res) {
+          .end(function (err, res) {
             logCalled.should.be.true();
             done();
           });
       }, 100);
     });
 
-    it("should handle willClose state", function(done) {
+    it("should handle willClose state", function (done) {
       hub = new AlexaHub(mockController, testPort, 12);
 
-      setTimeout(function() {
+      setTimeout(function () {
         hub.willClose = true;
 
         const request = require("supertest");
         request(hub.app)
           .get("/")
           .expect(503)
-          .end(function(err, res) {
+          .end(function (err, res) {
             res.body.should.have.property("error", "Temporarly Unavailable");
             done();
           });
       }, 100);
     });
 
-    it("should handle JSON parsing errors gracefully", function(done) {
+    it("should handle JSON parsing errors gracefully", function (done) {
       let errorLogged = false;
       const mockControllerWithError = Object.assign({}, mockController, {
-        log: function(message) {
+        log: function (message) {
           if (message.includes("Error: Invalid JSON request:")) {
             errorLogged = true;
           }
-        }
+        },
       });
 
       hub = new AlexaHub(mockControllerWithError, testPort, 13);
 
-      setTimeout(function() {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .post("/api")
           .set("Content-Type", "application/json")
           .send("{ invalid json")
           .expect(400)
-          .end(function(err, res) {
+          .end(function (err, res) {
             // The error should be handled by middleware
             done();
           });
@@ -261,24 +261,20 @@ describe("AlexaHub", function() {
     });
   });
 
-  describe("Route Handling", function() {
-    beforeEach(function() {
+  describe("Route Handling", function () {
+    beforeEach(function () {
       hub = new AlexaHub(mockController, testPort, 14);
     });
 
-    it("should route to handleIndex", function(done) {
-      setTimeout(function() {
+    it("should route to handleIndex", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
-        request(hub.app)
-          .get("/")
-          .expect(200)
-          .expect("Index")
-          .end(done);
+        request(hub.app).get("/").expect(200).expect("Index").end(done);
       }, 100);
     });
 
-    it("should route setup requests", function(done) {
-      setTimeout(function() {
+    it("should route setup requests", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/alexa-home/setup.xml")
@@ -288,8 +284,8 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should route API registration", function(done) {
-      setTimeout(function() {
+    it("should route API registration", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .post("/api")
@@ -299,8 +295,8 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should route config requests", function(done) {
-      setTimeout(function() {
+    it("should route config requests", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/api/config")
@@ -310,8 +306,8 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should route user-specific API calls", function(done) {
-      setTimeout(function() {
+    it("should route user-specific API calls", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/api/testuser")
@@ -321,8 +317,8 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should route item list requests", function(done) {
-      setTimeout(function() {
+    it("should route item list requests", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/api/testuser/lights")
@@ -332,8 +328,8 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should route item info requests", function(done) {
-      setTimeout(function() {
+    it("should route item info requests", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/api/testuser/lights/123")
@@ -343,8 +339,8 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should route state control requests", function(done) {
-      setTimeout(function() {
+    it("should route state control requests", function (done) {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .put("/api/testuser/lights/123/state")
@@ -356,8 +352,8 @@ describe("AlexaHub", function() {
     });
   });
 
-  describe("Server Lifecycle", function() {
-    it("should stop servers cleanly", function() {
+  describe("Server Lifecycle", function () {
+    it("should stop servers cleanly", function () {
       hub = new AlexaHub(mockController, testPort, 15);
 
       // Should have stopServers method
@@ -377,9 +373,9 @@ describe("AlexaHub", function() {
       }
     });
 
-    it("should handle stop when no server exists", function() {
+    it("should handle stop when no server exists", function () {
       const mockControllerUseNode = Object.assign({}, mockController, {
-        useNode: true
+        useNode: true,
       });
       hub = new AlexaHub(mockControllerUseNode, testPort, 16);
 
@@ -400,12 +396,12 @@ describe("AlexaHub", function() {
       }
     });
 
-    it("should handle server errors during creation", function() {
+    it("should handle server errors during creation", function () {
       // Test with an invalid/busy port scenario
       const mockControllerError = Object.assign({}, mockController, {
-        log: function(message) {
+        log: function (message) {
           // Should handle errors
-        }
+        },
       });
 
       // Should be able to create hub instance
@@ -415,28 +411,28 @@ describe("AlexaHub", function() {
     });
   });
 
-  describe("Network and Connection Handling", function() {
-    it("should extract Alexa IP address from requests", function(done) {
+  describe("Network and Connection Handling", function () {
+    it("should extract Alexa IP address from requests", function (done) {
       let capturedIp = null;
       const mockControllerWithIpCapture = Object.assign({}, mockController, {
-        getAlexaIPAddress: function(req) {
+        getAlexaIPAddress: function (req) {
           // The alexaIp header is set by middleware, check if it exists
           capturedIp =
             req.headers.alexaIp || req.connection.remoteAddress || "127.0.0.1";
           return capturedIp;
         },
-        log: function(message) {
+        log: function (message) {
           // Capture log messages
-        }
+        },
       });
 
       hub = new AlexaHub(mockControllerWithIpCapture, testPort, 17);
 
-      setTimeout(function() {
+      setTimeout(function () {
         const request = require("supertest");
         request(hub.app)
           .get("/")
-          .end(function(err, res) {
+          .end(function (err, res) {
             if (err) return done(err);
             // capturedIp should have some value (either from headers or connection)
             should.exist(capturedIp);
@@ -445,13 +441,13 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should handle environment variable ALEXA_IP", function(done) {
+    it("should handle environment variable ALEXA_IP", function (done) {
       const originalIp = process.env.ALEXA_IP;
       process.env.ALEXA_IP = "127.0.0.1"; // Use localhost
 
       hub = new AlexaHub(mockController, testPort, 18);
 
-      setTimeout(function() {
+      setTimeout(function () {
         hub.ip.should.equal("127.0.0.1");
 
         // Restore original value
@@ -464,10 +460,10 @@ describe("AlexaHub", function() {
       }, 100);
     });
 
-    it("should set Connection close header when willClose is true", function(done) {
+    it("should set Connection close header when willClose is true", function (done) {
       hub = new AlexaHub(mockController, testPort, 19);
 
-      setTimeout(function() {
+      setTimeout(function () {
         hub.willClose = true;
 
         const request = require("supertest");

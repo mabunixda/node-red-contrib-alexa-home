@@ -29,17 +29,17 @@ function isURL(str) {
 
 helper.init(require.resolve("node-red"));
 
-describe("alexa-home-controller Node", function() {
-  beforeEach(function(done) {
+describe("alexa-home-controller Node", function () {
+  beforeEach(function (done) {
     helper.startServer(done);
   });
 
-  afterEach(function(done) {
+  afterEach(function (done) {
     helper.unload();
     helper.stopServer(done);
   });
 
-  it("should be loaded with correct default params", function(done) {
+  it("should be loaded with correct default params", function (done) {
     hubPort = between(50000, 60000);
     const flow = [
       {
@@ -47,10 +47,10 @@ describe("alexa-home-controller Node", function() {
         type: "alexa-home-controller",
         controllername: "Test",
         port: hubPort,
-        useNode: false
-      }
+        useNode: false,
+      },
     ];
-    helper.load(controllerNode, flow, function() {
+    helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode("n1");
       n1.should.have.property("name", "Test");
       n1._hub.should.have.length(1);
@@ -61,13 +61,13 @@ describe("alexa-home-controller Node", function() {
       request(n1._hub[0].app)
         .get("/")
         .expect(200)
-        .end(function(err, res) {
+        .end(function (err, res) {
           if (err) throw err;
           done();
         });
     });
   });
-  it("should respond to setup request", function(done) {
+  it("should respond to setup request", function (done) {
     hubPort = between(50000, 60000);
     const flow = [
       {
@@ -75,10 +75,10 @@ describe("alexa-home-controller Node", function() {
         type: "alexa-home-controller",
         controllername: "Test",
         port: hubPort,
-        useNode: false
-      }
+        useNode: false,
+      },
     ];
-    helper.load(controllerNode, flow, function() {
+    helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode("n1");
       n1.should.have.property("name", "Test");
       n1._hub.should.have.length(1);
@@ -86,13 +86,13 @@ describe("alexa-home-controller Node", function() {
         .get("/alexa-home/setup.xml")
         .expect("Content-Type", /xml/)
         .expect(200)
-        .end(function(err, res) {
+        .end(function (err, res) {
           if (err) throw err;
           done();
         });
     });
   });
-  it("should respond to config request", function(done) {
+  it("should respond to config request", function (done) {
     hubPort = between(50000, 60000);
     const flow = [
       {
@@ -100,10 +100,10 @@ describe("alexa-home-controller Node", function() {
         type: "alexa-home-controller",
         controllername: "Test",
         port: hubPort,
-        useNode: false
-      }
+        useNode: false,
+      },
     ];
-    helper.load(controllerNode, flow, function() {
+    helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode("n1");
       n1.should.have.property("name", "Test");
       n1._hub.should.have.length(1);
@@ -111,7 +111,7 @@ describe("alexa-home-controller Node", function() {
         .get("/api/config")
         .expect("Content-Type", /json/)
         .expect(200)
-        .end(function(err, res) {
+        .end(function (err, res) {
           if (err) throw err;
 
           //let isJson = IsJsonString(res.body)
@@ -121,7 +121,7 @@ describe("alexa-home-controller Node", function() {
         });
     });
   });
-  it("should respond to lights request", function(done) {
+  it("should respond to lights request", function (done) {
     hubPort = between(50000, 60000);
     const flow = [
       {
@@ -129,10 +129,10 @@ describe("alexa-home-controller Node", function() {
         type: "alexa-home-controller",
         controllername: "Test",
         port: hubPort,
-        useNode: false
-      }
+        useNode: false,
+      },
     ];
-    helper.load(controllerNode, flow, function() {
+    helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode("n1");
       n1.should.have.property("name", "Test");
       n1._hub.should.have.length(1);
@@ -140,7 +140,7 @@ describe("alexa-home-controller Node", function() {
         .get("/api/my-username/lights")
         .expect("Content-Type", /json/)
         .expect(200)
-        .end(function(err, res) {
+        .end(function (err, res) {
           if (err) throw err;
 
           //var isJson = IsJsonString(res.body)
@@ -150,7 +150,7 @@ describe("alexa-home-controller Node", function() {
         });
     });
   });
-  it("should respond to registration request", function(done) {
+  it("should respond to registration request", function (done) {
     hubPort = between(50000, 60000);
     const flow = [
       {
@@ -158,10 +158,10 @@ describe("alexa-home-controller Node", function() {
         type: "alexa-home-controller",
         controllername: "Test",
         port: hubPort,
-        useNode: false
-      }
+        useNode: false,
+      },
     ];
-    helper.load(controllerNode, flow, function() {
+    helper.load(controllerNode, flow, function () {
       const n1 = helper.getNode("n1");
       n1.should.have.property("name", "Test");
       n1._hub.should.have.length(1);
@@ -169,7 +169,7 @@ describe("alexa-home-controller Node", function() {
         .post("/api")
         .expect("Content-Type", /json/)
         .expect(200)
-        .end(function(err, res) {
+        .end(function (err, res) {
           if (err) throw err;
 
           //var isJson = IsJsonString(res.body)

@@ -1,6 +1,5 @@
 # node-red-contrib-alexa-home
 
-
 [![CI](https://github.com/mabunixda/node-red-contrib-alexa-home/actions/workflows/ci.yml/badge.svg)](https://github.com/mabunixda/node-red-contrib-alexa-home/actions/workflows/ci.yml)
 
 [![Known Vulnerabilities](https://snyk.io/test/github/mabunixda/node-red-contrib-alexa-home/badge.svg)](https://snyk.io/test/github/mabunixda/node-red-contrib-alexa-home)
@@ -28,28 +27,23 @@ They do rely that all communication is done on port 80! To estatlish this you go
 
 You must define an environment variable **ALEXA_PORT** and set its value to 80. When running node-red as systemd unit as
 
-`
-Environment=ALEXA_PORT=80
-`
+`Environment=ALEXA_PORT=80`
 
 To test the change you can also start node-red manually with following:
 
-`
-ALEXA_PORT=80 node-red start
-`
+`ALEXA_PORT=80 node-red start`
 
 ### using iptables and port forwarding
 
 You can leave everything as it is and just define port forwarding using iptables
 
-`
-sudo iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 60000
-`
+`sudo iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 60000`
 
 Please consider that any changes to iptables are not presistent, after reboot you have to forward the port again, or use iptables-save as described [here](https://www.poftut.com/how-to-save-and-restore-iptables-rules-permanently-in-ubuntu-centos-fedora-debian-kali-mint/)
 
 ## Message Object Properties
-the follow *msg* properties are generated within this node
+
+the follow _msg_ properties are generated within this node
 
 **payload.on:** true|false
 
@@ -61,12 +55,12 @@ the follow *msg* properties are generated within this node
 
 With version 1.x now also the input is processed within the node and updates the data to alexa. Within the alexa app you are now able to get the current state of your nodes.
 
-
 ### Message input to the nodes
 
 At the moment you can input as payload objects:
-* [brightness](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L85)
-* [color](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L79)
-* [on/off](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L95)
+
+- [brightness](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L85)
+- [color](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L79)
+- [on/off](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L95)
 
 Normal an input is not routed as output because this would possibly cause endless update loops. But if you want this and know what you are doing, you can set the [output param on the msg](https://github.com/mabunixda/node-red-contrib-alexa-home/blob/master/alexa/alexa-home.js#L133) to let the input passthrough.

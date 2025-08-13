@@ -1,4 +1,4 @@
-module.exports = function(RED) {
+module.exports = function (RED) {
   "use strict";
   const alexaHome = require("./alexa-helper");
 
@@ -24,12 +24,12 @@ module.exports = function(RED) {
     node.xy = [0, 0];
     node.uniqueid = node.generateUniqueId(config.id);
 
-    node.on("input", function(msg) {
+    node.on("input", function (msg) {
       msg.inputTrigger = true;
       node.processCommand(msg);
     });
 
-    node.on("close", function(done) {
+    node.on("close", function (done) {
       if (node.controller) {
         node.controller.deregisterCommand(node);
       }
@@ -46,26 +46,26 @@ module.exports = function(RED) {
     node.setConnectionStatusMsg("red", "No Alexa Home Controller available");
   }
 
-  AlexaHomeNode.prototype.setConnectionStatusMsg = function(
+  AlexaHomeNode.prototype.setConnectionStatusMsg = function (
     color,
     text,
-    shape
+    shape,
   ) {
     shape = shape || "dot";
     this.status({
       fill: color,
       shape,
-      text
+      text,
     });
   };
 
-  AlexaHomeNode.prototype.updateController = function(controllerNode) {
+  AlexaHomeNode.prototype.updateController = function (controllerNode) {
     const node = this;
     node.controller = controllerNode;
     node.setConnectionStatusMsg("green", "Ok");
   };
 
-  AlexaHomeNode.prototype.processCommand = function(msg) {
+  AlexaHomeNode.prototype.processCommand = function (msg) {
     const node = this;
 
     if (node.controller === null || node.controller === undefined) {
@@ -141,14 +141,14 @@ module.exports = function(RED) {
     node.send(msg);
   };
 
-  AlexaHomeNode.prototype.generateUniqueId = function(uuid) {
+  AlexaHomeNode.prototype.generateUniqueId = function (uuid) {
     let i = 9;
     const base = "00:11:22:33:44:55:66:77-88";
     const nodeid = uuid.split("");
     const uniqueid = base.replace(
       /\d/g,
       () => nodeid.shift() || Math.max(--i, 0),
-      "g"
+      "g",
     );
     return uniqueid;
   };
