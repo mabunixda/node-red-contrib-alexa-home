@@ -7,20 +7,22 @@ describe("alexa-helper", function() {
     alexaHelper.hubPort.should.be.a.Number();
     if (process.env.ALEXA_PORT === undefined) {
       // Default should be 80, but may be overridden by other tests
-      (alexaHelper.hubPort === 80 || alexaHelper.hubPort === 60000).should.be.true();
+      (
+        alexaHelper.hubPort === 80 || alexaHelper.hubPort === 60000
+      ).should.be.true();
     } else {
       alexaHelper.hubPort.should.equal(parseInt(process.env.ALEXA_PORT));
     }
-    
+
     // Test default brightness
     alexaHelper.bri_default.should.equal(process.env.BRI_DEFAULT || 254);
-    
+
     // Test UUID prefix
     alexaHelper.prefixUUID.should.equal("f6543a06-da50-11ba-8d8f-");
-    
+
     // Test initial controller state
     should(alexaHelper.controllerNode).be.undefined();
-    
+
     // Test debug flag
     const debugEnv = process.env.DEBUG;
     if (debugEnv && debugEnv.indexOf("node-red-contrib-alexa-home") >= 0) {
@@ -34,20 +36,20 @@ describe("alexa-helper", function() {
     const originalPort = process.env.ALEXA_PORT;
     const originalBri = process.env.BRI_DEFAULT;
     const originalDebug = process.env.DEBUG;
-    
+
     try {
       // Test with custom port
       process.env.ALEXA_PORT = "8080";
       delete require.cache[require.resolve("../alexa/alexa-helper.js")];
       const helper1 = require("../alexa/alexa-helper.js");
       helper1.hubPort.should.equal(8080);
-      
+
       // Test with custom brightness
       process.env.BRI_DEFAULT = "200";
       delete require.cache[require.resolve("../alexa/alexa-helper.js")];
       const helper2 = require("../alexa/alexa-helper.js");
       helper2.bri_default.should.equal("200");
-      
+
       // Test with debug enabled
       process.env.DEBUG = "other:node-red-contrib-alexa-home:test";
       delete require.cache[require.resolve("../alexa/alexa-helper.js")];
@@ -70,7 +72,7 @@ describe("alexa-helper", function() {
       } else {
         delete process.env.DEBUG;
       }
-      
+
       // Reload original helper
       delete require.cache[require.resolve("../alexa/alexa-helper.js")];
       require("../alexa/alexa-helper.js");

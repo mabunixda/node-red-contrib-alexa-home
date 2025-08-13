@@ -15,7 +15,7 @@ helper.init(require.resolve("node-red"));
 describe("alexa-home-controller Node - Extended Tests", function() {
   // Increase timeout for network operations
   this.timeout(5000);
-  
+
   beforeEach(function(done) {
     // Set a unique port for each test to avoid conflicts
     alexaHelper.hubPort = between(50000, 60000);
@@ -102,7 +102,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       helper.load([controllerNode, alexaNode], flow, function() {
         const controller = helper.getNode("controller1");
         const home = helper.getNode("home1");
-        
+
         // Controller should have registered the home node
         home.should.have.property("controller", controller);
         done();
@@ -125,7 +125,9 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       helper.load(controllerNode, flow, function() {
         const n1 = helper.getNode("test-node-id-12345");
         const macAddress = n1.generateMacAddress("test-node-id-12345");
-        macAddress.should.match(/^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$/);
+        macAddress.should.match(
+          /^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$/
+        );
         done();
       });
     });
@@ -196,17 +198,17 @@ describe("alexa-home-controller Node - Extended Tests", function() {
         try {
           const controller = helper.getNode("controller1");
           const home = helper.getNode("home1");
-          
+
           // Should be registered in the _commands Map
           controller._commands.should.be.instanceof(Map);
           const uuid = controller.formatUUID(home.id);
           controller._commands.has(uuid).should.be.true();
           controller._commands.get(uuid).should.equal(home);
-          
+
           // Test deregistration
           controller.deregisterCommand(home);
           controller._commands.has(uuid).should.be.false();
-          
+
           done();
         } catch (error) {
           done(error);
@@ -238,12 +240,12 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       helper.load([controllerNode, alexaNode], flow, function() {
         const controller = helper.getNode("controller1");
         const deviceList = controller.generateAPIDeviceList(controller.id);
-        
+
         deviceList.should.be.an.Array();
         deviceList.length.should.equal(2);
         deviceList[0].should.have.property("name", "Test Light 1");
         deviceList[1].should.have.property("name", "Test Light 2");
-        
+
         done();
       });
     });
@@ -268,7 +270,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load([controllerNode, alexaNode], flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         request(controller._hub[0].app)
           .get("/api/test-user/lights/home1")
           .expect(200)
@@ -305,7 +307,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
         const controller = helper.getNode("controller1");
         const home = helper.getNode("home1");
         const output = helper.getNode("output1");
-        
+
         output.on("input", function(msg) {
           msg.payload.should.have.property("on", true);
           done();
@@ -335,7 +337,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         request(controller._hub[0].app)
           .get("/api/test-user/sensors")
           .expect(200)
@@ -361,7 +363,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         request(controller._hub[0].app)
           .post("/api/test-user/lights")
           .expect(200)
@@ -386,7 +388,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         request(controller._hub[0].app)
           .get("/api/test-user/lights/new")
           .expect(200)
@@ -413,7 +415,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         // This should be handled by the body parser error middleware
         request(controller._hub[0].app)
           .put("/api/test-user/lights/test-light/state")
@@ -440,10 +442,10 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         // Simulate willClose state
         controller._hub[0].willClose = true;
-        
+
         request(controller._hub[0].app)
           .get("/api/config")
           .expect(503)
@@ -478,11 +480,11 @@ describe("alexa-home-controller Node - Extended Tests", function() {
     it("should handle environment variable ALEXA_IP for controller", function(done) {
       const originalIp = process.env.ALEXA_IP;
       const hubPort = between(50000, 60000);
-      
+
       // Ensure we use our test port, not default 80
       alexaHelper.hubPort = hubPort;
       process.env.ALEXA_IP = "127.0.0.1"; // Use localhost instead
-      
+
       const flow = [
         {
           id: "controller1",
@@ -495,7 +497,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
         controller._hub[0].ip.should.equal("127.0.0.1");
-        
+
         // Restore original value
         if (originalIp !== undefined) {
           process.env.ALEXA_IP = originalIp;
@@ -523,11 +525,11 @@ describe("alexa-home-controller Node - Extended Tests", function() {
         const controller = helper.getNode("controller1");
         const hubCount = controller._hub.length;
         hubCount.should.be.greaterThan(0);
-        
+
         // Verify that stopServers method exists and is callable
         controller._hub[0].should.have.property("stopServers");
         controller._hub[0].stopServers.should.be.a.Function();
-        
+
         done();
       });
     });
@@ -536,7 +538,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       const hubPort = between(50000, 60000);
       const flow = [
         {
-          id: "controller1", 
+          id: "controller1",
           type: "alexa-home-controller",
           controllername: "Test Controller",
           port: hubPort,
@@ -545,11 +547,11 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         // Verify controller node is accessible
         controller.should.be.ok();
         controller.should.have.property("_hub");
-        
+
         // The actual cleanup will be tested during the afterEach hook
         done();
       });
@@ -570,7 +572,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         request(controller._hub[0].app)
           .get("/alexa-home/setup.xml")
           .expect(200)
@@ -578,7 +580,9 @@ describe("alexa-home-controller Node - Extended Tests", function() {
           .end(function(err, res) {
             if (err) throw err;
             res.text.should.containEql("urn:schemas-upnp-org:device:Basic:1");
-            res.text.should.containEql(controller.formatHueBridgeUUID(controller.id));
+            res.text.should.containEql(
+              controller.formatHueBridgeUUID(controller.id)
+            );
             done();
           });
       });
@@ -597,7 +601,7 @@ describe("alexa-home-controller Node - Extended Tests", function() {
       ];
       helper.load(controllerNode, flow, function() {
         const controller = helper.getNode("controller1");
-        
+
         request(controller._hub[0].app)
           .post("/api")
           .expect(200)

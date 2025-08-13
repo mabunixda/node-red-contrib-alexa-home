@@ -37,7 +37,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           wires: [["output1"]]
         },
         {
-          id: "light2", 
+          id: "light2",
           type: "alexa-home",
           devicename: "Kitchen Light",
           devicetype: "Dimmable light",
@@ -72,7 +72,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           .expect("Content-Type", /xml/)
           .end(function(err, res) {
             if (err) throw err;
-            
+
             // Test device listing
             request(controller._hub[0].app)
               .get("/api/test-user/lights")
@@ -80,27 +80,27 @@ describe("Integration Tests - Complete Alexa Flow", function() {
               .expect("Content-Type", /json/)
               .end(function(err, res) {
                 if (err) throw err;
-                
+
                 const lights = JSON.parse(res.text);
                 Object.keys(lights).length.should.equal(2);
-                
+
                 // Test individual light control
                 let messagesReceived = 0;
-                
+
                 output1.on("input", function(msg) {
                   msg.payload.should.have.property("on", true);
                   msg.payload.should.have.property("bri", 200);
                   msg.device_name.should.equal("Living Room Light");
                   messagesReceived++;
-                  
+
                   if (messagesReceived === 2) done();
                 });
-                
+
                 output2.on("input", function(msg) {
                   msg.payload.should.have.property("on", false);
-                  msg.device_name.should.equal("Kitchen Light");  
+                  msg.device_name.should.equal("Kitchen Light");
                   messagesReceived++;
-                  
+
                   if (messagesReceived === 2) done();
                 });
 
@@ -113,9 +113,9 @@ describe("Integration Tests - Complete Alexa Flow", function() {
                     if (err) throw err;
                   });
 
-                // Control second light - turn off  
+                // Control second light - turn off
                 request(controller._hub[0].app)
-                  .put("/api/test-user/lights/light2/state") 
+                  .put("/api/test-user/lights/light2/state")
                   .send({ on: false })
                   .expect(200)
                   .end(function(err, res) {
@@ -131,7 +131,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
       const flow = [
         {
           id: "controller1",
-          type: "alexa-home-controller", 
+          type: "alexa-home-controller",
           controllername: "Auth Test Controller",
           port: hubPort,
           useNode: false
@@ -149,14 +149,14 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           .expect("Content-Type", /json/)
           .end(function(err, res) {
             if (err) throw err;
-            
+
             const response = JSON.parse(res.text);
             response.should.be.an.Array();
             response[0].should.have.property("success");
             response[0].success.should.have.property("username");
-            
+
             const username = response[0].success.username;
-            
+
             // Test authenticated config access
             request(controller._hub[0].app)
               .get("/api/" + username + "/config")
@@ -164,12 +164,12 @@ describe("Integration Tests - Complete Alexa Flow", function() {
               .expect("Content-Type", /json/)
               .end(function(err, res) {
                 if (err) throw err;
-                
+
                 const config = JSON.parse(res.text);
                 config.should.have.property("name");
                 config.should.have.property("bridgeid");
                 config.should.have.property("modelid");
-                
+
                 done();
               });
           });
@@ -184,7 +184,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
         {
           id: "controller1",
           type: "alexa-home-controller",
-          controllername: "Color Test Controller", 
+          controllername: "Color Test Controller",
           port: hubPort,
           useNode: false
         },
@@ -211,8 +211,8 @@ describe("Integration Tests - Complete Alexa Flow", function() {
 
         colorOutput.on("input", function(msg) {
           testStep++;
-          
-          switch(testStep) {
+
+          switch (testStep) {
             case 1:
               // Brightness test
               msg.payload.should.have.property("command", "dim");
@@ -220,13 +220,13 @@ describe("Integration Tests - Complete Alexa Flow", function() {
               msg.payload.should.have.property("bri_normalized", 59);
               msg.should.have.property("change_direction", 1);
               break;
-              
+
             case 2:
-              // Color test  
+              // Color test
               msg.payload.should.have.property("command", "color");
               msg.payload.should.have.property("xy", [0.3, 0.4]);
               break;
-              
+
             case 3:
               // Combined color and brightness
               msg.payload.should.have.property("command", "color");
@@ -234,7 +234,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
               msg.payload.should.have.property("bri", 100);
               break;
           }
-          
+
           if (testStep === expectedSteps) {
             done();
           }
@@ -263,7 +263,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
             });
         }, 50);
 
-        // Test 3: Combined color and brightness  
+        // Test 3: Combined color and brightness
         setTimeout(function() {
           request(controller._hub[0].app)
             .put("/api/test-user/lights/colorLight/state")
@@ -280,7 +280,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
       const hubPort = 60000 + Math.floor(Math.random() * 1000);
       const flow = [
         {
-          id: "controller1", 
+          id: "controller1",
           type: "alexa-home-controller",
           controllername: "Trigger Test Controller",
           port: hubPort,
@@ -288,7 +288,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
         },
         {
           id: "triggerLight",
-          type: "alexa-home", 
+          type: "alexa-home",
           devicename: "Trigger Light",
           inputtrigger: true,
           wires: [["triggerOutput"]]
@@ -305,7 +305,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
         const triggerOutput = helper.getNode("triggerOutput");
 
         let outputReceived = false;
-        
+
         triggerOutput.on("input", function(msg) {
           // Should only receive output from external API control, not input
           msg.payload.should.have.property("on", true);
@@ -314,11 +314,11 @@ describe("Integration Tests - Complete Alexa Flow", function() {
 
         // Test 1: Input trigger (should not send to output)
         triggerLight.receive({ payload: { on: true } });
-        
+
         // Wait and verify no output
         setTimeout(function() {
           outputReceived.should.be.false();
-          
+
           // Test 2: External API control (should send to output)
           request(controller._hub[0].app)
             .put("/api/test-user/lights/triggerLight/state")
@@ -326,7 +326,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
             .expect(200)
             .end(function(err, res) {
               if (err) throw err;
-              
+
               // Wait for output
               setTimeout(function() {
                 outputReceived.should.be.true();
@@ -346,7 +346,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           id: "controller1",
           type: "alexa-home-controller",
           controllername: "Deregister Test Controller",
-          port: hubPort, 
+          port: hubPort,
           useNode: false
         },
         {
@@ -373,7 +373,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           .expect(200)
           .end(function(err, res) {
             if (err) throw err;
-            
+
             const lights = JSON.parse(res.text);
             Object.keys(lights).length.should.equal(0);
             done();
@@ -386,7 +386,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
       const flow = [
         {
           id: "controller1",
-          type: "alexa-home-controller", 
+          type: "alexa-home-controller",
           controllername: "Error Test Controller",
           port: hubPort,
           useNode: false
@@ -414,7 +414,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
         {
           id: "controller1",
           type: "alexa-home-controller",
-          controllername: "Shutdown Test Controller", 
+          controllername: "Shutdown Test Controller",
           port: hubPort,
           useNode: false
         },
@@ -435,7 +435,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           .expect(200)
           .end(function(err, res) {
             if (err) throw err;
-            
+
             // Trigger shutdown
             controller.emit("close", function() {
               // Verify cleanup
@@ -457,7 +457,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           type: "alexa-home-controller",
           controllername: "Load Test Controller",
           port: hubPort,
-          useNode: false  
+          useNode: false
         },
         {
           id: "loadLight",
@@ -466,7 +466,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           wires: [["loadOutput"]]
         },
         {
-          id: "loadOutput", 
+          id: "loadOutput",
           type: "helper"
         }
       ];
@@ -517,7 +517,7 @@ describe("Integration Tests - Complete Alexa Flow", function() {
       for (let i = 0; i < deviceCount; i++) {
         flow.push({
           id: `device${i}`,
-          type: "alexa-home", 
+          type: "alexa-home",
           devicename: `Device ${i}`,
           devicetype: i % 3 === 0 ? "Extended color light" : "Dimmable light"
         });
@@ -536,13 +536,13 @@ describe("Integration Tests - Complete Alexa Flow", function() {
           .expect(200)
           .end(function(err, res) {
             if (err) throw err;
-            
+
             const endTime = Date.now();
             const responseTime = endTime - startTime;
-            
-            // Should respond quickly even with many devices  
+
+            // Should respond quickly even with many devices
             responseTime.should.be.below(1000);
-            
+
             const lights = JSON.parse(res.text);
             Object.keys(lights).length.should.equal(deviceCount);
             done();

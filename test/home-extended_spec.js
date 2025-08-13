@@ -17,11 +17,11 @@ describe("alexa-home Node - Extended Tests", function() {
   describe("Node Configuration", function() {
     it("should initialize with custom devicetype", function(done) {
       const flow = [
-        { 
-          id: "n1", 
-          type: "alexa-home", 
-          devicename: "Test Light", 
-          devicetype: "Color light" 
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "Test Light",
+          devicetype: "Color light"
         }
       ];
       helper.load(alexaNode, flow, function() {
@@ -34,9 +34,9 @@ describe("alexa-home Node - Extended Tests", function() {
 
     it("should initialize with input trigger enabled", function(done) {
       const flow = [
-        { 
-          id: "n1", 
-          type: "alexa-home", 
+        {
+          id: "n1",
+          type: "alexa-home",
           devicename: "Test Light",
           inputtrigger: true
         }
@@ -50,9 +50,9 @@ describe("alexa-home Node - Extended Tests", function() {
 
     it("should generate unique ID correctly", function(done) {
       const flow = [
-        { 
-          id: "test-node-id-12345", 
-          type: "alexa-home", 
+        {
+          id: "test-node-id-12345",
+          type: "alexa-home",
           devicename: "Test Light"
         }
       ];
@@ -253,7 +253,7 @@ describe("alexa-home Node - Extended Tests", function() {
           // Node should handle the error gracefully and not crash
           done();
         }, 50);
-        
+
         n1.receive({ payload: { invalid: "data" }, output: true });
       });
     });
@@ -280,7 +280,7 @@ describe("alexa-home Node - Extended Tests", function() {
 
         // Trigger with input (should not send to output)
         n1.receive({ payload: { on: true } });
-        
+
         setTimeout(function() {
           messageReceived.should.be.false();
           done();
@@ -291,9 +291,7 @@ describe("alexa-home Node - Extended Tests", function() {
 
   describe("Node Status and Connection", function() {
     it("should show connection status when no controller", function(done) {
-      const flow = [
-        { id: "n1", type: "alexa-home", devicename: "Test Light" }
-      ];
+      const flow = [{ id: "n1", type: "alexa-home", devicename: "Test Light" }];
       helper.load(alexaNode, flow, function() {
         const n1 = helper.getNode("n1");
         // Should have red status indicating no controller
@@ -311,14 +309,14 @@ describe("alexa-home Node - Extended Tests", function() {
       helper.load(alexaNode, flow, function() {
         const n1 = helper.getNode("n1");
         const n2 = helper.getNode("n2");
-        
+
         // Initially no controller
         should(n1.controller).be.undefined();
-        
+
         // Update controller
         n1.updateController(n2);
         n1.controller.should.equal(n2);
-        
+
         done();
       });
     });
@@ -331,13 +329,13 @@ describe("alexa-home Node - Extended Tests", function() {
       helper.load(alexaNode, flow, function() {
         const n1 = helper.getNode("n1");
         const n2 = helper.getNode("n2");
-        
+
         // Mock controller with deregister method
         n2.deregisterCommand = function(node) {
           node.should.equal(n1);
           done();
         };
-        
+
         n1.controller = n2;
         n1.emit("close", function() {});
       });
@@ -353,28 +351,26 @@ describe("alexa-home Node - Extended Tests", function() {
       helper.load(alexaNode, flow, function() {
         const n1 = helper.getNode("test-id-1");
         const n2 = helper.getNode("test-id-2");
-        
+
         n1.uniqueid.should.not.equal(n2.uniqueid);
         done();
       });
     });
 
     it("should handle generateUniqueId with various UUID formats", function(done) {
-      const flow = [
-        { id: "n1", type: "alexa-home", devicename: "Test Light" }
-      ];
+      const flow = [{ id: "n1", type: "alexa-home", devicename: "Test Light" }];
       helper.load(alexaNode, flow, function() {
         const n1 = helper.getNode("n1");
-        
+
         // Test various UUID formats
         const id1 = n1.generateUniqueId("abc123def456");
         const id2 = n1.generateUniqueId("short");
         const id3 = n1.generateUniqueId("");
-        
+
         id1.should.match(/^00:11:22:33:44:55:66:77-88$/);
         id2.should.match(/^00:11:22:33:44:55:66:77-88$/);
         id3.should.match(/^00:11:22:33:44:55:66:77-88$/);
-        
+
         done();
       });
     });
@@ -434,17 +430,23 @@ describe("alexa-home Node - Extended Tests", function() {
           const testCase = testCases[testIndex];
           msg.payload.bri_normalized.should.equal(testCase.expected);
           testIndex++;
-          
+
           if (testIndex < testCases.length) {
             // Send next test case
-            n1.receive({ payload: { bri: testCases[testIndex].bri }, output: true });
+            n1.receive({
+              payload: { bri: testCases[testIndex].bri },
+              output: true
+            });
           } else {
             done();
           }
         });
-        
+
         // Start first test
-        n1.receive({ payload: { bri: testCases[testIndex].bri }, output: true });
+        n1.receive({
+          payload: { bri: testCases[testIndex].bri },
+          output: true
+        });
       });
     });
   });
