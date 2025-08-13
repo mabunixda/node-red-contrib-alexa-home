@@ -15,16 +15,17 @@ function AlexaHub(controller, port, id) {
   node.id = id;
   node.port = port + id;
   node.willClose = false;
-  const protocol = "http";
+  
+  // Support both HTTP and HTTPS based on environment or configuration
+  node.protocol = process.env.ALEXA_PROTOCOL || "http";
+  
   const options = undefined;
-  node.startSsdp(protocol);
+  node.startSsdp(node.protocol);
   if (node.controller.useNode) {
     return;
   }
-  node.createServer(protocol, options);
-}
-
-AlexaHub.prototype.createServer = function (protocol, options) {
+  node.createServer(node.protocol, options);
+}AlexaHub.prototype.createServer = function (protocol, options) {
   const node = this;
   const app = express();
   node.app = app;
@@ -33,7 +34,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
     node.ip = process.env.ALEXA_IP;
     node.controller.log("Using " + node.ip + " to listing to alexa commands");
   }
-  node.httpServer = require(protocol).createServer(options, app);
+  node.httpServer = require(node.protocol).createServer(options, app);
   node.server = node.httpServer.listen(node.port, node.ip, function (error) {
     if (error) {
       node.controller.log(error);
@@ -50,7 +51,7 @@ AlexaHub.prototype.createServer = function (protocol, options) {
 
     app.use(function (err, req, res, next) {
       if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-        node.controller.error(
+        node.controller.log(
           "Error: Invalid JSON request from " + req.ip + ": " + err.message,
         );
         // Return proper Hue bridge error format for Alexa compatibility

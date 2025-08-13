@@ -137,10 +137,18 @@ module.exports = function (RED) {
     const node = this;
     alexaHome.controllerNode = node;
     node.name = config.controllername;
-    if (config.port === undefined || config.port === null) {
-      node.port = alexaHome.hubPort;
-    } else {
+
+    node.warn("config parameters: " + JSON.stringify(config));
+
+    // Configure port: use custom port from config, fallback to environment variable or default
+    if (config.port !== undefined && config.port !== null && config.port !== "") {
       node.port = parseInt(config.port);
+      if (isNaN(node.port) || node.port <= 0 || node.port > 65535) {
+        node.warn(`Invalid port number: ${config.port}. Using default port.`);
+        node.port = alexaHome.hubPort;
+      }
+    } else {
+      node.port = alexaHome.hubPort;
     }
     const mac = node.generateMacAddress(config.id);
     node.macaddress = mac;
@@ -149,7 +157,8 @@ module.exports = function (RED) {
     node._commands = new Map();
     node._hub = [];
 
-    node.port = alexaHome.hubPort;
+    // Use the configured port (either custom or default from alexa-helper)
+    RED.log.info(`Alexa Home Controller starting on port: ${node.port}`);
     node._hub.push(new AlexaHub(this, node.port, this._hub.length));
 
     node.on("close", function (removed, done) {
