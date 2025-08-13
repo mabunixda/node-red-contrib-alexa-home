@@ -1,8 +1,7 @@
 [
-    {
-        "success":
-        {
-            "username": "{{username}}"
-        }
+  {
+    "success": {
+      "username": "{{username}}"
     }
+  }
 ]

@@ -16,35 +16,32 @@
     }
   },
   "dependencies": {
-    "body-parser": "^1.20.0",
-    "express": "^4.18.1",
+    "body-parser": "^1.20.3",
+    "express": "^5.1.0",
     "mustache": "^4.2.0",
     "node-ssdp": "^4.0.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.5.4",
-    "eslint": "^8.18.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-n": "^15.2.3",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-standard": "^5.0.0",
-    "mocha": "^10.0.0",
-    "node-red": "^3.0.2",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.33.0",
+    "eslint": "^9.33.0",
+    "globals": "^16.3.0",
+    "mocha": "^11.7.1",
+    "node-red": "^4.1.0",
     "node-red-node-test-helper": "^0.3.0",
     "npm-check": "^6.0.1",
-    "prettier": "^1.19.1",
+    "prettier": "^3.6.2",
     "should": "^13.2.3",
-    "supertest": "^6.2.3"
+    "supertest": "^7.1.4"
   },
   "scripts": {
-    "test": "for f in $(ls test/*.js); do mocha $f; done",
+    "test": "for f in $(ls test/*.js); do mocha --sort --exit --timeout 5000 $f; done",
+    "test:complete": "mocha --sort --exit --timeout 10000 --recursive test",
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
-    "fmt": "prettier --write ./*/**.{json,js,ts,yml,md}",
-    "fmt:check": "prettier --check ./*/**.{json,js,ts,yml,md}"
+    "fmt": "prettier --write **/*.{js,yml,md}",
+    "fmt:check": "prettier --check **/*.{js,yml,md}"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }

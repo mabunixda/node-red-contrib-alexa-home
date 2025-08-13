@@ -11,5 +11,5 @@ module.exports = {
       process.env.DEBUG.indexOf("node-red-contrib-alexa-home") > 0) ||
     false,
   bri_default: process.env.BRI_DEFAULT || 254,
-  prefixUUID: "f6543a06-da50-11ba-8d8f-"
+  prefixUUID: "f6543a06-da50-11ba-8d8f-",
 };

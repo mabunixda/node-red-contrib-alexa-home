@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        node: [14, 16]
+        node: [20, 22, 23, 24]
 
     steps:
       - uses: actions/checkout@v5
@@ -46,7 +46,7 @@ jobs:
         with:
           path: "scripts"
 
-      - run: npm run test
+      - run: npm test
 
   release:
     runs-on: ubuntu-latest

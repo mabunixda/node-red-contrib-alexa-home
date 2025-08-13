@@ -2,46 +2,46 @@ const should = require("should");
 const fs = require("fs");
 const path = require("path");
 
-describe("Templates and Static Resources", function() {
+describe("Templates and Static Resources", function () {
   const templateDir = path.join(__dirname, "../alexa/templates");
   const itemsDir = path.join(templateDir, "items");
 
-  describe("Template Files Existence", function() {
-    it("should have all required template files", function() {
+  describe("Template Files Existence", function () {
+    it("should have all required template files", function () {
       const requiredTemplates = [
         "index.html",
         "registration.json",
         "response.json",
-        "setup.xml"
+        "setup.xml",
       ];
 
-      requiredTemplates.forEach(function(template) {
+      requiredTemplates.forEach(function (template) {
         const templatePath = path.join(templateDir, template);
         fs.existsSync(templatePath).should.be.true(
-          `Template ${template} should exist`
+          `Template ${template} should exist`,
         );
       });
     });
 
-    it("should have all required item template files", function() {
+    it("should have all required item template files", function () {
       const requiredItemTemplates = [
         "config.json",
         "get-state.json",
         "list.json",
-        "set-state.json"
+        "set-state.json",
       ];
 
-      requiredItemTemplates.forEach(function(template) {
+      requiredItemTemplates.forEach(function (template) {
         const templatePath = path.join(itemsDir, template);
         fs.existsSync(templatePath).should.be.true(
-          `Item template ${template} should exist`
+          `Item template ${template} should exist`,
         );
       });
     });
   });
 
-  describe("Template Content Validation", function() {
-    it("should have valid setup.xml template", function() {
+  describe("Template Content Validation", function () {
+    it("should have valid setup.xml template", function () {
       const setupPath = path.join(templateDir, "setup.xml");
       const content = fs.readFileSync(setupPath, "utf8");
 
@@ -54,7 +54,7 @@ describe("Templates and Static Resources", function() {
       content.should.containEql("urn:schemas-upnp-org:device:Basic:1");
     });
 
-    it("should have valid registration.json template", function() {
+    it("should have valid registration.json template", function () {
       const regPath = path.join(templateDir, "registration.json");
       const content = fs.readFileSync(regPath, "utf8");
 
@@ -65,7 +65,7 @@ describe("Templates and Static Resources", function() {
       content.should.containEql("success");
     });
 
-    it("should have valid response.json template", function() {
+    it("should have valid response.json template", function () {
       const responsePath = path.join(templateDir, "response.json");
       const content = fs.readFileSync(responsePath, "utf8");
 
@@ -74,7 +74,7 @@ describe("Templates and Static Resources", function() {
       content.should.containEql("config");
     });
 
-    it("should have valid index.html template", function() {
+    it("should have valid index.html template", function () {
       const indexPath = path.join(templateDir, "index.html");
       const content = fs.readFileSync(indexPath, "utf8");
 
@@ -87,7 +87,7 @@ describe("Templates and Static Resources", function() {
       content.should.containEql("</html>");
     });
 
-    it("should have valid list.json template", function() {
+    it("should have valid list.json template", function () {
       const listPath = path.join(itemsDir, "list.json");
       const content = fs.readFileSync(listPath, "utf8");
 
@@ -99,7 +99,7 @@ describe("Templates and Static Resources", function() {
       content.should.match(/^\s*\{/);
     });
 
-    it("should have valid config.json template", function() {
+    it("should have valid config.json template", function () {
       const configPath = path.join(itemsDir, "config.json");
       const content = fs.readFileSync(configPath, "utf8");
 
@@ -108,7 +108,7 @@ describe("Templates and Static Resources", function() {
       content.should.containEql('"name":');
     });
 
-    it("should have valid get-state.json template", function() {
+    it("should have valid get-state.json template", function () {
       const statePath = path.join(itemsDir, "get-state.json");
       const content = fs.readFileSync(statePath, "utf8");
 
@@ -117,7 +117,7 @@ describe("Templates and Static Resources", function() {
       content.should.containEql('"bri":');
     });
 
-    it("should have valid set-state.json template", function() {
+    it("should have valid set-state.json template", function () {
       const setStatePath = path.join(itemsDir, "set-state.json");
       const content = fs.readFileSync(setStatePath, "utf8");
 
@@ -126,11 +126,11 @@ describe("Templates and Static Resources", function() {
     });
   });
 
-  describe("Icon Resources", function() {
-    it("should have alexa-home icon", function() {
+  describe("Icon Resources", function () {
+    it("should have alexa-home icon", function () {
       const iconPath = path.join(__dirname, "../alexa/icons/alexa-home.png");
       fs.existsSync(iconPath).should.be.true(
-        "alexa-home.png icon should exist"
+        "alexa-home.png icon should exist",
       );
 
       // Should be a valid PNG file (starts with PNG signature)
@@ -143,8 +143,8 @@ describe("Templates and Static Resources", function() {
     });
   });
 
-  describe("HTML Files", function() {
-    it("should have valid alexa-home.html node definition", function() {
+  describe("HTML Files", function () {
+    it("should have valid alexa-home.html node definition", function () {
       const htmlPath = path.join(__dirname, "../alexa/alexa-home.html");
       const content = fs.readFileSync(htmlPath, "utf8");
 
@@ -157,10 +157,10 @@ describe("Templates and Static Resources", function() {
       content.should.containEql('<script type="text/x-red"');
     });
 
-    it("should have valid alexa-home-controller.html node definition", function() {
+    it("should have valid alexa-home-controller.html node definition", function () {
       const htmlPath = path.join(
         __dirname,
-        "../alexa/alexa-home-controller.html"
+        "../alexa/alexa-home-controller.html",
       );
       const content = fs.readFileSync(htmlPath, "utf8");
 
@@ -174,19 +174,19 @@ describe("Templates and Static Resources", function() {
     });
   });
 
-  describe("Template Mustache Syntax", function() {
-    it("should not have unmatched Mustache brackets", function() {
+  describe("Template Mustache Syntax", function () {
+    it("should not have unmatched Mustache brackets", function () {
       const templateFiles = [
         path.join(templateDir, "index.html"),
         path.join(templateDir, "registration.json"),
         path.join(templateDir, "setup.xml"),
         path.join(itemsDir, "list.json"),
         path.join(itemsDir, "config.json"),
-        path.join(itemsDir, "get-state.json")
+        path.join(itemsDir, "get-state.json"),
         // Excluding set-state.json as it appears to have complex mustache syntax
       ];
 
-      templateFiles.forEach(function(filePath) {
+      templateFiles.forEach(function (filePath) {
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath, "utf8");
 
@@ -197,40 +197,40 @@ describe("Templates and Static Resources", function() {
           openBrackets.should.equal(
             closeBrackets,
             `Template ${path.basename(
-              filePath
-            )} should have matching Mustache brackets`
+              filePath,
+            )} should have matching Mustache brackets`,
           );
         }
       });
     });
 
-    it("should use valid Mustache variable names", function() {
+    it("should use valid Mustache variable names", function () {
       const templateFiles = [
         {
           file: path.join(templateDir, "setup.xml"),
-          vars: ["uuid", "baseUrl"]
+          vars: ["uuid", "baseUrl"],
         },
         {
           file: path.join(templateDir, "index.html"),
-          vars: ["id", "uuid", "baseUrl"]
+          vars: ["id", "uuid", "baseUrl"],
         },
         {
           file: path.join(templateDir, "registration.json"),
-          vars: ["username"]
+          vars: ["username"],
         },
-        { file: path.join(itemsDir, "list.json"), vars: ["#lights"] } // Test for iteration
+        { file: path.join(itemsDir, "list.json"), vars: ["#lights"] }, // Test for iteration
       ];
 
-      templateFiles.forEach(function(templateInfo) {
+      templateFiles.forEach(function (templateInfo) {
         if (fs.existsSync(templateInfo.file)) {
           const content = fs.readFileSync(templateInfo.file, "utf8");
 
-          templateInfo.vars.forEach(function(varName) {
+          templateInfo.vars.forEach(function (varName) {
             content.should.containEql(
               `{{${varName}}}`,
               `Template ${path.basename(
-                templateInfo.file
-              )} should contain {{${varName}}}`
+                templateInfo.file,
+              )} should contain {{${varName}}}`,
             );
           });
         }
@@ -238,33 +238,33 @@ describe("Templates and Static Resources", function() {
     });
   });
 
-  describe("File Encoding and Format", function() {
-    it("should have UTF-8 encoded template files", function() {
+  describe("File Encoding and Format", function () {
+    it("should have UTF-8 encoded template files", function () {
       const templateFiles = fs
         .readdirSync(templateDir)
-        .filter(f => !f.startsWith("."));
+        .filter((f) => !f.startsWith("."));
 
-      templateFiles.forEach(function(fileName) {
+      templateFiles.forEach(function (fileName) {
         const filePath = path.join(templateDir, fileName);
         const stats = fs.statSync(filePath);
 
         if (stats.isFile()) {
           // Try to read as UTF-8, should not throw
-          (function() {
+          (function () {
             fs.readFileSync(filePath, "utf8");
-          }.should.not.throw(`Template ${fileName} should be valid UTF-8`));
+          }).should.not.throw(`Template ${fileName} should be valid UTF-8`);
         }
       });
     });
 
-    it("should have consistent line endings", function() {
+    it("should have consistent line endings", function () {
       const templateFiles = [
         path.join(templateDir, "setup.xml"),
         path.join(templateDir, "registration.json"),
-        path.join(itemsDir, "list.json")
+        path.join(itemsDir, "list.json"),
       ];
 
-      templateFiles.forEach(function(filePath) {
+      templateFiles.forEach(function (filePath) {
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath, "utf8");
 
@@ -274,7 +274,7 @@ describe("Templates and Static Resources", function() {
 
           if (hasWindows && hasUnix) {
             should.fail(
-              `Template ${path.basename(filePath)} has mixed line endings`
+              `Template ${path.basename(filePath)} has mixed line endings`,
             );
           }
         }
