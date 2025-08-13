@@ -46,7 +46,7 @@ jobs:
         with:
           path: "scripts"
 
-      - run: npm run test
+      - run: npm test
 
   release:
     runs-on: ubuntu-latest
