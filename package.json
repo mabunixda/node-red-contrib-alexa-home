@@ -35,8 +35,8 @@
     "supertest": "^7.1.4"
   },
   "scripts": {
-    "test": "for f in $(ls test/*.js); do mocha --sort --exit --timeout 5000 $f; done",
-    "test:complete": "mocha --sort --exit --timeout 10000 --recursive test",
+    "test:single": "for f in $(ls test/*.js); do mocha --sort --exit --timeout 5000 $f; done",
+    "test": "mocha --sort --exit --timeout 10000 --recursive test",
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
