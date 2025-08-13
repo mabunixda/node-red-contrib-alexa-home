@@ -7,7 +7,7 @@
             "hue": {{ hue }},
             "sat": {{ sat }},
             "effect": "none",
-            "xy": {{ xy }},
+            "xy": [ {{ x }} , {{ y }} ],
             "ct": {{ ct }},
             "colormode": "{{ colormode }}",
             "reachable": true,

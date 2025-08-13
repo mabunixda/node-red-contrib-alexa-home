@@ -20,10 +20,10 @@ function AlexaHub(controller, port, id) {
   node.protocol = process.env.ALEXA_PROTOCOL || "http";
   
   const options = undefined;
-  node.startSsdp(node.protocol);
+  node.startSsdp();
 
   if (node.controller.useNode) {
-    node.warn("Using Node-RED node for Alexa Hub, skipping server creation");
+    node.controller.log("Using Node-RED node for Alexa Hub, skipping server creation");
     return;
   }
 
@@ -179,7 +179,7 @@ AlexaHub.prototype.stopServers = function () {
     node.controller.log("stopped http");
   });
 };
-AlexaHub.prototype.startSsdp = function (protocol) {
+AlexaHub.prototype.startSsdp = function () {
   const node = this;
   node.controller.log(node.id + " - alexa-home - Starting SSDP");
   const hueuuid = node.controller.formatHueBridgeUUID(node.id);
@@ -187,7 +187,7 @@ AlexaHub.prototype.startSsdp = function (protocol) {
   let location = process.env.ALEXA_URI + "/alexa-home/setup.xml";
   if (process.env.ALEXA_URI === undefined) {
     location = {
-      protocol: protocol + "://",
+      protocol: node.protocol + "://",
       port: node.port,
       path: "/alexa-home/setup.xml",
     };

@@ -58,6 +58,7 @@ helper.init(require.resolve("node-red"));
         helper.load(controllerNode, [flow[0]], function () {
           const controller = helper.getNode("controller1");
           controller.should.have.property("_hub");
+          
 
           // Now test basic API access like the working test
           request(controller._hub[0].app)
