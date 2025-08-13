@@ -8,442 +8,444 @@ let alexaHelper = require("../alexa/alexa-helper.js");
 helper.init(require.resolve("node-red"));
 
 describe("Integration Tests - Complete Alexa Flow", function () {
+  beforeEach(function (done) {
+    helper.startServer(done);
+  });
 
+  afterEach(function (done) {
+    helper.unload();
+    helper.stopServer(done);
+  });
 
-    beforeEach(function (done) {
-        helper.startServer(done);
+  describe("Full Device Control Flow", function () {
+    it("should handle complete Alexa device discovery and control", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Integration Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+        {
+          id: "light1",
+          type: "alexa-home",
+          devicename: "Living Room Light",
+          devicetype: "Extended color light",
+          wires: [["output1"]],
+        },
+        {
+          id: "light2",
+          type: "alexa-home",
+          devicename: "Kitchen Light",
+          devicetype: "Dimmable light",
+          wires: [["output2"]],
+        },
+        {
+          id: "output1",
+          type: "helper",
+        },
+        {
+          id: "output2",
+          type: "helper",
+        },
+      ];
+
+      // Load controller first, then alexa nodes - this matches the working pattern
+      helper.load(controllerNode, [flow[0]], function () {
+        const controller = helper.getNode("controller1");
+        controller.should.have.property("_hub");
+
+        // Now test basic API access like the working test
+        request(controller._hub[0].app)
+          .post("/api")
+          .send({ devicetype: "Test Device" })
+          .expect(200)
+          .expect("Content-Type", /json/)
+          .end(function (err, res) {
+            if (err) throw err;
+
+            const response = JSON.parse(res.text);
+            response.should.be.an.Array();
+            response[0].should.have.property("success");
+            done();
+          });
+      });
     });
 
-    afterEach(function (done) {
-        helper.unload();
-        helper.stopServer(done);
+    it("should handle registration and authentication flow", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Auth Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+      ];
+
+      helper.load(controllerNode, flow, function () {
+        const controller = helper.getNode("controller1");
+
+        // Test registration
+        request(controller._hub[0].app)
+          .post("/api")
+          .send({ devicetype: "Alexa Echo" })
+          .expect(200)
+          .expect("Content-Type", /json/)
+          .end(function (err, res) {
+            if (err) throw err;
+
+            const response = JSON.parse(res.text);
+            response.should.be.an.Array();
+            response[0].should.have.property("success");
+            response[0].success.should.have.property("username");
+
+            const username = response[0].success.username;
+
+            // Test authenticated config access
+            request(controller._hub[0].app)
+              .get("/api/" + username + "/config")
+              .expect(200)
+              .expect("Content-Type", /json/)
+              .end(function (err, res) {
+                if (err) throw err;
+
+                const config = JSON.parse(res.text);
+                config.should.have.property("name");
+                config.should.have.property("bridgeid");
+                config.should.have.property("modelid");
+
+                done();
+              });
+          });
+      });
     });
+  });
 
-    describe("Full Device Control Flow", function () {
-        it("should handle complete Alexa device discovery and control", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Integration Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-                {
-                    id: "light1",
-                    type: "alexa-home",
-                    devicename: "Living Room Light",
-                    devicetype: "Extended color light",
-                    wires: [["output1"]],
-                },
-                {
-                    id: "light2",
-                    type: "alexa-home",
-                    devicename: "Kitchen Light",
-                    devicetype: "Dimmable light",
-                    wires: [["output2"]],
-                },
-                {
-                    id: "output1",
-                    type: "helper",
-                },
-                {
-                    id: "output2",
-                    type: "helper",
-                },
-            ];
+  describe("Multi-Device Complex Scenarios", function () {
+    it("should handle color and brightness changes", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Color Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+      ];
 
-            // Load controller first, then alexa nodes - this matches the working pattern
-            helper.load(controllerNode, [flow[0]], function () {
-                const controller = helper.getNode("controller1");
-                controller.should.have.property("_hub");
+      // Simplify to just test the controller's API like the working tests
+      helper.load(controllerNode, flow, function () {
+        const controller = helper.getNode("controller1");
 
-                // Now test basic API access like the working test
-                request(controller._hub[0].app)
-                    .post("/api")
-                    .send({ devicetype: "Test Device" })
-                    .expect(200)
-                    .expect("Content-Type", /json/)
-                    .end(function (err, res) {
-                        if (err) throw err;
+        // Test color API functionality - simplified to just verify the API works
+        request(controller._hub[0].app)
+          .post("/api")
+          .send({ devicetype: "Color Test Device" })
+          .expect(200)
+          .expect("Content-Type", /json/)
+          .end(function (err, res) {
+            if (err) throw err;
 
-                        const response = JSON.parse(res.text);
-                        response.should.be.an.Array();
-                        response[0].should.have.property("success");
-                        done();
-                    });
-            });
-        });
+            const response = JSON.parse(res.text);
+            response.should.be.an.Array();
+            response[0].should.have.property("success");
 
-        it("should handle registration and authentication flow", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Auth Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-            ];
-
-            helper.load(controllerNode, flow, function () {
-                const controller = helper.getNode("controller1");
-
-                // Test registration
-                request(controller._hub[0].app)
-                    .post("/api")
-                    .send({ devicetype: "Alexa Echo" })
-                    .expect(200)
-                    .expect("Content-Type", /json/)
-                    .end(function (err, res) {
-                        if (err) throw err;
-
-                        const response = JSON.parse(res.text);
-                        response.should.be.an.Array();
-                        response[0].should.have.property("success");
-                        response[0].success.should.have.property("username");
-
-                        const username = response[0].success.username;
-
-                        // Test authenticated config access
-                        request(controller._hub[0].app)
-                            .get("/api/" + username + "/config")
-                            .expect(200)
-                            .expect("Content-Type", /json/)
-                            .end(function (err, res) {
-                                if (err) throw err;
-
-                                const config = JSON.parse(res.text);
-                                config.should.have.property("name");
-                                config.should.have.property("bridgeid");
-                                config.should.have.property("modelid");
-
-                                done();
-                            });
-                    });
-            });
-        });
+            // Test lights API endpoint
+            request(controller._hub[0].app)
+              .get("/api/test-user/lights")
+              .expect(200)
+              .expect("Content-Type", /json/)
+              .end(function (err, res) {
+                if (err) throw err;
+                done();
+              });
+          });
+      });
     });
+  });
 
-    describe("Multi-Device Complex Scenarios", function () {
-        it("should handle color and brightness changes", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Color Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-            ];
+  it("should handle input trigger vs external control", function (done) {
+    const hubPort = 60000 + Math.floor(Math.random() * 1000);
+    const flow = [
+      {
+        id: "controller1",
+        type: "alexa-home-controller",
+        controllername: "Trigger Test Controller",
+        port: hubPort,
+        useNode: false,
+      },
+      {
+        id: "triggerLight",
+        type: "alexa-home",
+        devicename: "Trigger Light",
+        inputtrigger: true,
+        wires: [["triggerOutput"]],
+      },
+      {
+        id: "triggerOutput",
+        type: "helper",
+      },
+    ];
 
-            // Simplify to just test the controller's API like the working tests
-            helper.load(controllerNode, flow, function () {
-                const controller = helper.getNode("controller1");
+    helper.load([controllerNode, alexaNode], flow, function () {
+      const controller = helper.getNode("controller1");
+      const triggerLight = helper.getNode("triggerLight");
+      const triggerOutput = helper.getNode("triggerOutput");
 
-                // Test color API functionality - simplified to just verify the API works
-                request(controller._hub[0].app)
-                    .post("/api")
-                    .send({ devicetype: "Color Test Device" })
-                    .expect(200)
-                    .expect("Content-Type", /json/)
-                    .end(function (err, res) {
-                        if (err) throw err;
+      let outputReceived = false;
 
-                        const response = JSON.parse(res.text);
-                        response.should.be.an.Array();
-                        response[0].should.have.property("success");
+      triggerOutput.on("input", function (msg) {
+        // Should only receive output from external API control, not input
+        msg.payload.should.have.property("on", true);
+        outputReceived = true;
+      });
 
-                        // Test lights API endpoint
-                        request(controller._hub[0].app)
-                            .get("/api/test-user/lights")
-                            .expect(200)
-                            .expect("Content-Type", /json/)
-                            .end(function (err, res) {
-                                if (err) throw err;
-                                done();
-                            });
-                    });
-            });
-        });
-    });
+      // Test 1: Input trigger (should not send to output)
+      triggerLight.receive({ payload: { on: true } });
 
-    it("should handle input trigger vs external control", function (done) {
-        const hubPort = 60000 + Math.floor(Math.random() * 1000);
-        const flow = [
-            {
-                id: "controller1",
-                type: "alexa-home-controller",
-                controllername: "Trigger Test Controller",
-                port: hubPort,
-                useNode: false,
-            },
-            {
-                id: "triggerLight",
-                type: "alexa-home",
-                devicename: "Trigger Light",
-                inputtrigger: true,
-                wires: [["triggerOutput"]],
-            },
-            {
-                id: "triggerOutput",
-                type: "helper",
-            },
-        ];
+      // Wait and verify no output
+      setTimeout(function () {
+        outputReceived.should.be.false();
 
-        helper.load([controllerNode, alexaNode], flow, function () {
-            const controller = helper.getNode("controller1");
-            const triggerLight = helper.getNode("triggerLight");
-            const triggerOutput = helper.getNode("triggerOutput");
+        // Test 2: External API control (should send to output)
+        request(controller._hub[0].app)
+          .put("/api/test-user/lights/triggerLight/state")
+          .send({ on: true })
+          .expect(200)
+          .end(function (err, res) {
+            if (err) throw err;
 
-            let outputReceived = false;
-
-            triggerOutput.on("input", function (msg) {
-                // Should only receive output from external API control, not input
-                msg.payload.should.have.property("on", true);
-                outputReceived = true;
-            });
-
-            // Test 1: Input trigger (should not send to output)
-            triggerLight.receive({ payload: { on: true } });
-
-            // Wait and verify no output
+            // Wait for output
             setTimeout(function () {
-                outputReceived.should.be.false();
-
-                // Test 2: External API control (should send to output)
-                request(controller._hub[0].app)
-                    .put("/api/test-user/lights/triggerLight/state")
-                    .send({ on: true })
-                    .expect(200)
-                    .end(function (err, res) {
-                        if (err) throw err;
-
-                        // Wait for output
-                        setTimeout(function () {
-                            outputReceived.should.be.true();
-                            done();
-                        }, 50);
-                    });
-            }, 100);
-        });
+              outputReceived.should.be.true();
+              done();
+            }, 50);
+          });
+      }, 100);
     });
+  });
 });
 
-(process.env.CI ? describe.skip : describe)("Error Handling and Edge Cases", function () {
-        it("should handle device deregistration", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Deregister Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-                {
-                    id: "tempLight",
-                    type: "alexa-home",
-                    devicename: "Temporary Light",
-                },
-            ];
+(process.env.CI ? describe.skip : describe)(
+  "Error Handling and Edge Cases",
+  function () {
+    it("should handle device deregistration", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Deregister Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+        {
+          id: "tempLight",
+          type: "alexa-home",
+          devicename: "Temporary Light",
+        },
+      ];
 
-            helper.load([controllerNode, alexaNode], flow, function () {
-                const controller = helper.getNode("controller1");
-                const tempLight = helper.getNode("tempLight");
+      helper.load([controllerNode, alexaNode], flow, function () {
+        const controller = helper.getNode("controller1");
+        const tempLight = helper.getNode("tempLight");
 
-                // Initially registered
-                controller.commands.should.containEql(tempLight);
+        // Initially registered
+        controller.commands.should.containEql(tempLight);
 
-                // Test deregistration
-                controller.deregisterCommand(tempLight);
-                controller.commands.should.not.containEql(tempLight);
+        // Test deregistration
+        controller.deregisterCommand(tempLight);
+        controller.commands.should.not.containEql(tempLight);
 
-                // Verify device list is updated
-                request(controller._hub[0].app)
-                    .get("/api/test-user/lights")
-                    .expect(200)
-                    .end(function (err, res) {
-                        if (err) throw err;
+        // Verify device list is updated
+        request(controller._hub[0].app)
+          .get("/api/test-user/lights")
+          .expect(200)
+          .end(function (err, res) {
+            if (err) throw err;
 
-                        const lights = JSON.parse(res.text);
-                        Object.keys(lights).length.should.equal(0);
-                        done();
-                    });
+            const lights = JSON.parse(res.text);
+            Object.keys(lights).length.should.equal(0);
+            done();
+          });
+      });
+    });
+
+    it("should handle invalid device control requests", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Error Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+      ];
+
+      helper.load(controllerNode, flow, function () {
+        const controller = helper.getNode("controller1");
+
+        // Test control of non-existent light
+        request(controller._hub[0].app)
+          .put("/api/test-user/lights/nonexistent/state")
+          .send({ on: true })
+          .expect(200) // Should not error, just return empty response
+          .end(function (err, res) {
+            if (err) throw err;
+            done();
+          });
+      });
+    });
+
+    it("should handle server shutdown gracefully", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Shutdown Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+        {
+          id: "testLight",
+          type: "alexa-home",
+          devicename: "Test Light",
+        },
+      ];
+
+      helper.load([controllerNode, alexaNode], flow, function () {
+        const controller = helper.getNode("controller1");
+        const testLight = helper.getNode("testLight");
+
+        // Verify setup is working
+        request(controller._hub[0].app)
+          .get("/api/config")
+          .expect(200)
+          .end(function (err, res) {
+            if (err) throw err;
+
+            // Trigger shutdown
+            controller.emit("close", function () {
+              // Verify cleanup
+              should(alexaHelper.controllerNode).be.undefined();
+              should(testLight.controller).be.undefined();
+              done();
             });
+          });
+      });
+    });
+  },
+);
+
+(process.env.CI ? describe.skip : describe)(
+  "Performance and Load Testing",
+  function () {
+    it("should handle multiple simultaneous requests", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Load Test Controller",
+          port: hubPort,
+          useNode: false,
+        },
+        {
+          id: "loadLight",
+          type: "alexa-home",
+          devicename: "Load Test Light",
+          wires: [["loadOutput"]],
+        },
+        {
+          id: "loadOutput",
+          type: "helper",
+        },
+      ];
+
+      helper.load([controllerNode, alexaNode], flow, function () {
+        const controller = helper.getNode("controller1");
+        const loadOutput = helper.getNode("loadOutput");
+
+        let requestsCompleted = 0;
+        const totalRequests = 10;
+        let messagesReceived = 0;
+
+        loadOutput.on("input", function (msg) {
+          messagesReceived++;
+          if (messagesReceived === totalRequests) {
+            done();
+          }
         });
 
-        it("should handle invalid device control requests", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Error Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-            ];
-
-            helper.load(controllerNode, flow, function () {
-                const controller = helper.getNode("controller1");
-
-                // Test control of non-existent light
-                request(controller._hub[0].app)
-                    .put("/api/test-user/lights/nonexistent/state")
-                    .send({ on: true })
-                    .expect(200) // Should not error, just return empty response
-                    .end(function (err, res) {
-                        if (err) throw err;
-                        done();
-                    });
+        // Send multiple simultaneous requests
+        for (let i = 0; i < totalRequests; i++) {
+          request(controller._hub[0].app)
+            .put("/api/test-user/lights/loadLight/state")
+            .send({ on: i % 2 === 0, bri: 100 + i * 10 })
+            .expect(200)
+            .end(function (err, res) {
+              if (err) throw err;
+              requestsCompleted++;
             });
+        }
+      });
+    });
+
+    it("should handle many devices efficiently", function (done) {
+      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const deviceCount = 20;
+      const flow = [
+        {
+          id: "controller1",
+          type: "alexa-home-controller",
+          controllername: "Many Devices Controller",
+          port: hubPort,
+          useNode: false,
+        },
+      ];
+
+      // Add many devices
+      for (let i = 0; i < deviceCount; i++) {
+        flow.push({
+          id: `device${i}`,
+          type: "alexa-home",
+          devicename: `Device ${i}`,
+          devicetype: i % 3 === 0 ? "Extended color light" : "Dimmable light",
         });
+      }
 
-        it("should handle server shutdown gracefully", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Shutdown Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-                {
-                    id: "testLight",
-                    type: "alexa-home",
-                    devicename: "Test Light",
-                },
-            ];
+      helper.load([controllerNode, alexaNode], flow, function () {
+        const controller = helper.getNode("controller1");
 
-            helper.load([controllerNode, alexaNode], flow, function () {
-                const controller = helper.getNode("controller1");
-                const testLight = helper.getNode("testLight");
+        // Verify all devices are registered
+        controller.commands.length.should.equal(deviceCount);
 
-                // Verify setup is working
-                request(controller._hub[0].app)
-                    .get("/api/config")
-                    .expect(200)
-                    .end(function (err, res) {
-                        if (err) throw err;
+        // Test device listing performance
+        const startTime = Date.now();
+        request(controller._hub[0].app)
+          .get("/api/test-user/lights")
+          .expect(200)
+          .end(function (err, res) {
+            if (err) throw err;
 
-                        // Trigger shutdown
-                        controller.emit("close", function () {
-                            // Verify cleanup
-                            should(alexaHelper.controllerNode).be.undefined();
-                            should(testLight.controller).be.undefined();
-                            done();
-                        });
-                    });
-            });
-        });
-    
-});
+            const endTime = Date.now();
+            const responseTime = endTime - startTime;
 
-(process.env.CI ? describe.skip : describe)("Performance and Load Testing", function () {
+            // Should respond quickly even with many devices
+            responseTime.should.be.below(1000);
 
-        it("should handle multiple simultaneous requests", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Load Test Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-                {
-                    id: "loadLight",
-                    type: "alexa-home",
-                    devicename: "Load Test Light",
-                    wires: [["loadOutput"]],
-                },
-                {
-                    id: "loadOutput",
-                    type: "helper",
-                },
-            ];
-
-            helper.load([controllerNode, alexaNode], flow, function () {
-                const controller = helper.getNode("controller1");
-                const loadOutput = helper.getNode("loadOutput");
-
-                let requestsCompleted = 0;
-                const totalRequests = 10;
-                let messagesReceived = 0;
-
-                loadOutput.on("input", function (msg) {
-                    messagesReceived++;
-                    if (messagesReceived === totalRequests) {
-                        done();
-                    }
-                });
-
-                // Send multiple simultaneous requests
-                for (let i = 0; i < totalRequests; i++) {
-                    request(controller._hub[0].app)
-                        .put("/api/test-user/lights/loadLight/state")
-                        .send({ on: i % 2 === 0, bri: 100 + i * 10 })
-                        .expect(200)
-                        .end(function (err, res) {
-                            if (err) throw err;
-                            requestsCompleted++;
-                        });
-                }
-            });
-        });
-
-        it("should handle many devices efficiently", function (done) {
-            const hubPort = 60000 + Math.floor(Math.random() * 1000);
-            const deviceCount = 20;
-            const flow = [
-                {
-                    id: "controller1",
-                    type: "alexa-home-controller",
-                    controllername: "Many Devices Controller",
-                    port: hubPort,
-                    useNode: false,
-                },
-            ];
-
-            // Add many devices
-            for (let i = 0; i < deviceCount; i++) {
-                flow.push({
-                    id: `device${i}`,
-                    type: "alexa-home",
-                    devicename: `Device ${i}`,
-                    devicetype: i % 3 === 0 ? "Extended color light" : "Dimmable light",
-                });
-            }
-
-            helper.load([controllerNode, alexaNode], flow, function () {
-                const controller = helper.getNode("controller1");
-
-                // Verify all devices are registered
-                controller.commands.length.should.equal(deviceCount);
-
-                // Test device listing performance
-                const startTime = Date.now();
-                request(controller._hub[0].app)
-                    .get("/api/test-user/lights")
-                    .expect(200)
-                    .end(function (err, res) {
-                        if (err) throw err;
-
-                        const endTime = Date.now();
-                        const responseTime = endTime - startTime;
-
-                        // Should respond quickly even with many devices
-                        responseTime.should.be.below(1000);
-
-                        const lights = JSON.parse(res.text);
-                        Object.keys(lights).length.should.equal(deviceCount);
-                        done();
-                    });
-            });
-        });
-});
+            const lights = JSON.parse(res.text);
+            Object.keys(lights).length.should.equal(deviceCount);
+            done();
+          });
+      });
+    });
+  },
+);
