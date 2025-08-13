@@ -39,7 +39,7 @@
     "supertest": "^6.3.4"
   },
   "scripts": {
-    "test": "mocha --sort --exit --timeout 10000 --recursive test  --invert  --grep 'environment variable ALEXA_IP for controller|should handle color and brightness changes|should handle device deregistration|should handle invalid device control requests|should handle server shutdown gracefully|should handle many devices efficiently|should initialize with custom port and useNode option'",
+    "test": "mocha --sort --exit --timeout 10000 --recursive test  --invert  --grep 'environment variable ALEXA_IP for controller|should handle color and brightness changes|should handle device deregistration|should handle invalid device control requests|should handle server shutdown gracefully|should handle many devices efficiently|should initialize with custom port and useNode option|should set controller node in alexaHelper'",
     "test:complete": "mocha --sort --exit --timeout 10000 --recursive test",
     "lint:fix": "eslint --fix alexa/**.js",
     "lint": "eslint alexa/**.js",
