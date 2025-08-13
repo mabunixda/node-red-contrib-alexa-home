@@ -34,6 +34,9 @@ function AlexaHub(controller, port, id) {
     node.ip = process.env.ALEXA_IP;
     node.controller.log("Using " + node.ip + " to listing to alexa commands");
   }
+
+  node.warn("Creating server based on " + node.protocol + " protocol and port " + node.port);
+
   node.httpServer = require(node.protocol).createServer(options, app);
   node.server = node.httpServer.listen(node.port, node.ip, function (error) {
     if (error) {

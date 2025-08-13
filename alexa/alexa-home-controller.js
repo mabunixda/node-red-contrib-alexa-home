@@ -150,6 +150,9 @@ module.exports = function (RED) {
     } else {
       node.port = alexaHome.hubPort;
     }
+
+    node.warn("current port:" + node.port);
+
     const mac = node.generateMacAddress(config.id);
     node.macaddress = mac;
     node.bridgeid = node.getBridgeIdFromMacAddress(mac);
