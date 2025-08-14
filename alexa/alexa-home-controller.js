@@ -20,25 +20,33 @@ module.exports = function (RED) {
     result = result.replace(/\{\{([^#\/\{\}]+)\}\}/g, (match, key) => {
       const trimmedKey = key.trim();
       const value = getNestedProperty(data, trimmedKey);
-      return value !== undefined ? String(value) : '';
+      return value !== undefined ? String(value) : "";
     });
 
     // Handle simple loops {{#array}}...{{/array}}
-    result = result.replace(/\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g, (match, arrayKey, loopContent) => {
-      const array = data[arrayKey];
-      if (!Array.isArray(array)) return '';
-      
-      return array.map((item, index) => {
-        let itemContent = loopContent;
-        // Replace variables within the loop
-        itemContent = itemContent.replace(/\{\{([^#\/\{\}]+)\}\}/g, (varMatch, varKey) => {
-          const trimmedVarKey = varKey.trim();
-          const value = getNestedProperty(item, trimmedVarKey);
-          return value !== undefined ? String(value) : '';
-        });
-        return itemContent;
-      }).join('');
-    });
+    result = result.replace(
+      /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
+      (match, arrayKey, loopContent) => {
+        const array = data[arrayKey];
+        if (!Array.isArray(array)) return "";
+
+        return array
+          .map((item, index) => {
+            let itemContent = loopContent;
+            // Replace variables within the loop
+            itemContent = itemContent.replace(
+              /\{\{([^#\/\{\}]+)\}\}/g,
+              (varMatch, varKey) => {
+                const trimmedVarKey = varKey.trim();
+                const value = getNestedProperty(item, trimmedVarKey);
+                return value !== undefined ? String(value) : "";
+              },
+            );
+            return itemContent;
+          })
+          .join("");
+      },
+    );
 
     return result;
   }
@@ -51,18 +59,18 @@ module.exports = function (RED) {
    */
   function getNestedProperty(obj, path) {
     if (!obj || !path) return undefined;
-    
-    const keys = path.split('.');
+
+    const keys = path.split(".");
     let current = obj;
-    
+
     for (const key of keys) {
-      if (current && typeof current === 'object' && key in current) {
+      if (current && typeof current === "object" && key in current) {
         current = current[key];
       } else {
         return undefined;
       }
     }
-    
+
     return current;
   }
 
