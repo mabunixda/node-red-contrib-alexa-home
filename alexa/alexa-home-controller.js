@@ -1,77 +1,36 @@
-module.exports = function (RED) {
-  "use strict";
+/**
+ * Modern Node-RED Alexa Home Controller
+ * Provides Alexa device integration with improved error handling and maintainability
+ */
 
-  const fs = require("fs");
+"use strict";
+
+module.exports = function (RED) {
   const alexaHome = require("./alexa-helper");
   const AlexaHub = require("./alexa-hub");
+  const TemplateManager = require("./template-manager");
+  const utils = require("./utils");
   const path = require("path");
 
-  /**
-   * Simple template renderer to replace Mustache functionality
-   * Supports basic variable substitution and simple loops
-   * @param {string} template - Template string with {{variable}} placeholders
-   * @param {Object} data - Data object with variables to substitute
-   * @returns {string} Rendered template
-   */
-  function renderTemplate(template, data) {
-    let result = template;
-
-    // Handle simple variable substitution {{variable}}
-    result = result.replace(/\{\{([^#\/\{\}]+)\}\}/g, (match, key) => {
-      const trimmedKey = key.trim();
-      const value = getNestedProperty(data, trimmedKey);
-      return value !== undefined ? String(value) : "";
-    });
-
-    // Handle simple loops {{#array}}...{{/array}}
-    result = result.replace(
-      /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
-      (match, arrayKey, loopContent) => {
-        const array = data[arrayKey];
-        if (!Array.isArray(array)) return "";
-
-        return array
-          .map((item, index) => {
-            let itemContent = loopContent;
-            // Replace variables within the loop
-            itemContent = itemContent.replace(
-              /\{\{([^#\/\{\}]+)\}\}/g,
-              (varMatch, varKey) => {
-                const trimmedVarKey = varKey.trim();
-                const value = getNestedProperty(item, trimmedVarKey);
-                return value !== undefined ? String(value) : "";
-              },
-            );
-            return itemContent;
-          })
-          .join("");
-      },
-    );
-
-    return result;
-  }
+  // Initialize template manager
+  const templateManager = new TemplateManager(
+    path.join(__dirname, "templates"),
+  );
 
   /**
-   * Get nested property from object using dot notation
-   * @param {Object} obj - Object to search
-   * @param {string} path - Property path (e.g., 'user.name')
-   * @returns {*} Property value or undefined
+   * Enhanced error handling wrapper for route handlers
+   * @param {Function} handler - Route handler function
+   * @returns {Function} Wrapped handler with error handling
    */
-  function getNestedProperty(obj, path) {
-    if (!obj || !path) return undefined;
-
-    const keys = path.split(".");
-    let current = obj;
-
-    for (const key of keys) {
-      if (current && typeof current === "object" && key in current) {
-        current = current[key];
-      } else {
-        return undefined;
+  function withErrorHandling(handler) {
+    return (req, res) => {
+      try {
+        handler(req, res);
+      } catch (error) {
+        RED.log.error(`Route handler error: ${error.message}`);
+        res.status(500).json({ error: "Internal server error" });
       }
-    }
-
-    return current;
+    };
   }
 
   /**
@@ -85,202 +44,232 @@ module.exports = function (RED) {
         results.push(n);
       }
     });
-    if (results.length === 0) {
-      return undefined;
-    }
-    return results[0].id;
+    return results.length > 0 ? results[0].id : undefined;
   }
 
-  RED.httpNode.get("/alexa-home/setup.xml", function (req, res) {
+  /**
+   * Get controller node instance safely
+   * @returns {Object|null} Controller node or null if not found
+   */
+  function getControllerNode() {
     const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      res.status(503).send("Alexa Home Controller not available");
-      return;
-    }
-    node.handleSetup(node.id, req, res);
-  });
+    return nodeId ? RED.nodes.getNode(nodeId) : null;
+  }
 
-  RED.httpNode.post("/api", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      res.status(503).json({ error: "Alexa Home Controller not available" });
-      return;
-    }
-    node.handleRegistration(node.id, req, res);
-  });
+  // Enhanced route handlers with better error handling
+  RED.httpNode.get(
+    "/alexa-home/setup.xml",
+    withErrorHandling((req, res) => {
+      const node = getControllerNode();
+      if (!node) {
+        res.status(503).send("Alexa Home Controller not available");
+        return;
+      }
+      node.handleSetup(node.id, req, res);
+    }),
+  );
 
-  RED.httpNode.get("/api/", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (node === undefined) {
-      return;
-    }
-    node.handleApiCall(node.id, req, res);
-  });
+  RED.httpNode.post(
+    "/api",
+    withErrorHandling((req, res) => {
+      const node = getControllerNode();
+      if (!node) {
+        res.status(503).json({ error: "Alexa Home Controller not available" });
+        return;
+      }
+      node.handleRegistration(node.id, req, res);
+    }),
+  );
 
-  RED.httpNode.get("/api/config", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (node === undefined) {
-      return;
-    }
-    node.handleConfigList(node.id, req, res);
-  });
+  // API route handlers with consistent error handling
+  const apiRoutes = [
+    { method: "get", path: "/api/", handler: "handleApiCall" },
+    { method: "get", path: "/api/config", handler: "handleConfigList" },
+    { method: "get", path: "/api/:username", handler: "handleApiCall" },
+    {
+      method: "get",
+      path: "/api/:username/config",
+      handler: "handleConfigList",
+    },
+    {
+      method: "get",
+      path: "/api/:username/:itemType",
+      handler: "handleItemList",
+    },
+    {
+      method: "post",
+      path: "/api/:username/:itemType",
+      handler: "handleItemList",
+    },
+    {
+      method: "get",
+      path: "/api/:username/:itemType/new",
+      handler: "handleItemList",
+    },
+    {
+      method: "get",
+      path: "/api/:username/:itemType/:id",
+      handler: "getItemInfo",
+    },
+    {
+      method: "put",
+      path: "/api/:username/:itemType/:id/state",
+      handler: "controlItem",
+    },
+  ];
 
-  RED.httpNode.get("/api/:username", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.handleApiCall(node.id, req, res);
-  });
-
-  RED.httpNode.get("/api/:username/config", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.handleConfigList(node.id, req, res);
-  });
-
-  RED.httpNode.get("/api/:username/:itemType", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.handleItemList(node.id, req, res);
-  });
-
-  RED.httpNode.post("/api/:username/:itemType", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.handleItemList(node.id, req, res);
-  });
-
-  RED.httpNode.get("/api/:username/:itemType/new", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.handleItemList(node.id, req, res);
-  });
-
-  RED.httpNode.get("/api/:username/:itemType/:id", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.getItemInfo(node.id, req, res);
-  });
-
-  RED.httpNode.put("/api/:username/:itemType/:id/state", function (req, res) {
-    const nodeId = getControllerId();
-    const node = RED.nodes.getNode(nodeId);
-    if (!node) {
-      return;
-    }
-    node.controlItem(node.id, req, res);
+  apiRoutes.forEach((route) => {
+    RED.httpNode[route.method](
+      route.path,
+      withErrorHandling((req, res) => {
+        const node = getControllerNode();
+        if (!node) {
+          res.status(503).json({ error: "Controller not available" });
+          return;
+        }
+        node[route.handler](node.id, req, res);
+      }),
+    );
   });
 
   /**
-   * generates a controller node which manages the creation
-   * of hubs to communicate with alexa devices
+   * Modern Alexa Home Controller with enhanced features
    * @constructor
-   * @param {map} config nodered configuration
+   * @param {Object} config - Node-RED configuration
    */
   function AlexaHomeController(config) {
     RED.nodes.createNode(this, config);
 
     const node = this;
-    alexaHome.controllerNode = node;
-    node.name = config.controllername;
 
-    // Configure port: use custom port from config, fallback to environment variable or default
-    if (
-      config.port !== undefined &&
-      config.port !== null &&
-      config.port !== ""
-    ) {
-      node.port = parseInt(config.port);
-      if (isNaN(node.port) || node.port <= 0 || node.port > 65535) {
-        node.warn(`Invalid port number: ${config.port}. Using default port.`);
-        node.port = alexaHome.hubPort;
-      }
-    } else {
-      node.port = alexaHome.hubPort;
+    try {
+      // Initialize core properties
+      alexaHome.controllerNode = node;
+      node.name = config.controllername || "Alexa Home Controller";
+      node._commands = new Map();
+      node._hub = [];
+
+      // Configure port with validation
+      node.port = node.configurePort(config.port);
+
+      // Generate network identifiers
+      const mac = utils.generateMacAddress(config.id);
+      node.macaddress = mac;
+      node.bridgeid = utils.getBridgeIdFromMac(mac);
+      node.maxItems = config.maxItems || 0;
+
+      // Initialize template manager for this instance
+      node.templateManager = templateManager;
+
+      // Start services
+      node.initializeHub();
+      node.registerExistingNodes();
+      node.setConnectionStatusMsg("green", "Ready");
+
+      RED.log.info(
+        `Alexa Home Controller '${node.name}' initialized on port: ${node.port}`,
+      );
+    } catch (error) {
+      RED.log.error(`Failed to initialize controller: ${error.message}`);
+      node.setConnectionStatusMsg("red", `Init failed: ${error.message}`);
     }
 
-    const mac = node.generateMacAddress(config.id);
-    node.macaddress = mac;
-    node.bridgeid = node.getBridgeIdFromMacAddress(mac);
-    node.maxItems = config.maxItems;
-    node._commands = new Map();
-    node._hub = [];
-
-    // Use the configured port (either custom or default from alexa-helper)
-    RED.log.info(`Alexa Home Controller starting on port: ${node.port}`);
-    node._hub.push(new AlexaHub(this, node.port, this._hub.length));
-
+    // Enhanced cleanup on node close
     node.on("close", function (removed, done) {
-      try {
-        while (node._hub.length > 0) {
-          const hub = node._hub.pop();
-          hub.stopServers();
-        }
-      } catch (error) {
-        RED.log.warn("Error at closing hubs: " + error);
-      }
-      alexaHome.controllerNode = undefined;
-      done();
+      node
+        .cleanup()
+        .then(() => done())
+        .catch((error) => {
+          RED.log.warn(`Cleanup error: ${error.message}`);
+          done();
+        });
     });
 
-    node.setConnectionStatusMsg("yellow", "setup done");
-
+    // Set global context
     const globalContext = this.context().global;
     globalContext.alexaHomeController = node;
+  }
 
+  /**
+   * Configure port with validation and fallback
+   * @param {string|number} configPort - Port from configuration
+   * @returns {number} Validated port number
+   */
+  AlexaHomeController.prototype.configurePort = function (configPort) {
+    if (configPort !== undefined && configPort !== null && configPort !== "") {
+      const port = parseInt(configPort, 10);
+      if (utils.isValidPort(port)) {
+        return port;
+      }
+      this.warn(`Invalid port number: ${configPort}. Using default port.`);
+    }
+    return alexaHome.hubPort;
+  };
+
+  /**
+   * Initialize hub services
+   */
+  AlexaHomeController.prototype.initializeHub = function () {
+    this._hub.push(new AlexaHub(this, this.port, this._hub.length));
+  };
+
+  /**
+   * Register existing alexa-home nodes with this controller
+   */
+  AlexaHomeController.prototype.registerExistingNodes = function () {
+    const node = this;
     RED.log.info("Assigning alexa-home nodes to this controller");
 
     RED.nodes.eachNode(function (n) {
       if (n.type === "alexa-home") {
-        const x = RED.nodes.getNode(n.id);
-        if (x) {
-          node.registerCommand(x);
+        const deviceNode = RED.nodes.getNode(n.id);
+        if (deviceNode) {
+          node.registerCommand(deviceNode);
         }
       }
     });
-    node.setConnectionStatusMsg("green", "Ok");
-  }
+  };
+
+  /**
+   * Enhanced cleanup method
+   * @returns {Promise} Cleanup completion promise
+   */
+  AlexaHomeController.prototype.cleanup = async function () {
+    const node = this;
+
+    try {
+      // Stop all hubs
+      const hubPromises = node._hub.map((hub) => {
+        return new Promise((resolve) => {
+          try {
+            hub.stopServers(() => resolve());
+          } catch (error) {
+            RED.log.warn(`Error stopping hub: ${error.message}`);
+            resolve();
+          }
+        });
+      });
+
+      await Promise.all(hubPromises);
+
+      // Clear references
+      node._hub.length = 0;
+      node._commands.clear();
+      alexaHome.controllerNode = undefined;
+
+      RED.log.info(`Controller '${node.name}' cleaned up successfully`);
+    } catch (error) {
+      RED.log.error(`Cleanup failed: ${error.message}`);
+      throw error;
+    }
+  };
 
   AlexaHomeController.prototype.generateMacAddress = function (id) {
-    let i = 9;
-    const base = "00:11:22:33:44:55";
-    const nodeid = id
-      .replace(/[^a-fA-F0-9]/g, "f")
-      .toUpperCase()
-      .split("");
-    const bridgeid = base.replace(
-      /\d/g,
-      () => nodeid.shift() || Math.max(--i, 0),
-      "g",
-    );
-    return bridgeid;
+    return utils.generateMacAddress(id);
   };
 
   AlexaHomeController.prototype.getBridgeIdFromMacAddress = function (mac) {
-    const id = mac.replace(/[:]/g, "");
-    const bridgeid = id.slice(0, 6) + "FFFE" + id.slice(6);
-    return bridgeid;
+    return utils.getBridgeIdFromMac(mac);
   };
 
   AlexaHomeController.prototype.getDevices = function () {
@@ -298,19 +287,7 @@ module.exports = function (RED) {
   };
 
   AlexaHomeController.prototype.getAlexaIPAddress = function (req) {
-    if (req.headers["x-forwarded-for"] !== undefined) {
-      return req.headers["x-forwarded-for"];
-    }
-    if (req.socket.remoteAddress !== undefined) {
-      return req.socket.remoteAddress;
-    }
-    if (req.connection.remoteAddress !== undefined) {
-      return req.connection.remoteAddress;
-    }
-    if (req.connection.socket && req.connection.socket.remoteAddress) {
-      return req.connection.socket.remoteAddress;
-    }
-    return undefined;
+    return utils.getClientIP(req);
   };
 
   AlexaHomeController.prototype.registerCommand = function (deviceNode) {
@@ -369,43 +346,47 @@ module.exports = function (RED) {
   };
 
   AlexaHomeController.prototype.stripSpace = function (content) {
-    while (content.indexOf("  ") > 0) {
-      content = content.replace(/ {2}/g, "");
-    }
-    content = content.replace(/\r?\n/g, "");
-    return content;
+    return utils.stripWhitespace(content);
   };
 
   AlexaHomeController.prototype.handleIndex = function (id, request, response) {
     const node = this;
 
-    RED.log.debug(node.name + "/" + id + " - Handling index request");
-    const template = fs
-      .readFileSync(path.join(__dirname, "/templates/index.html"), "utf8")
-      .toString();
-    const data = {
-      id,
-      uuid: node.formatHueBridgeUUID(node.id),
-      baseUrl: "http://" + request.headers.host,
-    };
-    const content = renderTemplate(template, data);
-    response.type("html").send(Buffer.from(content));
+    try {
+      RED.log.debug(`${node.name}/${id} - Handling index request`);
+
+      const data = {
+        id,
+        uuid: utils.formatHueBridgeUUID(node.id, alexaHome.prefixUUID),
+        baseUrl: `http://${request.headers.host}`,
+      };
+
+      const content = node.templateManager.render("index.html", data);
+      response.type("html").send(Buffer.from(content));
+    } catch (error) {
+      RED.log.error(`Index handler error: ${error.message}`);
+      response.status(500).send("Template rendering failed");
+    }
   };
 
   AlexaHomeController.prototype.handleSetup = function (id, request, response) {
     const node = this;
 
-    RED.log.debug(node.name + "/" + id + " - Handling setup request");
-    const template = fs
-      .readFileSync(path.join(__dirname, "/templates/setup.xml"), "utf8")
-      .toString();
-    const data = {
-      uuid: node.formatHueBridgeUUID(node.id),
-      baseUrl: "http://" + request.headers.host,
-    };
-    const content = renderTemplate(template, data);
-    node.setConnectionStatusMsg("green", "setup requested");
-    response.type("xml").send(content);
+    try {
+      RED.log.debug(`${node.name}/${id} - Handling setup request`);
+
+      const data = {
+        uuid: utils.formatHueBridgeUUID(node.id, alexaHome.prefixUUID),
+        baseUrl: `http://${request.headers.host}`,
+      };
+
+      const content = node.templateManager.render("setup.xml", data);
+      node.setConnectionStatusMsg("green", "setup requested");
+      response.type("xml").send(content);
+    } catch (error) {
+      RED.log.error(`Setup handler error: ${error.message}`);
+      response.status(500).send("Setup failed");
+    }
   };
 
   AlexaHomeController.prototype.handleRegistration = function (
@@ -415,26 +396,21 @@ module.exports = function (RED) {
   ) {
     const node = this;
 
-    RED.log.debug(node.name + "/" + id + " - Handling registration request");
-    const template = fs
-      .readFileSync(
-        path.join(__dirname, "/templates/registration.json"),
-        "utf8",
-      )
-      .toString();
+    try {
+      RED.log.debug(`${node.name}/${id} - Handling registration request`);
 
-    let username = request.params.username;
-    if (username === undefined || username === null) {
-      username = "c6260f982b43a226b5542b967f612ce";
+      const username =
+        request.params.username || "c6260f982b43a226b5542b967f612ce";
+      const data = { username };
+
+      const content = node.templateManager.render("registration.json", data);
+      response.type("json").send(content);
+    } catch (error) {
+      RED.log.error(`Registration handler error: ${error.message}`);
+      response.status(500).json({ error: "Registration failed" });
     }
-    const data = {
-      username,
-    };
-    const content = renderTemplate(template, data);
-    response.type("json").send(content);
   };
 
-  // max response size of alexa seems at content-length=14173
   AlexaHomeController.prototype.handleItemList = function (
     id,
     request,
@@ -442,46 +418,36 @@ module.exports = function (RED) {
   ) {
     const node = this;
 
-    RED.log.debug(
-      node.name +
-        "/" +
-        id +
-        " - handling api item list request: " +
-        request.params.itemType,
-    );
-    if (request.params.itemType !== "lights") {
-      response.status(200).type("json").send("{}");
-      return;
+    try {
+      RED.log.debug(
+        `${node.name}/${id} - handling api item list request: ${request.params.itemType}`,
+      );
+
+      if (request.params.itemType !== "lights") {
+        response.status(200).type("json").send("{}");
+        return;
+      }
+
+      const data = {
+        lights: node.generateAPIDeviceList(id),
+        date: new Date().toISOString().split(".").shift(),
+      };
+
+      const content = node.templateManager.renderJson("list.json", data);
+
+      RED.log.debug(
+        `${node.name}/${id} - listing ${request.params.username} #${data.lights.length} api information to ${request.connection.remoteAddress}`,
+      );
+
+      node.setConnectionStatusMsg(
+        "yellow",
+        `${request.params.itemType} list requested: ${node._commands.size}`,
+      );
+      response.type("json").send(this.stripSpace(content));
+    } catch (error) {
+      RED.log.error(`Item list handler error: ${error.message}`);
+      response.status(500).json({ error: "Failed to list items" });
     }
-    const template = fs
-      .readFileSync(path.join(__dirname, "/templates/items/list.json"), "utf8")
-      .toString();
-    const data = {
-      lights: node.generateAPIDeviceList(id),
-      date: new Date().toISOString().split(".").shift(),
-    };
-    const content = renderTemplate(template, data).replace(
-      /(\{\s+)?,?[^,]+_emptyIteratorStopper": \{\}/g,
-      "$1",
-    );
-    RED.log.debug(
-      node.name +
-        "/" +
-        id +
-        " - listing " +
-        request.params.username +
-        " #" +
-        data.lights.length +
-        " api information to " +
-        request.connection.remoteAddress,
-    );
-
-    node.setConnectionStatusMsg(
-      "yellow",
-      request.params.itemType + " list requested: " + node._commands.size,
-    );
-
-    response.type("json").send(this.stripSpace(content));
   };
 
   AlexaHomeController.prototype.handleConfigList = function (
@@ -491,33 +457,29 @@ module.exports = function (RED) {
   ) {
     const node = this;
 
-    RED.log.debug(node.name + "/" + id + " - Handling Config listing request");
-    const config = fs
-      .readFileSync(
-        path.join(__dirname, "/templates/items/config.json"),
-        "utf8",
-      )
-      .toString();
-    const data = {
-      address: request.hostname,
-      username: request.params.username,
-      date: new Date().toISOString().split(".").shift(),
-      bridgeid: node.bridgeid,
-      macaddress: node.macaddress,
-    };
-    const content = renderTemplate(config, data);
-    RED.log.debug(
-      node.name +
-        "/" +
-        id +
-        " - Sending " +
-        (request.params.username ? "full " : "") +
-        "config information to " +
-        request.connection.remoteAddress,
-    );
-    node.setConnectionStatusMsg("yellow", "config requested");
+    try {
+      RED.log.debug(`${node.name}/${id} - Handling Config listing request`);
 
-    response.type("json").send(this.stripSpace(content));
+      const data = {
+        address: request.hostname,
+        username: request.params.username,
+        date: new Date().toISOString().split(".").shift(),
+        bridgeid: node.bridgeid,
+        macaddress: node.macaddress,
+      };
+
+      const content = node.templateManager.render("config.json", data);
+
+      RED.log.debug(
+        `${node.name}/${id} - Sending ${request.params.username ? "full " : ""}config information to ${request.connection.remoteAddress}`,
+      );
+
+      node.setConnectionStatusMsg("yellow", "config requested");
+      response.type("json").send(this.stripSpace(content));
+    } catch (error) {
+      RED.log.error(`Config list handler error: ${error.message}`);
+      response.status(500).json({ error: "Failed to get config" });
+    }
   };
 
   AlexaHomeController.prototype.handleApiCall = function (
@@ -527,45 +489,40 @@ module.exports = function (RED) {
   ) {
     const node = this;
 
-    RED.log.debug(node.name + "/" + id + " - Handling API listing request");
-    const responseTemplate = fs
-      .readFileSync(path.join(__dirname, "/templates/response.json"), "utf8")
-      .toString();
-    const lights = fs
-      .readFileSync(path.join(__dirname, "/templates/items/list.json"), "utf8")
-      .toString();
-    const config = fs
-      .readFileSync(
-        path.join(__dirname, "/templates/items/config.json"),
-        "utf8",
-      )
-      .toString();
-    const data = {
-      lights: node.generateAPIDeviceList(id),
-      address: request.hostname,
-      username: request.params.username,
-      date: new Date().toISOString().split(".").shift(),
-      bridgeid: node.bridgeid,
-      macaddress: node.macaddress,
-    };
-    const content = renderTemplate(responseTemplate, data, {
-      itemsTemplate: lights,
-      configTemplate: config,
-    });
-    RED.log.debug(
-      node.name +
-        "/" +
-        id +
-        " - Sending " +
-        request.params.username +
-        " #" +
-        data.lights.length +
-        " api information to " +
-        request.connection.remoteAddress,
-    );
-    node.setConnectionStatusMsg("yellow", "api requested");
+    try {
+      RED.log.debug(`${node.name}/${id} - Handling API listing request`);
 
-    response.type("json").send(this.stripSpace(content));
+      const data = {
+        lights: node.generateAPIDeviceList(id),
+        address: request.hostname,
+        username: request.params.username,
+        date: new Date().toISOString().split(".").shift(),
+        bridgeid: node.bridgeid,
+        macaddress: node.macaddress,
+      };
+
+      // Use template manager with partials support
+      const partials = {
+        itemsTemplate: node.templateManager.getTemplate("list.json"),
+        configTemplate: node.templateManager.getTemplate("config.json"),
+      };
+
+      const content = node.templateManager.render(
+        "response.json",
+        data,
+        partials,
+      );
+
+      RED.log.debug(
+        `${node.name}/${id} - Sending ${request.params.username} #${data.lights.length} api information to ${request.connection.remoteAddress}`,
+      );
+
+      node.setConnectionStatusMsg("yellow", "api requested");
+      response.type("json").send(this.stripSpace(content));
+    } catch (error) {
+      RED.log.error(`API call handler error: ${error.message}`);
+      response.status(500).json({ error: "Failed to handle API call" });
+    }
   };
 
   AlexaHomeController.prototype.generateAPIDeviceList = function (id) {
@@ -625,89 +582,84 @@ module.exports = function (RED) {
   };
 
   AlexaHomeController.prototype.controlItem = function (id, request, response) {
-    if (request.params.itemType !== "lights") {
-      response.status(200).send("{}");
-      return;
-    }
     const node = this;
 
-    const template = fs
-      .readFileSync(
-        path.join(__dirname, "/templates/items/set-state.json"),
-        "utf8",
-      )
-      .toString();
-    const username = request.params.username;
-    let uuid = request.params.id;
-    uuid = uuid.replace("/", "");
-    const targetNode = node.getDevice(uuid);
-    if (targetNode === undefined) {
-      RED.log.warn(
-        "control item - unknown alexa node of type " +
-          request.params.itemType +
-          " was requested: " +
-          uuid,
-      );
-      response.status(502).type("json").send("{}");
-      return;
+    try {
+      if (request.params.itemType !== "lights") {
+        response.status(200).send("{}");
+        return;
+      }
+
+      const username = request.params.username;
+      const uuid = request.params.id.replace("/", "");
+      const targetNode = node.getDevice(uuid);
+
+      if (!targetNode) {
+        RED.log.warn(
+          `Control item - unknown alexa node of type ${request.params.itemType} was requested: ${uuid}`,
+        );
+        response.status(502).type("json").send("{}");
+        return;
+      }
+
+      const msg = {
+        username,
+        payload: request.body,
+        alexa_ip: node.getAlexaIPAddress(request),
+      };
+
+      // Add debug headers if enabled
+      if (alexaHome.isDebug) {
+        Object.keys(request.headers).forEach((key) => {
+          msg[`http_header_${key}`] = request.headers[key];
+        });
+      }
+
+      targetNode.processCommand(msg);
+
+      const data = node.generateAPIDevice(uuid, targetNode);
+      const content = node.templateManager.render("set-state.json", data);
+      const output = content.replace(/\s/g, "");
+
+      response.type("json").send(this.stripSpace(output));
+    } catch (error) {
+      RED.log.error(`Control item error: ${error.message}`);
+      response.status(500).json({ error: "Control failed" });
     }
-
-    const msg = {
-      username,
-      payload: request.body,
-    };
-
-    msg.alexa_ip = node.getAlexaIPAddress(request);
-
-    if (alexaHome.isDebug) {
-      const httpHeader = Object.keys(request.headers);
-      httpHeader.forEach(function (key) {
-        msg["http_header_" + key] = request.headers[key];
-      });
-    }
-
-    targetNode.processCommand(msg);
-
-    const data = node.generateAPIDevice(uuid, targetNode);
-    const output = renderTemplate(template, data).replace(/\s/g, "");
-
-    response.type("json").send(this.stripSpace(output));
   };
 
   AlexaHomeController.prototype.getItemInfo = function (id, request, response) {
-    if (request.params.itemType !== "lights") {
-      response.status(200).end("{}");
-      return;
-    }
     const node = this;
 
-    const template = fs
-      .readFileSync(
-        path.join(__dirname, "/templates/items/get-state.json"),
-        "utf8",
-      )
-      .toString();
+    try {
+      if (request.params.itemType !== "lights") {
+        response.status(200).end("{}");
+        return;
+      }
 
-    // const username = request.params.username;
-    const uuid = request.params.id;
+      const uuid = request.params.id;
+      const targetNode = node.getDevice(uuid);
 
-    const targetNode = node.getDevice(uuid);
-    if (targetNode === undefined) {
-      RED.log.warn(
-        "unknown alexa node of type " +
-          request.params.itemType +
-          " was requested: " +
-          uuid,
-      );
-      response.status(502).type("json").send("{}");
-      return;
+      if (!targetNode) {
+        RED.log.warn(
+          `Unknown alexa node of type ${request.params.itemType} was requested: ${uuid}`,
+        );
+        response.status(502).type("json").send("{}");
+        return;
+      }
+
+      const data = node.generateAPIDevice(uuid, targetNode);
+      data.name = targetNode.name;
+      data.date = new Date().toISOString().split(".").shift();
+
+      const content = node.templateManager.render("get-state.json", data);
+      const output = content.replace(/\s/g, "");
+
+      response.type("json").send(this.stripSpace(output));
+    } catch (error) {
+      RED.log.error(`Get item info error: ${error.message}`);
+      response.status(500).json({ error: "Failed to get item info" });
     }
-    const data = node.generateAPIDevice(uuid, targetNode);
-    data.name = targetNode.name;
-    data.date = new Date().toISOString().split(".").shift();
-    const output = renderTemplate(template, data).replace(/\s/g, "");
-
-    response.type("json").send(this.stripSpace(output));
   };
 
   AlexaHomeController.prototype.setConnectionStatusMsg = function (
@@ -724,21 +676,11 @@ module.exports = function (RED) {
   };
 
   AlexaHomeController.prototype.formatUUID = function (lightId) {
-    if (lightId === null || lightId === undefined) {
-      return "";
-    }
-
-    const string = "" + lightId;
-    return string.replace(".", "").trim();
+    return utils.formatUUID(lightId);
   };
 
   AlexaHomeController.prototype.formatHueBridgeUUID = function (lightId) {
-    if (lightId === null || lightId === undefined) {
-      return "";
-    }
-    let uuid = alexaHome.prefixUUID;
-    uuid += this.formatUUID(lightId);
-    return uuid;
+    return utils.formatHueBridgeUUID(lightId, alexaHome.prefixUUID);
   };
 
   RED.nodes.registerType("alexa-home-controller", AlexaHomeController);
