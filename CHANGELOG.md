@@ -1,3 +1,17 @@
+<a id="v2.1.3"></a>
+# [v2.1.3](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.1.3) - 2025-08-14
+
+## 2.1.3 (2025-08-14)
+
+#### Bug Fixes
+
+* refactoring code ([#138](https://github.com/mabunixda/node-red-contrib-alexa-home/issues/138)) (10f6d566)
+
+
+
+[Changes][v2.1.3]
+
+
 <a id="v2.1.2"></a>
 # [v2.1.2](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.1.2) - 2025-08-14
 
@@ -411,6 +425,7 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
+[v2.1.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.2...v2.1.3
 [v2.1.2]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.1...v2.1.2
 [v2.1.1]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.0...v2.1.1
 [v2.1.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.0.4...v2.1.0
