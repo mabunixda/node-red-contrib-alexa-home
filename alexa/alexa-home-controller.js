@@ -148,9 +148,29 @@ module.exports = function (RED) {
       node.name = config.controllername || "Alexa Home Controller";
       node._commands = new Map();
       node._hub = [];
+      node.useNode = config.useNode || false;
 
-      // Configure port with validation
-      node.port = node.configurePort(config.port);
+      // Validate configuration: useNode and HTTPS are incompatible
+      const configuredHttps =
+        config.useHttps || process.env.ALEXA_HTTPS === "true" || false;
+
+      if (node.useNode && configuredHttps) {
+        node.error(
+          "Invalid configuration: HTTPS cannot be used with 'Use Node as Webserver' option. HTTPS will be disabled.",
+        );
+        node.useHttps = false;
+        node.httpsOptions = null;
+      } else {
+        node.useHttps = configuredHttps;
+
+        // Configure HTTPS settings
+        if (node.useHttps) {
+          node.httpsOptions = node.configureHttps(config);
+        }
+      }
+
+      // Configure port with protocol awareness
+      node.port = node.configurePortWithProtocol(config.port, node.useHttps);
 
       // Generate network identifiers
       const mac = utils.generateMacAddress(config.id);
@@ -167,7 +187,7 @@ module.exports = function (RED) {
       node.setConnectionStatusMsg("green", "Ready");
 
       RED.log.info(
-        `Alexa Home Controller '${node.name}' initialized on port: ${node.port}`,
+        `Alexa Home Controller '${node.name}' initialized on ${node.useHttps ? "https" : "http"}://0.0.0.0:${node.port}`,
       );
     } catch (error) {
       RED.log.error(`Failed to initialize controller: ${error.message}`);
@@ -210,7 +230,11 @@ module.exports = function (RED) {
    * Initialize hub services
    */
   AlexaHomeController.prototype.initializeHub = function () {
-    this._hub.push(new AlexaHub(this, this.port, this._hub.length));
+    const hubOptions = {
+      useHttps: this.useHttps,
+      httpsOptions: this.httpsOptions,
+    };
+    this._hub.push(new AlexaHub(this, this.port, this._hub.length, hubOptions));
   };
 
   /**
@@ -228,6 +252,100 @@ module.exports = function (RED) {
         }
       }
     });
+  };
+
+  /**
+   * Configure port with protocol-aware defaults
+   * @param {string|number} configPort - Port from configuration
+   * @param {boolean} useHttps - Whether HTTPS is enabled
+   * @returns {number} Validated port number
+   */
+  AlexaHomeController.prototype.configurePortWithProtocol = function (
+    configPort,
+    useHttps,
+  ) {
+    if (configPort !== undefined && configPort !== null && configPort !== "") {
+      const port = parseInt(configPort, 10);
+      if (utils.isValidPort(port)) {
+        return port;
+      }
+      this.warn(`Invalid port number: ${configPort}. Using default port.`);
+    }
+    // Use appropriate default port based on protocol
+    return useHttps ? 443 : alexaHome.hubPort;
+  };
+
+  /**
+   * Configure HTTPS settings from configuration
+   * @param {Object} config - Node configuration
+   * @returns {Object|null} HTTPS options or null if configuration failed
+   */
+  AlexaHomeController.prototype.configureHttps = function (config) {
+    const fs = require("fs");
+    const path = require("path");
+
+    try {
+      // Use config values or environment variables
+      const certPath = config.certPath || process.env.ALEXA_CERT_PATH;
+      const keyPath = config.keyPath || process.env.ALEXA_KEY_PATH;
+      const caPath = config.caPath || process.env.ALEXA_CA_PATH;
+
+      if (!certPath || !keyPath) {
+        this.error(
+          "HTTPS enabled but certificate or key path not provided. Check config or ALEXA_CERT_PATH/ALEXA_KEY_PATH environment variables. Falling back to HTTP.",
+        );
+        this.useHttps = false;
+        return null;
+      }
+
+      // Resolve paths and read certificate files
+      const resolvedCertPath = path.resolve(certPath);
+      const resolvedKeyPath = path.resolve(keyPath);
+
+      if (!fs.existsSync(resolvedCertPath)) {
+        this.error(
+          `Certificate file not found: ${resolvedCertPath}. Falling back to HTTP.`,
+        );
+        this.useHttps = false;
+        return null;
+      }
+
+      if (!fs.existsSync(resolvedKeyPath)) {
+        this.error(
+          `Private key file not found: ${resolvedKeyPath}. Falling back to HTTP.`,
+        );
+        this.useHttps = false;
+        return null;
+      }
+
+      // Read certificate files
+      const httpsOptions = {
+        cert: fs.readFileSync(resolvedCertPath),
+        key: fs.readFileSync(resolvedKeyPath),
+      };
+
+      // Add CA bundle if provided
+      if (caPath && caPath.trim() !== "") {
+        const resolvedCaPath = path.resolve(caPath);
+        if (fs.existsSync(resolvedCaPath)) {
+          httpsOptions.ca = fs.readFileSync(resolvedCaPath);
+          RED.log.info("HTTPS configuration loaded with CA bundle");
+        } else {
+          this.warn(
+            `CA bundle file not found: ${resolvedCaPath}. Continuing without CA bundle.`,
+          );
+        }
+      }
+
+      RED.log.info("HTTPS configuration loaded successfully");
+      return httpsOptions;
+    } catch (error) {
+      this.error(
+        `Failed to load HTTPS certificates: ${error.message}. Falling back to HTTP.`,
+      );
+      this.useHttps = false;
+      return null;
+    }
   };
 
   /**

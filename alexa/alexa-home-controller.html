@@ -1,11 +1,42 @@
 <script type="text/markdown" data-help-name="alexa-home-controller">
     <p>
-    This node is setting up the controller node for alexa interaction. It starts a SSDP Service on Port 1900/udp and is also able to start a seperate webserver on the configured port.
-    But it is also possible to use node-red as webserver and donot start a second webserver.
+    This node sets up the controller node for Alexa interaction. It starts an SSDP service on port 1900/udp and can start a separate web server on the configured port.
+    It's also possible to use Node-RED as a web server and not start a second web server.
     </p>
     <p>
-        Be aware that alexa requires a response server running on port 80!
+        <strong>Important:</strong> Alexa requires a response server running on port 80 for HTTP or port 443 for HTTPS!
     </p>
+    <h3>Server Configuration</h3>
+    <p>
+    You can choose between two server modes:
+    </p>
+    <ul>
+        <li><strong>Standalone Server:</strong> Creates a separate web server on the configured port</li>
+        <li><strong>Use Node-RED Server:</strong> Uses Node-RED's built-in web server (port automatically detected)</li>
+    </ul>
+    <h3>HTTPS/TLS Configuration</h3>
+    <p>
+    You can enable HTTPS by checking the "Use HTTPS" option and providing paths to your SSL certificate and private key files.
+    This is useful for secure communication and when running on non-standard ports.
+    </p>
+    <p>
+        <strong>Important:</strong> HTTPS cannot be used together with the "Use Node as Webserver" option. 
+        When using Node-RED's built-in webserver, HTTPS configuration must be done at the Node-RED level, not within this node.
+    </p>
+    <ul>
+        <li><strong>Certificate Path:</strong> Path to your SSL certificate file (.pem, .crt)</li>
+        <li><strong>Private Key Path:</strong> Path to your SSL private key file (.key)</li>
+        <li><strong>CA Bundle Path:</strong> Optional path to Certificate Authority bundle file</li>
+    </ul>
+    <p>
+    Alternatively, you can configure HTTPS using environment variables:
+    </p>
+    <ul>
+        <li><code>ALEXA_HTTPS=true</code> - Enable HTTPS</li>
+        <li><code>ALEXA_CERT_PATH=/path/to/cert.pem</code> - Certificate file path</li>
+        <li><code>ALEXA_KEY_PATH=/path/to/private.key</code> - Private key file path</li>
+        <li><code>ALEXA_CA_PATH=/path/to/ca-bundle.pem</code> - Optional CA bundle path</li>
+    </ul>
 </script>
 
 <script type="text/x-red" data-template-name="alexa-home-controller">
@@ -15,20 +46,52 @@
         <input type="text" id="node-input-controllername" placeholder="Alexa Hub">
     </div>
     <div class="form-row">
+        <label for="node-input-maxItems">
+            <i class="icon-tag"></i> MaxItems</label>
+        <input type="text" id="node-input-maxItems" placeholder="-1">
+    </div>    
+    <div class="form-row">
         <label for=node-input-useNode">
             <i class="icon-tag"/>Use Node as Webserver</label>
         <input type="checkbox" id="node-input-useNode">
+        <div class="form-tips">Cannot be used with HTTPS option</div>
     </div>
-    <div class="form-row">
+    <div class="form-row" id="node-red-port-info" style="display: none;">
+        <label for="node-red-port-display">
+            <i class="fa fa-info-circle"></i> Node-RED Port</label>
+        <input type="text" id="node-red-port-display" readonly style="background-color: #e6f3ff; border: 1px solid #b3d9ff; color: #0066cc; font-weight: bold;">
+        <div class="form-tips" style="color: #0066cc;">Node-RED server port (automatically detected)</div>
+    </div>
+    <div class="form-row" id="port-config-row">
         <label for="node-input-port">
             <i class="icon-tag"></i> Port</label>
         <input type="text" id="node-input-port" placeholder="80">
     </div>
     <div class="form-row">
-        <label for="node-input-maxItems">
-            <i class="icon-tag"></i> MaxItems</label>
-        <input type="text" id="node-input-maxItems" placeholder="-1">
+        <label for="node-input-useHttps">
+            <i class="fa fa-lock"></i> Use HTTPS</label>
+        <input type="checkbox" id="node-input-useHttps">
+        <div class="form-tips">Cannot be used with "Use Node as Webserver" option</div>
     </div>
+    <div class="form-row" id="https-cert-row" style="display: none;">
+        <label for="node-input-certPath">
+            <i class="fa fa-certificate"></i> Certificate Path</label>
+        <input type="text" id="node-input-certPath" placeholder="/path/to/cert.pem">
+        <div class="form-tips">Path to SSL certificate file (.pem or .crt)</div>
+    </div>
+    <div class="form-row" id="https-key-row" style="display: none;">
+        <label for="node-input-keyPath">
+            <i class="fa fa-key"></i> Private Key Path</label>
+        <input type="text" id="node-input-keyPath" placeholder="/path/to/private.key">
+        <div class="form-tips">Path to SSL private key file (.key)</div>
+    </div>
+    <div class="form-row" id="https-ca-row" style="display: none;">
+        <label for="node-input-caPath">
+            <i class="fa fa-certificate"></i> CA Bundle Path (Optional)</label>
+        <input type="text" id="node-input-caPath" placeholder="/path/to/ca-bundle.pem">
+        <div class="form-tips">Optional: Path to Certificate Authority bundle file</div>
+    </div>
+
 </script>
 <script type="text/javascript">
 
@@ -48,6 +111,22 @@
                 required: true,
                 validate: RED.validators.number()
             },
+            useHttps: {
+                value: false,
+                required: false
+            },
+            certPath: {
+                value: "",
+                required: false
+            },
+            keyPath: {
+                value: "",
+                required: false
+            },
+            caPath: {
+                value: "",
+                required: false
+            },
             maxItems: {
                 value: -1,
                 required: true,
@@ -58,7 +137,139 @@
         outputs: 0,
         icon: "alexa-home.png",
         label: function () {
-            return this.controllername + ':' + this.port;
+            const protocol = this.useHttps ? 'https' : 'http';
+            return this.controllername + ':' + protocol + ':' + this.port;
+        },
+        oneditprepare: function() {
+            const node = this;
+            
+            // Get Node-RED port information
+            const getNodeRedPort = function() {
+                // Try to detect Node-RED port from various sources
+                let port = 1880; // Default Node-RED port
+                
+                try {
+                    // Method 1: Check current browser location port
+                    if (window.location.port) {
+                        const currentPort = parseInt(window.location.port);
+                        if (currentPort && currentPort > 0) {
+                            port = currentPort;
+                            return port;
+                        }
+                    }
+                    
+                    // Method 2: Check for standard ports based on protocol
+                    if (window.location.protocol === 'https:' && !window.location.port) {
+                        port = 443; // Default HTTPS port
+                    } else if (window.location.protocol === 'http:' && !window.location.port) {
+                        port = 80; // Default HTTP port
+                    }
+                    
+                    // Method 3: Try to access RED.settings if available
+                    if (typeof RED !== 'undefined' && RED.settings) {
+                        port = RED.settings.uiPort || RED.settings.httpNodeRoot || port;
+                    }
+                } catch (e) {
+                    // Fallback to default port if detection fails
+                    console.log("Could not detect Node-RED port, using default:", port);
+                }
+                
+                return port;
+            };
+            
+            // Update Node-RED port display
+            const updateNodeRedPortDisplay = function() {
+                const nodeRedPort = getNodeRedPort();
+                $("#node-red-port-display").val(nodeRedPort);
+                
+                // Update the tip text with the detected port
+                $("#node-red-port-info .form-tips").text(
+                    `Node-RED server port: ${nodeRedPort} (automatically detected)`
+                );
+            };
+            
+            // Handle UseNode checkbox toggle
+            $("#node-input-useNode").change(function() {
+                if ($(this).is(':checked')) {
+                    // Check for invalid configuration
+                    if ($("#node-input-useHttps").is(':checked')) {
+                        RED.notify("'Use Node as Webserver' cannot be used with HTTPS option. Please disable one of these options.", "error");
+                        $(this).prop('checked', false);
+                        return;
+                    }
+                    // Show Node-RED port info and hide regular port config
+                    $("#node-red-port-info").show();
+                    $("#port-config-row").hide();
+                    updateNodeRedPortDisplay();
+                    
+                    // Hide HTTPS options when using Node-RED server
+                    $("#node-input-useHttps").prop('disabled', true);
+                    $("#https-cert-row, #https-key-row, #https-ca-row").hide();
+                } else {
+                    // Hide Node-RED port info and show regular port config
+                    $("#node-red-port-info").hide();
+                    $("#port-config-row").show();
+                    
+                    // Re-enable HTTPS options when not using Node-RED server
+                    $("#node-input-useHttps").prop('disabled', false);
+                }
+            });
+            
+            // Handle HTTPS checkbox toggle
+            $("#node-input-useHttps").change(function() {
+                if ($(this).is(':checked')) {
+                    // Check for invalid configuration
+                    if ($("#node-input-useNode").is(':checked')) {
+                        RED.notify("HTTPS cannot be used with 'Use Node as Webserver' option. Please disable one of these options.", "error");
+                        $(this).prop('checked', false);
+                        return;
+                    }
+                    $("#https-cert-row, #https-key-row, #https-ca-row").show();
+                    // Update port placeholder for HTTPS default
+                    if ($("#node-input-port").val() === "80" || $("#node-input-port").val() === "") {
+                        $("#node-input-port").attr('placeholder', '443');
+                    }
+                } else {
+                    $("#https-cert-row, #https-key-row, #https-ca-row").hide();
+                    // Update port placeholder for HTTP default
+                    if ($("#node-input-port").val() === "443" || $("#node-input-port").val() === "") {
+                        $("#node-input-port").attr('placeholder', '80');
+                    }
+                }
+            });
+            
+            // Initialize display state
+            if (node.useHttps) {
+                $("#https-cert-row, #https-key-row, #https-ca-row").show();
+            }
+            
+            // Initialize useNode state
+            if (node.useNode) {
+                $("#node-input-useHttps").prop('disabled', true);
+                $("#node-red-port-info").show();
+                $("#port-config-row").hide();
+                updateNodeRedPortDisplay();
+            }
+        },
+        oneditsave: function() {
+            // Validate invalid configuration combinations
+            if ($("#node-input-useHttps").is(':checked') && $("#node-input-useNode").is(':checked')) {
+                RED.notify("Invalid configuration: HTTPS cannot be used with 'Use Node as Webserver' option", "error");
+                return false;
+            }
+            
+            // Validate HTTPS configuration if enabled
+            if ($("#node-input-useHttps").is(':checked')) {
+                const certPath = $("#node-input-certPath").val();
+                const keyPath = $("#node-input-keyPath").val();
+                
+                if (!certPath || !keyPath) {
+                    RED.notify("HTTPS requires both certificate and private key paths", "warning");
+                    return false;
+                }
+            }
+            
+            return true;
         }
     });
 </script>

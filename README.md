@@ -21,7 +21,7 @@ Install using npm
 ## Alexa Generation 3 devices
 
 Alexa devices of generation #3 are not using the information used within the detection process.
-They do rely that all communication is done on port 80! To estatlish this you got 2 different ways to go.
+They do rely that all communication is done on port 80 for HTTP or port 443 for HTTPS! To establish this you have 3 different ways to go.
 
 ### ALEXA_PORT and running as root
 
@@ -33,13 +33,64 @@ To test the change you can also start node-red manually with following:
 
 `ALEXA_PORT=80 node-red start`
 
-### using iptables and port forwarding
+### Using HTTPS/TLS Configuration
+
+You can configure HTTPS support to run on port 443 (the standard HTTPS port) which Alexa also supports. This provides secure communication and avoids conflicts with other services using port 80.
+
+Set environment variables:
+
+```bash
+ALEXA_HTTPS=true
+ALEXA_PORT=443
+ALEXA_CERT_PATH=/path/to/your/cert.pem
+ALEXA_KEY_PATH=/path/to/your/private.key
+ALEXA_CA_PATH=/path/to/ca-bundle.pem  # optional
+```
+
+Or configure HTTPS through the Node-RED configuration interface by checking "Use HTTPS" and providing certificate file paths.
+
+**Note:** Running on port 443 may also require root privileges or proper port permissions.
+
+### Using iptables and port forwarding
 
 You can leave everything as it is and just define port forwarding using iptables
 
 `sudo iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 60000`
 
-Please consider that any changes to iptables are not presistent, after reboot you have to forward the port again, or use iptables-save as described [here](https://www.poftut.com/how-to-save-and-restore-iptables-rules-permanently-in-ubuntu-centos-fedora-debian-kali-mint/)
+For HTTPS:
+
+`sudo iptables -t nat -I PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 60000`
+
+Please consider that any changes to iptables are not persistent, after reboot you have to forward the port again, or use iptables-save as described [here](https://www.poftut.com/how-to-save-and-restore-iptables-rules-permanently-in-ubuntu-centos-fedora-debian-kali-mint/)
+
+## Configuration Options
+
+### Environment Variables
+
+The following environment variables can be used to configure the Alexa Home Controller:
+
+- **ALEXA_PORT**: Port number for the web server (default: 60000)
+- **ALEXA_HTTPS**: Enable HTTPS mode (`true` or `false`)
+- **ALEXA_CERT_PATH**: Path to SSL certificate file (required for HTTPS)
+- **ALEXA_KEY_PATH**: Path to SSL private key file (required for HTTPS)
+- **ALEXA_CA_PATH**: Path to Certificate Authority bundle file (optional for HTTPS)
+
+### Node Configuration
+
+Through the Node-RED configuration interface, you can:
+
+- **Name**: Set a custom name for the controller node
+- **Port**: Configure the web server port (overrides ALEXA_PORT environment variable)
+- **Use Node-RED server**: Use Node-RED's built-in web server instead of starting a separate one
+- **HTTPS Configuration**: Enable secure communication with certificate and key file paths
+
+### Configuration Restrictions
+
+**Important:** The "Use Node-RED server" option and "HTTPS Configuration" are mutually exclusive and cannot be used together. 
+
+- When using Node-RED's built-in web server, HTTPS must be configured at the Node-RED application level
+- When using the standalone web server mode, HTTPS can be configured directly in this node
+- If both options are enabled, HTTPS will be automatically disabled with an error message
 
 ## Message Object Properties
 
