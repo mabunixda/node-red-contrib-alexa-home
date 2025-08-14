@@ -171,6 +171,39 @@ function throttle(func, limit) {
   };
 }
 
+/**
+ * Gets an available port for testing
+ * @param {number} min - Minimum port number (default: 3000)
+ * @param {number} max - Maximum port number (default: 65535)
+ * @returns {Promise<number>} Available port number
+ */
+function getAvailablePort(min = 3000, max = 65535) {
+  return new Promise((resolve, reject) => {
+    const net = require("net");
+    const server = net.createServer();
+
+    // Try random port first
+    const tryPort = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    server.listen(tryPort, () => {
+      const port = server.address().port;
+      server.close(() => resolve(port));
+    });
+
+    server.on("error", () => {
+      // If random port fails, let the system assign one
+      server.listen(0, () => {
+        const port = server.address().port;
+        server.close(() => resolve(port));
+      });
+    });
+
+    server.on("error", (err) => {
+      reject(err);
+    });
+  });
+}
+
 module.exports = {
   isValidPort,
   safeJsonParse,
@@ -184,4 +217,5 @@ module.exports = {
   deepClone,
   debounce,
   throttle,
+  getAvailablePort,
 };
