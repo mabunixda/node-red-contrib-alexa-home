@@ -8,18 +8,20 @@ const bodyParser = require("body-parser");
  * @param {AlexaHomeController} controller - Controller node
  * @param {number} port - base port where controllerhub starts
  * @param {number} id - counting number which is maintained in controller node
+ * @param {Object} options - Optional configuration including HTTPS settings
  */
-function AlexaHub(controller, port, id) {
+function AlexaHub(controller, port, id, options = {}) {
   const node = this;
   node.controller = controller;
   node.id = id;
   node.port = port + id;
   node.willClose = false;
 
-  // Support both HTTP and HTTPS based on environment or configuration
-  node.protocol = process.env.ALEXA_PROTOCOL || "http";
+  // Configure protocol and HTTPS options
+  node.useHttps = options.useHttps || false;
+  node.httpsOptions = options.httpsOptions || null;
+  node.protocol = node.useHttps ? "https" : (process.env.ALEXA_PROTOCOL || "http");
 
-  const options = undefined;
   node.startSsdp();
 
   if (node.controller.useNode) {
@@ -29,10 +31,10 @@ function AlexaHub(controller, port, id) {
     return;
   }
 
-  node.createServer(options);
+  node.createServer();
 }
 
-AlexaHub.prototype.createServer = function (options) {
+AlexaHub.prototype.createServer = function () {
   const node = this;
   const app = express();
   node.app = app;
@@ -49,7 +51,16 @@ AlexaHub.prototype.createServer = function (options) {
       node.port,
   );
 
-  node.httpServer = require(node.protocol).createServer(options, app);
+  // Create HTTP or HTTPS server based on configuration
+  if (node.useHttps && node.httpsOptions) {
+    // Create HTTPS server
+    node.httpServer = require("https").createServer(node.httpsOptions, app);
+    node.controller.log("HTTPS server created with SSL/TLS certificates");
+  } else {
+    // Create HTTP server
+    node.httpServer = require("http").createServer(app);
+  }
+
   node.server = node.httpServer.listen(node.port, node.ip, function (error) {
     if (error) {
       node.controller.log(error);
