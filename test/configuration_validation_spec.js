@@ -150,6 +150,7 @@ describe("Configuration Validation Tests", function () {
         controllername: "Test Controller",
         useNode: false,
         useHttps: true,
+        port: 8443, // Explicitly set to 8443
         // No cert paths and no port specified - should try to configure for port 8443
         // but then disable HTTPS due to missing certificates and fall back to HTTP
       },
