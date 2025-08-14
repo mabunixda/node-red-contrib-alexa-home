@@ -19,7 +19,7 @@ describe("Configuration Validation Tests", function () {
 
   it("should disable HTTPS when useNode is true", async function () {
     const testPort = await utils.getAvailablePort();
-    
+
     const flow = [
       {
         id: "controller1",
@@ -50,7 +50,7 @@ describe("Configuration Validation Tests", function () {
 
   it("should allow HTTPS when useNode is false", async function () {
     const testPort = await utils.getAvailablePort();
-    
+
     const flow = [
       {
         id: "controller2",
@@ -81,7 +81,7 @@ describe("Configuration Validation Tests", function () {
 
   it("should work normally when both useNode and useHttps are false", async function () {
     const testPort = await utils.getAvailablePort();
-    
+
     const flow = [
       {
         id: "controller3",
@@ -110,7 +110,7 @@ describe("Configuration Validation Tests", function () {
 
   it("should use environment variable ALEXA_HTTPS but disable it when useNode is true", async function () {
     const testPort = await utils.getAvailablePort();
-    
+
     // Set environment variable
     process.env.ALEXA_HTTPS = "true";
 
@@ -177,7 +177,7 @@ describe("Configuration Validation Tests", function () {
     const flow = [
       {
         id: "controller-port-test",
-        type: "alexa-home-controller", 
+        type: "alexa-home-controller",
         controllername: "Port Test Controller",
         useNode: false,
         useHttps: false,
@@ -188,17 +188,23 @@ describe("Configuration Validation Tests", function () {
       helper.load(controllerNode, flow, function () {
         try {
           const controller = helper.getNode("controller-port-test");
-          
+
           // Test the configurePortWithProtocol method directly
-          const httpPort = controller.configurePortWithProtocol(undefined, false);
-          const httpsPort = controller.configurePortWithProtocol(undefined, true);
-          
+          const httpPort = controller.configurePortWithProtocol(
+            undefined,
+            false,
+          );
+          const httpsPort = controller.configurePortWithProtocol(
+            undefined,
+            true,
+          );
+
           // HTTP should use the default hub port (usually 80 or 60000 in tests)
           should(typeof httpPort).equal("number");
-          
+
           // HTTPS should default to 443 (non-privileged)
           httpsPort.should.equal(443);
-          
+
           resolve();
         } catch (error) {
           reject(error);

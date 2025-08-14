@@ -85,10 +85,10 @@ describe("Utility Modules", function () {
     it("should parse JSON safely", function () {
       const parsed = utils.safeJsonParse('{"key": "value"}');
       parsed.should.deepEqual({ key: "value" });
-      
+
       const withDefault = utils.safeJsonParse("invalid", "default");
       withDefault.should.equal("default");
-      
+
       // Null result test passes - just ensuring function works
       const nullResult = utils.safeJsonParse("invalid");
       should.exist(nullResult === null);
