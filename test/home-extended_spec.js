@@ -318,10 +318,10 @@ describe("alexa-home Node - Extended Tests", function () {
 
           // Update controller to n2
           n1.updateController(n2);
-          
+
           // Verify the controller is now n2
           n1.controller.should.equal(n2);
-          
+
           // Verify it changed from the initial state
           n1.controller.should.not.equal(initialController);
 

@@ -306,39 +306,39 @@ describe("Integration Tests - Complete Alexa Flow", function () {
 
       helper.load(controllerNode, flow, function () {
         const controller = helper.getNode("controller1");
-        
+
         // Test the method directly
         try {
           const mockRequest = {
             params: {
-              itemType: 'lights',
-              username: 'test-user',
-              id: 'nonexistent'
+              itemType: "lights",
+              username: "test-user",
+              id: "nonexistent",
             },
-            body: { on: true }
+            body: { on: true },
           };
-          
+
           let responseStatus = null;
           let responseData = null;
-          
+
           const mockResponse = {
-            status: function(code) {
+            status: function (code) {
               responseStatus = code;
               return this;
             },
-            type: function(type) {
+            type: function (type) {
               return this;
             },
-            send: function(data) {
+            send: function (data) {
               responseData = data;
-            }
+            },
           };
-          
+
           controller.controlItem(0, mockRequest, mockResponse);
-          
+
           // Verify proper error handling
           responseStatus.should.equal(502);
-          responseData.should.equal('{}');
+          responseData.should.equal("{}");
           done();
         } catch (error) {
           done(error);
@@ -363,16 +363,16 @@ describe("Integration Tests - Complete Alexa Flow", function () {
 
       helper.load([controllerNode, alexaNode], flow, function () {
         const controller = helper.getNode("controller1");
-        
+
         setTimeout(() => {
           try {
             // Verify initial state
             controller._commands.size.should.equal(1);
-            
+
             // Test basic cleanup functionality - clear references directly
             controller._commands.clear();
             alexaHelper.controllerNode = undefined;
-            
+
             // Verify cleanup
             controller._commands.size.should.equal(0);
             should(alexaHelper.controllerNode).be.undefined();
@@ -423,7 +423,7 @@ describe("Integration Tests - Complete Alexa Flow", function () {
             // Should generate device list quickly
             (endTime - startTime).should.be.below(100);
             deviceList.length.should.equal(deviceCount);
-            
+
             done();
           } catch (error) {
             done(error);
