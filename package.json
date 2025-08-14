@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "mustache": "^4.2.0",
     "node-ssdp": "^4.0.1"
   },
   "devDependencies": {
