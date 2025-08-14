@@ -476,7 +476,7 @@ module.exports = function (RED) {
       const data = {
         id,
         uuid: utils.formatHueBridgeUUID(node.id, alexaHome.prefixUUID),
-        baseUrl: `http://${request.headers.host}`,
+        baseUrl: `${node.useHttps ? "https" : "http"}://${request.headers.host}`,
       };
 
       const content = node.templateManager.render("index.html", data);
@@ -495,7 +495,7 @@ module.exports = function (RED) {
 
       const data = {
         uuid: utils.formatHueBridgeUUID(node.id, alexaHome.prefixUUID),
-        baseUrl: `http://${request.headers.host}`,
+        baseUrl: `${node.useHttps ? "https" : "http"}://${request.headers.host}`,
       };
 
       const content = node.templateManager.render("setup.xml", data);
