@@ -20,11 +20,6 @@ class AlexaHub {
       ? "https"
       : process.env.ALEXA_PROTOCOL || "http";
 
-    // Server instances
-    this.httpServer = null;
-    this.server = null;
-    this.ssdpServer = null;
-
     this.startSsdp();
 
     if (this.controller.useNode) {
@@ -33,6 +28,10 @@ class AlexaHub {
       );
       return;
     }
+
+    // Server instances - only initialize when not using Node-RED
+    this.httpServer = null;
+    this.server = null;
 
     this.createServer();
   }
