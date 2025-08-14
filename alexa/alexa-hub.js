@@ -1,7 +1,6 @@
 "use strict";
 
 const express = require("express");
-const bodyParser = require("body-parser");
 /**
  * Hub to create communication with alexa devices
  * @constructor
@@ -58,8 +57,10 @@ AlexaHub.prototype.createServer = function (options) {
       node.controller.log(error);
     });
 
+    // Use built-in Express JSON parser (replaces body-parser dependency)
+    // Handles all content types (*/*) for Alexa compatibility
     app.use(
-      bodyParser.json({
+      express.json({
         type: "*/*",
       }),
     );
@@ -107,7 +108,7 @@ AlexaHub.prototype.createServer = function (options) {
           " -> " +
           req.url,
       );
-      if (Object.keys(req.body).length > 0) {
+      if (req.body && Object.keys(req.body).length > 0) {
         node.controller.debug("Request body: " + JSON.stringify(req.body));
       }
       if (node.willClose) {
