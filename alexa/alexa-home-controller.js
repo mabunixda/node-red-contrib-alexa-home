@@ -140,64 +140,79 @@ module.exports = function (RED) {
     node.useNode = config.useNode || false;
 
     // Validate configuration: useNode and HTTPS are incompatible
-    const configuredHttps = config.useHttps || process.env.ALEXA_HTTPS === 'true' || false;
-    
+    const configuredHttps =
+      config.useHttps || process.env.ALEXA_HTTPS === "true" || false;
+
     if (node.useNode && configuredHttps) {
-      node.error("Invalid configuration: HTTPS cannot be used with 'Use Node as Webserver' option. HTTPS will be disabled.");
+      node.error(
+        "Invalid configuration: HTTPS cannot be used with 'Use Node as Webserver' option. HTTPS will be disabled.",
+      );
       node.useHttps = false;
       node.httpsOptions = null;
     } else {
       node.useHttps = configuredHttps;
-      
+
       // Configure HTTPS settings
       if (node.useHttps) {
         // Validate and prepare HTTPS options
-        const fs = require('fs');
-        const path = require('path');
-        
+        const fs = require("fs");
+        const path = require("path");
+
         try {
           // Use config values or environment variables
           const certPath = config.certPath || process.env.ALEXA_CERT_PATH;
           const keyPath = config.keyPath || process.env.ALEXA_KEY_PATH;
           const caPath = config.caPath || process.env.ALEXA_CA_PATH;
-          
+
           if (!certPath || !keyPath) {
-            node.error("HTTPS enabled but certificate or key path not provided. Check config or ALEXA_CERT_PATH/ALEXA_KEY_PATH environment variables. Falling back to HTTP.");
+            node.error(
+              "HTTPS enabled but certificate or key path not provided. Check config or ALEXA_CERT_PATH/ALEXA_KEY_PATH environment variables. Falling back to HTTP.",
+            );
             node.useHttps = false;
           } else {
             // Resolve paths and read certificate files
             const resolvedCertPath = path.resolve(certPath);
             const resolvedKeyPath = path.resolve(keyPath);
-            
+
             if (!fs.existsSync(resolvedCertPath)) {
-              node.error(`Certificate file not found: ${resolvedCertPath}. Falling back to HTTP.`);
+              node.error(
+                `Certificate file not found: ${resolvedCertPath}. Falling back to HTTP.`,
+              );
               node.useHttps = false;
             } else if (!fs.existsSync(resolvedKeyPath)) {
-              node.error(`Private key file not found: ${resolvedKeyPath}. Falling back to HTTP.`);
+              node.error(
+                `Private key file not found: ${resolvedKeyPath}. Falling back to HTTP.`,
+              );
               node.useHttps = false;
             } else {
               // Read certificate files
               node.httpsOptions = {
                 cert: fs.readFileSync(resolvedCertPath),
-                key: fs.readFileSync(resolvedKeyPath)
+                key: fs.readFileSync(resolvedKeyPath),
               };
-              
+
               // Add CA bundle if provided
-              if (caPath && caPath.trim() !== '') {
+              if (caPath && caPath.trim() !== "") {
                 const resolvedCaPath = path.resolve(caPath);
                 if (fs.existsSync(resolvedCaPath)) {
                   node.httpsOptions.ca = fs.readFileSync(resolvedCaPath);
                   RED.log.info("HTTPS configuration loaded with CA bundle");
                 } else {
-                  node.warn(`CA bundle file not found: ${resolvedCaPath}. Continuing without CA bundle.`);
+                  node.warn(
+                    `CA bundle file not found: ${resolvedCaPath}. Continuing without CA bundle.`,
+                  );
                 }
               }
-              
+
               RED.log.info("HTTPS configuration loaded successfully");
             }
           }
         } catch (error) {
-          node.error("Failed to load HTTPS certificates: " + error.message + ". Falling back to HTTP.");
+          node.error(
+            "Failed to load HTTPS certificates: " +
+              error.message +
+              ". Falling back to HTTP.",
+          );
           node.useHttps = false;
           node.httpsOptions = null;
         }
@@ -229,15 +244,17 @@ module.exports = function (RED) {
     node._hub = [];
 
     // Use the configured port and protocol (either custom or default)
-    const protocol = node.useHttps ? 'https' : 'http';
-    RED.log.info(`Alexa Home Controller starting on ${protocol}://0.0.0.0:${node.port}`);
-    
+    const protocol = node.useHttps ? "https" : "http";
+    RED.log.info(
+      `Alexa Home Controller starting on ${protocol}://0.0.0.0:${node.port}`,
+    );
+
     // Create hub with HTTPS options if configured
     const hubOptions = {
       useHttps: node.useHttps,
-      httpsOptions: node.httpsOptions
+      httpsOptions: node.httpsOptions,
     };
-    
+
     node._hub.push(new AlexaHub(this, node.port, this._hub.length, hubOptions));
 
     node.on("close", function (removed, done) {

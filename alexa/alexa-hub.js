@@ -20,7 +20,9 @@ function AlexaHub(controller, port, id, options = {}) {
   // Configure protocol and HTTPS options
   node.useHttps = options.useHttps || false;
   node.httpsOptions = options.httpsOptions || null;
-  node.protocol = node.useHttps ? "https" : (process.env.ALEXA_PROTOCOL || "http");
+  node.protocol = node.useHttps
+    ? "https"
+    : process.env.ALEXA_PROTOCOL || "http";
 
   node.startSsdp();
 
