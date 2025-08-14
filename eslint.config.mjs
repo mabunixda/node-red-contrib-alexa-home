@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([{
-    
+
     languageOptions: {
         globals: {
             ...globals.browser,

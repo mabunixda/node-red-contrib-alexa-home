@@ -3,11 +3,11 @@
  * Valid    it("should parse JSON safely", function () {
       const parsed = utils.safeJsonParse('{"key": "value"}');
       parsed.should.deep.equal({ key: "value" });
-      
+
       const withDefault = utils.safeJsonParse("invalid", "default");
       should(withDefault).not.be.undefined();
       withDefault.should.equal("default");
-      
+
       const nullResult = utils.safeJsonParse("invalid");
       should(nullResult).be.null();
     });odernized functionality

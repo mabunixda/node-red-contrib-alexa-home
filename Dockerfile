@@ -9,4 +9,3 @@ COPY ./ /usr/src/alexa-node
 
 ## link dev code
 RUN npm link /usr/src/alexa-node/
-

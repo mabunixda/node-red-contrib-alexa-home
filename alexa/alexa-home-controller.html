@@ -20,7 +20,7 @@
     This is useful for secure communication and when running on non-standard ports.
     </p>
     <p>
-        <strong>Important:</strong> HTTPS cannot be used together with the "Use Node as Webserver" option. 
+        <strong>Important:</strong> HTTPS cannot be used together with the "Use Node as Webserver" option.
         When using Node-RED's built-in webserver, HTTPS configuration must be done at the Node-RED level, not within this node.
     </p>
     <ul>
@@ -49,7 +49,7 @@
         <label for="node-input-maxItems">
             <i class="icon-tag"></i> MaxItems</label>
         <input type="text" id="node-input-maxItems" placeholder="-1">
-    </div>    
+    </div>
     <div class="form-row">
         <label for=node-input-useNode">
             <i class="icon-tag"/>Use Node as Webserver</label>
@@ -142,12 +142,12 @@
         },
         oneditprepare: function() {
             const node = this;
-            
+
             // Get Node-RED port information
             const getNodeRedPort = function() {
                 // Try to detect Node-RED port from various sources
                 let port = 1880; // Default Node-RED port
-                
+
                 try {
                     // Method 1: Check current browser location port
                     if (window.location.port) {
@@ -157,14 +157,14 @@
                             return port;
                         }
                     }
-                    
+
                     // Method 2: Check for standard ports based on protocol
                     if (window.location.protocol === 'https:' && !window.location.port) {
                         port = 443; // Default HTTPS port
                     } else if (window.location.protocol === 'http:' && !window.location.port) {
                         port = 80; // Default HTTP port
                     }
-                    
+
                     // Method 3: Try to access RED.settings if available
                     if (typeof RED !== 'undefined' && RED.settings) {
                         port = RED.settings.uiPort || RED.settings.httpNodeRoot || port;
@@ -173,21 +173,21 @@
                     // Fallback to default port if detection fails
                     console.log("Could not detect Node-RED port, using default:", port);
                 }
-                
+
                 return port;
             };
-            
+
             // Update Node-RED port display
             const updateNodeRedPortDisplay = function() {
                 const nodeRedPort = getNodeRedPort();
                 $("#node-red-port-display").val(nodeRedPort);
-                
+
                 // Update the tip text with the detected port
                 $("#node-red-port-info .form-tips").text(
                     `Node-RED server port: ${nodeRedPort} (automatically detected)`
                 );
             };
-            
+
             // Handle UseNode checkbox toggle
             $("#node-input-useNode").change(function() {
                 if ($(this).is(':checked')) {
@@ -201,7 +201,7 @@
                     $("#node-red-port-info").show();
                     $("#port-config-row").hide();
                     updateNodeRedPortDisplay();
-                    
+
                     // Hide HTTPS options when using Node-RED server
                     $("#node-input-useHttps").prop('disabled', true);
                     $("#https-cert-row, #https-key-row, #https-ca-row").hide();
@@ -209,12 +209,12 @@
                     // Hide Node-RED port info and show regular port config
                     $("#node-red-port-info").hide();
                     $("#port-config-row").show();
-                    
+
                     // Re-enable HTTPS options when not using Node-RED server
                     $("#node-input-useHttps").prop('disabled', false);
                 }
             });
-            
+
             // Handle HTTPS checkbox toggle
             $("#node-input-useHttps").change(function() {
                 if ($(this).is(':checked')) {
@@ -237,12 +237,12 @@
                     }
                 }
             });
-            
+
             // Initialize display state
             if (node.useHttps) {
                 $("#https-cert-row, #https-key-row, #https-ca-row").show();
             }
-            
+
             // Initialize useNode state
             if (node.useNode) {
                 $("#node-input-useHttps").prop('disabled', true);
@@ -257,18 +257,18 @@
                 RED.notify("Invalid configuration: HTTPS cannot be used with 'Use Node as Webserver' option", "error");
                 return false;
             }
-            
+
             // Validate HTTPS configuration if enabled
             if ($("#node-input-useHttps").is(':checked')) {
                 const certPath = $("#node-input-certPath").val();
                 const keyPath = $("#node-input-keyPath").val();
-                
+
                 if (!certPath || !keyPath) {
                     RED.notify("HTTPS requires both certificate and private key paths", "warning");
                     return false;
                 }
             }
-            
+
             return true;
         }
     });

@@ -86,7 +86,7 @@ Through the Node-RED configuration interface, you can:
 
 ### Configuration Restrictions
 
-**Important:** The "Use Node-RED server" option and "HTTPS Configuration" are mutually exclusive and cannot be used together. 
+**Important:** The "Use Node-RED server" option and "HTTPS Configuration" are mutually exclusive and cannot be used together.
 
 - When using Node-RED's built-in web server, HTTPS must be configured at the Node-RED application level
 - When using the standalone web server mode, HTTPS can be configured directly in this node
