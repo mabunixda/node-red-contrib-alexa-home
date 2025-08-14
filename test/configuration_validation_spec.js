@@ -182,6 +182,7 @@ describe("Configuration Validation Tests", function () {
         controllername: "Port Test Controller",
         useNode: false,
         useHttps: false,
+        port: 8080,
       },
     ];
 
@@ -192,7 +193,7 @@ describe("Configuration Validation Tests", function () {
 
           // Test the configurePortWithProtocol method directly
           const httpPort = controller.configurePortWithProtocol(
-            undefined,
+            8080,
             false,
           );
           const httpsPort = controller.configurePortWithProtocol(
