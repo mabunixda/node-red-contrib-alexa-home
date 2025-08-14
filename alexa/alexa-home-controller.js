@@ -7,6 +7,10 @@ module.exports = function (RED) {
   const AlexaHub = require("./alexa-hub");
   const path = require("path");
 
+  /**
+   * Get the ID of the first alexa-home-controller node
+   * @returns {string|undefined} Controller node ID or undefined if none found
+   */
   function getControllerId() {
     const results = [];
     RED.nodes.eachNode(function (n) {
@@ -24,6 +28,7 @@ module.exports = function (RED) {
     const nodeId = getControllerId();
     const node = RED.nodes.getNode(nodeId);
     if (!node) {
+      res.status(503).send("Alexa Home Controller not available");
       return;
     }
     node.handleSetup(node.id, req, res);
@@ -32,7 +37,8 @@ module.exports = function (RED) {
   RED.httpNode.post("/api", function (req, res) {
     const nodeId = getControllerId();
     const node = RED.nodes.getNode(nodeId);
-    if (node === undefined) {
+    if (!node) {
+      res.status(503).json({ error: "Alexa Home Controller not available" });
       return;
     }
     node.handleRegistration(node.id, req, res);
@@ -131,11 +137,22 @@ module.exports = function (RED) {
     const node = this;
     alexaHome.controllerNode = node;
     node.name = config.controllername;
-    if (config.port === undefined || config.port === null) {
-      node.port = alexaHome.hubPort;
-    } else {
+
+    // Configure port: use custom port from config, fallback to environment variable or default
+    if (
+      config.port !== undefined &&
+      config.port !== null &&
+      config.port !== ""
+    ) {
       node.port = parseInt(config.port);
+      if (isNaN(node.port) || node.port <= 0 || node.port > 65535) {
+        node.warn(`Invalid port number: ${config.port}. Using default port.`);
+        node.port = alexaHome.hubPort;
+      }
+    } else {
+      node.port = alexaHome.hubPort;
     }
+
     const mac = node.generateMacAddress(config.id);
     node.macaddress = mac;
     node.bridgeid = node.getBridgeIdFromMacAddress(mac);
@@ -143,7 +160,8 @@ module.exports = function (RED) {
     node._commands = new Map();
     node._hub = [];
 
-    node.port = alexaHome.hubPort;
+    // Use the configured port (either custom or default from alexa-helper)
+    RED.log.info(`Alexa Home Controller starting on port: ${node.port}`);
     node._hub.push(new AlexaHub(this, node.port, this._hub.length));
 
     node.on("close", function (removed, done) {

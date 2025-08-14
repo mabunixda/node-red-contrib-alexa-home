@@ -21,8 +21,13 @@ module.exports = function (RED) {
     node.inputTrigger = config.inputtrigger;
     node.state = false;
     node.bri = alexaHome.bri_default;
-    node.xy = [0, 0];
+    node.hue = 0;
+    node.sat = 0;
+    node.ct = 200;
+    node.xy = [0.0, 0.0];
     node.uniqueid = node.generateUniqueId(config.id);
+    // Add friendlyName property for better Alexa compatibility
+    node.friendlyName = node.name;
 
     node.on("input", function (msg) {
       msg.inputTrigger = true;
@@ -65,8 +70,21 @@ module.exports = function (RED) {
     node.setConnectionStatusMsg("green", "Ok");
   };
 
+  /**
+   * Process commands from Alexa or input messages
+   * @param {Object} msg - Message object containing payload with device commands
+   * @param {Object} msg.payload - Command payload (on/off, brightness, color, etc.)
+   * @param {boolean} msg.inputTrigger - Whether triggered from input vs Alexa
+   */
   AlexaHomeNode.prototype.processCommand = function (msg) {
     const node = this;
+
+    // Basic input validation
+    if (!msg || msg.payload === null || msg.payload === undefined) {
+      node.warn("Received message without valid payload");
+      node.setConnectionStatusMsg("orange", "Invalid message");
+      return;
+    }
 
     if (node.controller === null || node.controller === undefined) {
       node.warn("Ignoring process command - no controller available!");
@@ -76,10 +94,21 @@ module.exports = function (RED) {
     // Detect increase/decrease command
     msg.change_direction = 0;
     if (msg.payload.bri) {
-      if (msg.payload.bri < node.bri) {
+      // Add validation for brightness values when they exist
+      const brightness = parseInt(msg.payload.bri);
+      if (isNaN(brightness) || brightness < 0 || brightness > 254) {
+        node.warn(
+          `Invalid brightness value: ${msg.payload.bri}. Must be 0-254.`,
+        );
+        node.setConnectionStatusMsg("orange", "Invalid brightness");
+        return;
+      }
+      msg.payload.bri = brightness; // Ensure it's a proper integer
+
+      if (brightness < node.bri) {
         msg.change_direction = -1;
       }
-      if (msg.payload.bri > node.bri) {
+      if (brightness > node.bri) {
         msg.change_direction = 1;
       }
     }
@@ -128,9 +157,19 @@ module.exports = function (RED) {
     node.state = msg.payload.on;
     node.bri = msg.payload.bri;
     node.xy = msg.payload.xy;
-    if (node.xy === undefined) {
-      node.xy = [0, 0];
+    if (
+      !Array.isArray(node.xy) ||
+      node.xy.length !== 2 ||
+      typeof node.xy[0] !== "number" ||
+      typeof node.xy[1] !== "number"
+    ) {
+      // Default to warm white color coordinates for better Alexa compatibility
+      node.xy = [0.3127, 0.329];
     }
+
+    // Ensure XY coordinates are within valid CIE 1931 color space bounds
+    node.xy[0] = Math.max(0.0, Math.min(1.0, node.xy[0]));
+    node.xy[1] = Math.max(0.0, Math.min(1.0, node.xy[1]));
     if (msg.inputTrigger && !msg.output) {
       RED.log.debug(node.name + " - Set values on input");
       return;
