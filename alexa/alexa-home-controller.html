@@ -6,6 +6,14 @@
     <p>
         <strong>Important:</strong> Alexa requires a response server running on port 80 for HTTP or port 443 for HTTPS!
     </p>
+    <h3>Server Configuration</h3>
+    <p>
+    You can choose between two server modes:
+    </p>
+    <ul>
+        <li><strong>Standalone Server:</strong> Creates a separate web server on the configured port</li>
+        <li><strong>Use Node-RED Server:</strong> Uses Node-RED's built-in web server (port automatically detected)</li>
+    </ul>
     <h3>HTTPS/TLS Configuration</h3>
     <p>
     You can enable HTTPS by checking the "Use HTTPS" option and providing paths to your SSL certificate and private key files.
@@ -38,12 +46,23 @@
         <input type="text" id="node-input-controllername" placeholder="Alexa Hub">
     </div>
     <div class="form-row">
+        <label for="node-input-maxItems">
+            <i class="icon-tag"></i> MaxItems</label>
+        <input type="text" id="node-input-maxItems" placeholder="-1">
+    </div>    
+    <div class="form-row">
         <label for=node-input-useNode">
             <i class="icon-tag"/>Use Node as Webserver</label>
         <input type="checkbox" id="node-input-useNode">
         <div class="form-tips">Cannot be used with HTTPS option</div>
     </div>
-    <div class="form-row">
+    <div class="form-row" id="node-red-port-info" style="display: none;">
+        <label for="node-red-port-display">
+            <i class="fa fa-info-circle"></i> Node-RED Port</label>
+        <input type="text" id="node-red-port-display" readonly style="background-color: #e6f3ff; border: 1px solid #b3d9ff; color: #0066cc; font-weight: bold;">
+        <div class="form-tips" style="color: #0066cc;">Node-RED server port (automatically detected)</div>
+    </div>
+    <div class="form-row" id="port-config-row">
         <label for="node-input-port">
             <i class="icon-tag"></i> Port</label>
         <input type="text" id="node-input-port" placeholder="80">
@@ -72,11 +91,7 @@
         <input type="text" id="node-input-caPath" placeholder="/path/to/ca-bundle.pem">
         <div class="form-tips">Optional: Path to Certificate Authority bundle file</div>
     </div>
-    <div class="form-row">
-        <label for="node-input-maxItems">
-            <i class="icon-tag"></i> MaxItems</label>
-        <input type="text" id="node-input-maxItems" placeholder="-1">
-    </div>
+
 </script>
 <script type="text/javascript">
 
@@ -128,6 +143,78 @@
         oneditprepare: function() {
             const node = this;
             
+            // Get Node-RED port information
+            const getNodeRedPort = function() {
+                // Try to detect Node-RED port from various sources
+                let port = 1880; // Default Node-RED port
+                
+                try {
+                    // Method 1: Check current browser location port
+                    if (window.location.port) {
+                        const currentPort = parseInt(window.location.port);
+                        if (currentPort && currentPort > 0) {
+                            port = currentPort;
+                            return port;
+                        }
+                    }
+                    
+                    // Method 2: Check for standard ports based on protocol
+                    if (window.location.protocol === 'https:' && !window.location.port) {
+                        port = 443; // Default HTTPS port
+                    } else if (window.location.protocol === 'http:' && !window.location.port) {
+                        port = 80; // Default HTTP port
+                    }
+                    
+                    // Method 3: Try to access RED.settings if available
+                    if (typeof RED !== 'undefined' && RED.settings) {
+                        port = RED.settings.uiPort || RED.settings.httpNodeRoot || port;
+                    }
+                } catch (e) {
+                    // Fallback to default port if detection fails
+                    console.log("Could not detect Node-RED port, using default:", port);
+                }
+                
+                return port;
+            };
+            
+            // Update Node-RED port display
+            const updateNodeRedPortDisplay = function() {
+                const nodeRedPort = getNodeRedPort();
+                $("#node-red-port-display").val(nodeRedPort);
+                
+                // Update the tip text with the detected port
+                $("#node-red-port-info .form-tips").text(
+                    `Node-RED server port: ${nodeRedPort} (automatically detected)`
+                );
+            };
+            
+            // Handle UseNode checkbox toggle
+            $("#node-input-useNode").change(function() {
+                if ($(this).is(':checked')) {
+                    // Check for invalid configuration
+                    if ($("#node-input-useHttps").is(':checked')) {
+                        RED.notify("'Use Node as Webserver' cannot be used with HTTPS option. Please disable one of these options.", "error");
+                        $(this).prop('checked', false);
+                        return;
+                    }
+                    // Show Node-RED port info and hide regular port config
+                    $("#node-red-port-info").show();
+                    $("#port-config-row").hide();
+                    updateNodeRedPortDisplay();
+                    
+                    // Hide HTTPS options when using Node-RED server
+                    $("#node-input-useHttps").prop('disabled', true);
+                    $("#https-cert-row, #https-key-row, #https-ca-row").hide();
+                } else {
+                    // Hide Node-RED port info and show regular port config
+                    $("#node-red-port-info").hide();
+                    $("#port-config-row").show();
+                    
+                    // Re-enable HTTPS options when not using Node-RED server
+                    $("#node-input-useHttps").prop('disabled', false);
+                }
+            });
+            
             // Handle HTTPS checkbox toggle
             $("#node-input-useHttps").change(function() {
                 if ($(this).is(':checked')) {
@@ -151,24 +238,6 @@
                 }
             });
             
-            // Handle UseNode checkbox toggle
-            $("#node-input-useNode").change(function() {
-                if ($(this).is(':checked')) {
-                    // Check for invalid configuration
-                    if ($("#node-input-useHttps").is(':checked')) {
-                        RED.notify("'Use Node as Webserver' cannot be used with HTTPS option. Please disable one of these options.", "error");
-                        $(this).prop('checked', false);
-                        return;
-                    }
-                    // Hide HTTPS options when using Node-RED server
-                    $("#node-input-useHttps").prop('disabled', true);
-                    $("#https-cert-row, #https-key-row, #https-ca-row").hide();
-                } else {
-                    // Re-enable HTTPS options when not using Node-RED server
-                    $("#node-input-useHttps").prop('disabled', false);
-                }
-            });
-            
             // Initialize display state
             if (node.useHttps) {
                 $("#https-cert-row, #https-key-row, #https-ca-row").show();
@@ -177,6 +246,9 @@
             // Initialize useNode state
             if (node.useNode) {
                 $("#node-input-useHttps").prop('disabled', true);
+                $("#node-red-port-info").show();
+                $("#port-config-row").hide();
+                updateNodeRedPortDisplay();
             }
         },
         oneditsave: function() {
