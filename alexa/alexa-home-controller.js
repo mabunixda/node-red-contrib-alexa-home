@@ -1,11 +1,78 @@
 module.exports = function (RED) {
   "use strict";
 
-  const Mustache = require("mustache");
   const fs = require("fs");
   const alexaHome = require("./alexa-helper");
   const AlexaHub = require("./alexa-hub");
   const path = require("path");
+
+  /**
+   * Simple template renderer to replace Mustache functionality
+   * Supports basic variable substitution and simple loops
+   * @param {string} template - Template string with {{variable}} placeholders
+   * @param {Object} data - Data object with variables to substitute
+   * @returns {string} Rendered template
+   */
+  function renderTemplate(template, data) {
+    let result = template;
+
+    // Handle simple variable substitution {{variable}}
+    result = result.replace(/\{\{([^#\/\{\}]+)\}\}/g, (match, key) => {
+      const trimmedKey = key.trim();
+      const value = getNestedProperty(data, trimmedKey);
+      return value !== undefined ? String(value) : "";
+    });
+
+    // Handle simple loops {{#array}}...{{/array}}
+    result = result.replace(
+      /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
+      (match, arrayKey, loopContent) => {
+        const array = data[arrayKey];
+        if (!Array.isArray(array)) return "";
+
+        return array
+          .map((item, index) => {
+            let itemContent = loopContent;
+            // Replace variables within the loop
+            itemContent = itemContent.replace(
+              /\{\{([^#\/\{\}]+)\}\}/g,
+              (varMatch, varKey) => {
+                const trimmedVarKey = varKey.trim();
+                const value = getNestedProperty(item, trimmedVarKey);
+                return value !== undefined ? String(value) : "";
+              },
+            );
+            return itemContent;
+          })
+          .join("");
+      },
+    );
+
+    return result;
+  }
+
+  /**
+   * Get nested property from object using dot notation
+   * @param {Object} obj - Object to search
+   * @param {string} path - Property path (e.g., 'user.name')
+   * @returns {*} Property value or undefined
+   */
+  function getNestedProperty(obj, path) {
+    if (!obj || !path) return undefined;
+
+    const keys = path.split(".");
+    let current = obj;
+
+    for (const key of keys) {
+      if (current && typeof current === "object" && key in current) {
+        current = current[key];
+      } else {
+        return undefined;
+      }
+    }
+
+    return current;
+  }
 
   /**
    * Get the ID of the first alexa-home-controller node
@@ -321,7 +388,7 @@ module.exports = function (RED) {
       uuid: node.formatHueBridgeUUID(node.id),
       baseUrl: "http://" + request.headers.host,
     };
-    const content = Mustache.render(template, data);
+    const content = renderTemplate(template, data);
     response.type("html").send(Buffer.from(content));
   };
 
@@ -336,7 +403,7 @@ module.exports = function (RED) {
       uuid: node.formatHueBridgeUUID(node.id),
       baseUrl: "http://" + request.headers.host,
     };
-    const content = Mustache.render(template, data);
+    const content = renderTemplate(template, data);
     node.setConnectionStatusMsg("green", "setup requested");
     response.type("xml").send(content);
   };
@@ -363,7 +430,7 @@ module.exports = function (RED) {
     const data = {
       username,
     };
-    const content = Mustache.render(template, data);
+    const content = renderTemplate(template, data);
     response.type("json").send(content);
   };
 
@@ -393,7 +460,7 @@ module.exports = function (RED) {
       lights: node.generateAPIDeviceList(id),
       date: new Date().toISOString().split(".").shift(),
     };
-    const content = Mustache.render(template, data).replace(
+    const content = renderTemplate(template, data).replace(
       /(\{\s+)?,?[^,]+_emptyIteratorStopper": \{\}/g,
       "$1",
     );
@@ -438,7 +505,7 @@ module.exports = function (RED) {
       bridgeid: node.bridgeid,
       macaddress: node.macaddress,
     };
-    const content = Mustache.render(config, data);
+    const content = renderTemplate(config, data);
     RED.log.debug(
       node.name +
         "/" +
@@ -481,7 +548,7 @@ module.exports = function (RED) {
       bridgeid: node.bridgeid,
       macaddress: node.macaddress,
     };
-    const content = Mustache.render(responseTemplate, data, {
+    const content = renderTemplate(responseTemplate, data, {
       itemsTemplate: lights,
       configTemplate: config,
     });
@@ -602,7 +669,7 @@ module.exports = function (RED) {
     targetNode.processCommand(msg);
 
     const data = node.generateAPIDevice(uuid, targetNode);
-    const output = Mustache.render(template, data).replace(/\s/g, "");
+    const output = renderTemplate(template, data).replace(/\s/g, "");
 
     response.type("json").send(this.stripSpace(output));
   };
@@ -638,7 +705,7 @@ module.exports = function (RED) {
     const data = node.generateAPIDevice(uuid, targetNode);
     data.name = targetNode.name;
     data.date = new Date().toISOString().split(".").shift();
-    const output = Mustache.render(template, data).replace(/\s/g, "");
+    const output = renderTemplate(template, data).replace(/\s/g, "");
 
     response.type("json").send(this.stripSpace(output));
   };
