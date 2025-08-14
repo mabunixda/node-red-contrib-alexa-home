@@ -255,7 +255,6 @@ module.exports = function (RED) {
   };
 
   /**
-<<<<<<< HEAD
    * Configure port with protocol-aware defaults
    * @param {string|number} configPort - Port from configuration
    * @param {boolean} useHttps - Whether HTTPS is enabled
@@ -350,8 +349,6 @@ module.exports = function (RED) {
   };
 
   /**
-=======
->>>>>>> origin/main
    * Enhanced cleanup method
    * @returns {Promise} Cleanup completion promise
    */
