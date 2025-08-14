@@ -7,16 +7,24 @@ const express = require("express");
  * Handles Express app setup, SSDP discovery, and API routing
  */
 class AlexaHub {
-  constructor(controller, port, id) {
+  constructor(controller, port, id, options = {}) {
     this.controller = this.validateController(controller);
     this.id = this.validateId(id);
     this.port = this.validatePort(port, id);
     this.willClose = false;
 
-    // Support both HTTP and HTTPS based on environment or configuration
-    this.protocol = process.env.ALEXA_PROTOCOL || "http";
+    // Configure protocol and HTTPS options
+    this.useHttps = options.useHttps || false;
+    this.httpsOptions = options.httpsOptions || null;
+    this.protocol = this.useHttps
+      ? "https"
+      : process.env.ALEXA_PROTOCOL || "http";
 
-    const options = undefined;
+    // Server instances
+    this.httpServer = null;
+    this.server = null;
+    this.ssdpServer = null;
+
     this.startSsdp();
 
     if (this.controller.useNode) {
@@ -26,7 +34,7 @@ class AlexaHub {
       return;
     }
 
-    this.createServer(options);
+    this.createServer();
   }
 
   /**
@@ -65,7 +73,7 @@ class AlexaHub {
   /**
    * Create and configure Express server with enhanced Alexa compatibility
    */
-  createServer(options) {
+  createServer() {
     const app = express();
     this.app = app;
     this.ip = "0.0.0.0";
@@ -78,7 +86,16 @@ class AlexaHub {
       `Creating server based on ${this.protocol} protocol and port ${this.port}`,
     );
 
-    this.httpServer = require(this.protocol).createServer(options, app);
+    // Create HTTP or HTTPS server based on configuration
+    if (this.useHttps && this.httpsOptions) {
+      // Create HTTPS server
+      this.httpServer = require("https").createServer(this.httpsOptions, app);
+      this.controller.log("HTTPS server created with SSL/TLS certificates");
+    } else {
+      // Create HTTP server
+      this.httpServer = require("http").createServer(app);
+    }
+
     this.server = this.httpServer.listen(this.port, this.ip, (error) => {
       if (error) {
         this.controller.error(`Failed to start server: ${error.message}`);
