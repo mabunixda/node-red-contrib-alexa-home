@@ -1,3 +1,17 @@
+<a id="v2.1.1"></a>
+# [v2.1.1](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.1.1) - 2025-08-14
+
+## 2.1.1 (2025-08-14)
+
+#### Bug Fixes
+
+* remove bodyparser dependency ([#135](https://github.com/mabunixda/node-red-contrib-alexa-home/issues/135)) (731c8a09)
+
+
+
+[Changes][v2.1.1]
+
+
 <a id="v2.1.0"></a>
 # [v2.1.0](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.1.0) - 2025-08-14
 
@@ -383,6 +397,7 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
+[v2.1.1]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.0...v2.1.1
 [v2.1.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.0.4...v2.1.0
 [v2.0.4]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.0.3...v2.0.4
 [v2.0.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.0.2...v2.0.3
