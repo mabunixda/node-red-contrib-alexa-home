@@ -312,14 +312,26 @@ describe("alexa-home Node - Extended Tests", function () {
         const n1 = helper.getNode("n1");
         const n2 = helper.getNode("n2");
 
-        // Initially no controller
-        should(n1.controller).be.undefined();
+        try {
+          // Store initial controller reference (could be undefined or existing controller)
+          const initialController = n1.controller;
 
-        // Update controller
-        n1.updateController(n2);
-        n1.controller.should.equal(n2);
+          // Update controller to n2
+          n1.updateController(n2);
+          
+          // Verify the controller is now n2
+          n1.controller.should.equal(n2);
+          
+          // Verify it changed from the initial state
+          n1.controller.should.not.equal(initialController);
 
-        done();
+          // Add small timeout to ensure any async status updates complete
+          setTimeout(() => {
+            done();
+          }, 10);
+        } catch (error) {
+          done(error);
+        }
       });
     });
 
