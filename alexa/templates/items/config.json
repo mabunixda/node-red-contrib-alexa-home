@@ -4,8 +4,8 @@
     "bridgeid": "{{ bridgeid }}",
     "mac": "{{ macaddress }}",
     "dhcp":true,
-    "apiversion": "1.10.0",
-    "swversion": "01028090",
+    "apiversion": "1.56.0",
+    "swversion": "1950074020",
     "replacesbridgeid": null,
     "factorynew": false,
     {{#username}}

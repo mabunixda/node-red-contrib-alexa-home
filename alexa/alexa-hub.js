@@ -5,6 +5,7 @@ const express = require("express");
 /**
  * AlexaHub - Modern HTTP/HTTPS server with Alexa compatibility
  * Handles Express app setup, SSDP discovery, and API routing
+ * Now supports both Hue API v1 and v2 protocols
  */
 class AlexaHub {
   constructor(controller, port, id, options = {}) {
@@ -19,6 +20,13 @@ class AlexaHub {
     this.protocol = this.useHttps
       ? "https"
       : process.env.ALEXA_PROTOCOL || "http";
+
+    // Initialize v2 API handler
+    const HueApiV2Handler = require("./hue-api-v2-handler");
+    this.v2Handler = new HueApiV2Handler(
+      controller,
+      controller.templateManager,
+    );
 
     this.startSsdp();
 
@@ -182,8 +190,10 @@ class AlexaHub {
 
   /**
    * Setup Express routes for Alexa API endpoints
+   * Supports both v1 and v2 API protocols
    */
   setupRoutes(app) {
+    // Root and setup routes
     app.get("/", (req, res) => {
       this.controller.handleIndex(this.id, req, res);
     });
@@ -192,6 +202,7 @@ class AlexaHub {
       this.controller.handleSetup(this.id, req, res);
     });
 
+    // v1 API routes (existing)
     app.post("/api", (req, res) => {
       this.controller.handleRegistration(this.id, req, res);
     });
@@ -230,6 +241,37 @@ class AlexaHub {
 
     app.put("/api/:username/:itemType/:id/state", (req, res) => {
       this.controller.controlItem(this.id, req, res);
+    });
+
+    // v2 API routes (new)
+    app.get("/clip/v2/resource/:resourceType", (req, res) => {
+      this.v2Handler.handleResourceRequest(this.id, req, res);
+    });
+
+    app.get("/clip/v2/resource/:resourceType/:id", (req, res) => {
+      this.v2Handler.handleResourceRequest(this.id, req, res);
+    });
+
+    app.put("/clip/v2/resource/:resourceType/:id", (req, res) => {
+      this.v2Handler.handleResourceRequest(this.id, req, res);
+    });
+
+    app.post("/clip/v2/resource/:resourceType", (req, res) => {
+      this.v2Handler.handleResourceRequest(this.id, req, res);
+    });
+
+    app.delete("/clip/v2/resource/:resourceType/:id", (req, res) => {
+      this.v2Handler.handleResourceRequest(this.id, req, res);
+    });
+
+    // v2 EventSource endpoint for real-time updates
+    app.get("/eventstream/clip/v2", (req, res) => {
+      this.v2Handler.handleEventStream(this.id, req, res);
+    });
+
+    // v2 bridge configuration
+    app.get("/clip/v2/resource/bridge", (req, res) => {
+      this.v2Handler.handleBridgeResource(this.id, req, res);
     });
   }
 
@@ -285,7 +327,7 @@ class AlexaHub {
       // Add more specific UPnP device information for Alexa
       description: "Philips hue Personal Wireless Lighting",
       ttl: 1800, // Standard TTL for UPnP announcements
-      ssdpSig: "Linux/3.14.0 UPnP/1.0 IpBridge/1.26.0", // Mimic real Hue bridge signature
+      ssdpSig: "Linux/3.14.0 UPnP/1.0 IpBridge/1.56.0", // Updated to indicate v2 support
     });
 
     // Add essential USN entries for Alexa discovery

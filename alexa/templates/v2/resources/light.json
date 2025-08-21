@@ -1,0 +1,70 @@
+{
+    "errors": [],
+    "data": [
+        {{#lights}}
+        {
+            "id": "{{ id }}",
+            "id_v1": "/lights/{{ id }}",
+            "type": "light",
+            "metadata": {
+                "name": "{{ name }}",
+                "archetype": "{{ archetype }}"
+            },
+            "service_id": 0,
+            "on": {
+                "on": {{ on }}
+            },
+            "dimming": {
+                "brightness": {{ brightness }},
+                "min_dim_level": 0.2
+            },
+            {{#hasColor}}
+            "color": {
+                "xy": {
+                    "x": {{ x }},
+                    "y": {{ y }}
+                },
+                "gamut": {
+                    "red": [0.6915, 0.3083],
+                    "green": [0.17, 0.7],
+                    "blue": [0.1532, 0.0475]
+                },
+                "gamut_type": "C"
+            },
+            {{/hasColor}}
+            {{#hasColorTemp}}
+            "color_temperature": {
+                "mirek": {{ mirek }},
+                "mirek_valid": true,
+                "mirek_schema": {
+                    "mirek_minimum": 153,
+                    "mirek_maximum": 500
+                }
+            },
+            {{/hasColorTemp}}
+            "dynamics": {
+                "status": "none",
+                "status_values": ["none", "dynamic_palette"],
+                "speed": 0.0,
+                "speed_valid": false
+            },
+            "alert": {
+                "action_values": ["breathe"]
+            },
+            "signaling": {
+                "signal_values": ["no_signal", "on_off"]
+            },
+            "mode": "normal",
+            "effects": {
+                "status_values": ["no_effect", "candle", "fire"],
+                "status": "no_effect",
+                "effect_values": ["no_effect", "candle", "fire"]
+            },
+            "owner": {
+                "rid": "{{ owner_rid }}",
+                "rtype": "device"
+            }
+        }{{#hasNext}},{{/hasNext}}
+        {{/lights}}
+    ]
+}
