@@ -6,6 +6,7 @@
 "use strict";
 
 const { v4: uuidv4 } = require("uuid");
+const escapeHtml = require("escape-html");
 
 class HueApiV2Handler {
   constructor(controller, templateManager) {
@@ -58,7 +59,7 @@ class HueApiV2Handler {
           this.sendV2ErrorResponse(
             res,
             3,
-            `/clip/v2/resource/${resourceType}`,
+            `/clip/v2/resource/${escapeHtml(resourceType)}`,
             "resource not available",
           );
           return;
