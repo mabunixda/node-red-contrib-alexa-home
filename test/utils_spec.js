@@ -131,28 +131,28 @@ describe("Utility Modules", function () {
       // Test x-forwarded-for header
       const req1 = {
         headers: { "x-forwarded-for": "192.168.1.100" },
-        socket: { remoteAddress: "127.0.0.1" }
+        socket: { remoteAddress: "127.0.0.1" },
       };
       utils.getClientIP(req1).should.equal("192.168.1.100");
 
       // Test socket.remoteAddress fallback
       const req2 = {
         headers: {},
-        socket: { remoteAddress: "192.168.1.50" }
+        socket: { remoteAddress: "192.168.1.50" },
       };
       utils.getClientIP(req2).should.equal("192.168.1.50");
 
       // Test connection.remoteAddress fallback
       const req3 = {
         headers: {},
-        connection: { remoteAddress: "10.0.0.1" }
+        connection: { remoteAddress: "10.0.0.1" },
       };
       utils.getClientIP(req3).should.equal("10.0.0.1");
 
       // Test connection.socket.remoteAddress fallback
       const req4 = {
         headers: {},
-        connection: { socket: { remoteAddress: "172.16.0.1" } }
+        connection: { socket: { remoteAddress: "172.16.0.1" } },
       };
       utils.getClientIP(req4).should.equal("172.16.0.1");
 
@@ -198,7 +198,7 @@ describe("Utility Modules", function () {
       const obj = {
         name: "test",
         nested: { value: 42 },
-        array: [1, 2, 3]
+        array: [1, 2, 3],
       };
       const clonedObj = utils.deepClone(obj);
       clonedObj.should.deepEqual(obj);
@@ -209,7 +209,9 @@ describe("Utility Modules", function () {
 
     it("should debounce function calls", function (done) {
       let callCount = 0;
-      const testFunction = () => { callCount++; };
+      const testFunction = () => {
+        callCount++;
+      };
       const debouncedFunction = utils.debounce(testFunction, 50);
 
       // Call multiple times rapidly
@@ -229,7 +231,9 @@ describe("Utility Modules", function () {
 
     it("should throttle function calls", function (done) {
       let callCount = 0;
-      const testFunction = () => { callCount++; };
+      const testFunction = () => {
+        callCount++;
+      };
       const throttledFunction = utils.throttle(testFunction, 50);
 
       // First call should execute immediately
@@ -262,7 +266,9 @@ describe("Utility Modules", function () {
       utils.stripWhitespace("   ").should.equal("");
 
       // Test mixed line endings
-      utils.stripWhitespace("line1\r\nline2\nline3\r").should.equal("line1line2line3");
+      utils
+        .stripWhitespace("line1\r\nline2\nline3\r")
+        .should.equal("line1line2line3");
     });
 
     it("should handle edge cases in formatUUID", function () {

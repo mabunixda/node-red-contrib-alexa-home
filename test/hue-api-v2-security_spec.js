@@ -45,7 +45,11 @@ describe("Hue API v2 Security and Validation", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -86,7 +90,7 @@ describe("Hue API v2 Security and Validation", function () {
         {
           id: "light1",
           type: "alexa-home",
-          devicename: "Test & Light \"with\" special chars",
+          devicename: 'Test & Light "with" special chars',
           devicetype: "Dimmable light",
         },
       ];
@@ -95,7 +99,11 @@ describe("Hue API v2 Security and Validation", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -113,7 +121,7 @@ describe("Hue API v2 Security and Validation", function () {
 
                 // Currently special characters are not escaped
                 light.metadata.name.should.containEql("&");
-                light.metadata.name.should.containEql("\"");
+                light.metadata.name.should.containEql('"');
 
                 done();
               } catch (error) {
@@ -150,7 +158,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -158,8 +170,8 @@ describe("Hue API v2 Security and Validation", function () {
           // Test invalid brightness value (over 100)
           const invalidData = {
             dimming: {
-              brightness: 150
-            }
+              brightness: 150,
+            },
           };
 
           request(controller._hub[0].app)
@@ -209,7 +221,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -217,8 +233,8 @@ describe("Hue API v2 Security and Validation", function () {
           // Test invalid mirek value (outside typical range)
           const invalidData = {
             color_temperature: {
-              mirek: 50 // Too low (should be 153-500)
-            }
+              mirek: 50, // Too low (should be 153-500)
+            },
           };
 
           request(controller._hub[0].app)
@@ -265,7 +281,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -275,9 +295,9 @@ describe("Hue API v2 Security and Validation", function () {
             color: {
               xy: {
                 x: 1.5, // Invalid - should be 0-1
-                y: -0.1  // Invalid - should be 0-1
-              }
-            }
+                y: -0.1, // Invalid - should be 0-1
+              },
+            },
           };
 
           request(controller._hub[0].app)
@@ -318,7 +338,11 @@ describe("Hue API v2 Security and Validation", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -331,9 +355,16 @@ describe("Hue API v2 Security and Validation", function () {
 
               try {
                 // Should have CORS headers
-                res.headers.should.have.property("access-control-allow-origin", "*");
-                res.headers.should.have.property("access-control-allow-methods");
-                res.headers.should.have.property("access-control-allow-headers");
+                res.headers.should.have.property(
+                  "access-control-allow-origin",
+                  "*",
+                );
+                res.headers.should.have.property(
+                  "access-control-allow-methods",
+                );
+                res.headers.should.have.property(
+                  "access-control-allow-headers",
+                );
 
                 done();
               } catch (error) {
@@ -360,7 +391,11 @@ describe("Hue API v2 Security and Validation", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -372,8 +407,13 @@ describe("Hue API v2 Security and Validation", function () {
               if (err) return done(err);
 
               try {
-                res.headers.should.have.property("access-control-allow-origin", "*");
-                res.headers.should.have.property("access-control-allow-methods");
+                res.headers.should.have.property(
+                  "access-control-allow-origin",
+                  "*",
+                );
+                res.headers.should.have.property(
+                  "access-control-allow-methods",
+                );
                 done();
               } catch (error) {
                 done(error);
@@ -409,7 +449,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -443,7 +487,11 @@ describe("Hue API v2 Security and Validation", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -485,7 +533,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -529,7 +581,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -541,8 +597,8 @@ describe("Hue API v2 Security and Validation", function () {
           for (let i = 0; i < totalRequests; i++) {
             const updateData = {
               dimming: {
-                brightness: Math.floor(Math.random() * 100) + 1
-              }
+                brightness: Math.floor(Math.random() * 100) + 1,
+              },
             };
 
             request(controller._hub[0].app)
@@ -589,7 +645,11 @@ describe("Hue API v2 Security and Validation", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -597,11 +657,11 @@ describe("Hue API v2 Security and Validation", function () {
           // Create a large but valid request body
           const largeData = {
             dimming: {
-              brightness: 50
+              brightness: 50,
             },
             metadata: {
-              name: "A".repeat(1000) // Large name field
-            }
+              name: "A".repeat(1000), // Large name field
+            },
           };
 
           request(controller._hub[0].app)

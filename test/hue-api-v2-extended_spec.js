@@ -39,7 +39,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -85,7 +89,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const light = helper.getNode("light1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -96,7 +104,9 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
             v2Handler.should.have.property("emitResourceUpdate");
 
             // Test the method doesn't throw
-            v2Handler.emitResourceUpdate("light", "test-id", { on: { on: true } });
+            v2Handler.emitResourceUpdate("light", "test-id", {
+              on: { on: true },
+            });
             done();
           } catch (error) {
             done(error);
@@ -123,7 +133,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -156,7 +170,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -200,7 +218,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -244,7 +266,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -288,7 +314,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -342,15 +372,19 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
 
           const updateData = {
             color_temperature: {
-              mirek: 300
-            }
+              mirek: 300,
+            },
           };
 
           request(controller._hub[0].app)
@@ -398,7 +432,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -455,7 +493,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -506,13 +548,17 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const lightUuid = controller.formatUUID(light.id);
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
 
           const invalidData = {
-            invalid_property: "invalid_value"
+            invalid_property: "invalid_value",
           };
 
           request(controller._hub[0].app)
@@ -594,7 +640,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
@@ -642,7 +692,11 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
         const controller = helper.getNode("controller1");
 
         setTimeout(() => {
-          if (!controller._hub || !controller._hub[0] || !controller._hub[0].app) {
+          if (
+            !controller._hub ||
+            !controller._hub[0] ||
+            !controller._hub[0].app
+          ) {
             done(new Error("Hub not properly initialized"));
             return;
           }
