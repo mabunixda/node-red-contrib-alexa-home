@@ -16,10 +16,10 @@
     }
   },
   "dependencies": {
+    "escape-html": "^1.0.3",
     "express": "^5.1.0",
     "node-ssdp": "^4.0.1",
-    "uuid": "^10.0.0",
-    "escape-html": "^1.0.3"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -30,6 +30,7 @@
     "node-red": "^4.1.0",
     "node-red-node-test-helper": "^0.3.0",
     "npm-check": "^6.0.1",
+    "nyc": "^17.1.0",
     "prettier": "^3.6.2",
     "should": "^13.2.3",
     "supertest": "^7.1.4"
@@ -40,7 +41,8 @@
     "lint": "eslint alexa/**.js",
     "eslint:github-action": "eslint alexa/**.js",
     "fmt": "prettier --write **/*.{js,yml}",
-    "fmt:check": "prettier --check **/*.{js,yml}"
+    "fmt:check": "prettier --check **/*.{js,yml}",
+    "coverage": "nyc npm test"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }
