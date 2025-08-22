@@ -37,9 +37,9 @@
   },
   "scripts": {
     "test": "mocha --sort --exit --timeout 5000 test/**/*.js",
-    "lint:fix": "eslint --fix alexa/**.js",
-    "lint": "eslint alexa/**.js",
-    "eslint:github-action": "eslint alexa/**.js",
+    "lint:fix": "eslint --fix alexa/**/*.js test/**/*.js",
+    "lint": "eslint alexa/**/*.js test/**/*.js",
+    "eslint:github-action": "eslint alexa/**/*.js test/**/*.js",
     "fmt": "prettier --write **/*.{js,yml}",
     "fmt:check": "prettier --check **/*.{js,yml}",
     "coverage": "nyc npm test"
