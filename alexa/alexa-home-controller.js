@@ -81,6 +81,70 @@ module.exports = function (RED) {
     }),
   );
 
+  // v2 API routes for Node-RED
+  RED.httpNode.get(
+    "/clip/v2/resource/:resourceType",
+    withErrorHandling((req, res) => {
+      const node = getControllerNode();
+      if (!node || !node.v2Handler) {
+        res.status(503).json({
+          errors: [
+            { type: 1, address: req.url, description: "bridge not available" },
+          ],
+          data: [],
+        });
+        return;
+      }
+      node.v2Handler.handleResourceRequest(node.id, req, res);
+    }),
+  );
+
+  RED.httpNode.get(
+    "/clip/v2/resource/:resourceType/:id",
+    withErrorHandling((req, res) => {
+      const node = getControllerNode();
+      if (!node || !node.v2Handler) {
+        res.status(503).json({
+          errors: [
+            { type: 1, address: req.url, description: "bridge not available" },
+          ],
+          data: [],
+        });
+        return;
+      }
+      node.v2Handler.handleResourceRequest(node.id, req, res);
+    }),
+  );
+
+  RED.httpNode.put(
+    "/clip/v2/resource/:resourceType/:id",
+    withErrorHandling((req, res) => {
+      const node = getControllerNode();
+      if (!node || !node.v2Handler) {
+        res.status(503).json({
+          errors: [
+            { type: 1, address: req.url, description: "bridge not available" },
+          ],
+          data: [],
+        });
+        return;
+      }
+      node.v2Handler.handleResourceRequest(node.id, req, res);
+    }),
+  );
+
+  RED.httpNode.get(
+    "/eventstream/clip/v2",
+    withErrorHandling((req, res) => {
+      const node = getControllerNode();
+      if (!node || !node.v2Handler) {
+        res.status(503).send("bridge not available");
+        return;
+      }
+      node.v2Handler.handleEventStream(node.id, req, res);
+    }),
+  );
+
   // API route handlers with consistent error handling
   const apiRoutes = [
     { method: "get", path: "/api/", handler: "handleApiCall" },
@@ -149,6 +213,13 @@ module.exports = function (RED) {
       node._commands = new Map();
       node._hub = [];
       node.useNode = config.useNode || false;
+
+      // Initialize template manager
+      node.templateManager = templateManager;
+
+      // Initialize v2 API handler
+      const HueApiV2Handler = require("./hue-api-v2-handler");
+      node.v2Handler = new HueApiV2Handler(node, node.templateManager);
 
       // Validate configuration: useNode and HTTPS are incompatible
       const configuredHttps =

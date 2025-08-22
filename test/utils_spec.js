@@ -104,6 +104,186 @@ describe("Utility Modules", function () {
       should(port2).be.above(2999);
       should(port2).be.below(4001);
     });
+
+    it("should generate bridge ID from MAC address", function () {
+      const mac = "00:11:22:33:44:55";
+      const bridgeId = utils.getBridgeIdFromMac(mac);
+      bridgeId.should.equal("001122FFFE334455");
+
+      // Test with MAC containing colons - fix the expected result
+      const macWithColons = "AA:BB:CC:DD:EE:FF";
+      const bridgeId2 = utils.getBridgeIdFromMac(macWithColons);
+      bridgeId2.should.equal("AABBCCFFFEDDEEFF"); // Fixed expected result
+    });
+
+    it("should format Hue bridge UUID", function () {
+      const lightId = "test.light.123";
+      const prefix = "hue-bridge-";
+      const result = utils.formatHueBridgeUUID(lightId, prefix);
+      result.should.equal("hue-bridge-testlight123");
+
+      // Test with null/undefined
+      utils.formatHueBridgeUUID(null, prefix).should.equal("");
+      utils.formatHueBridgeUUID(undefined, prefix).should.equal("");
+    });
+
+    it("should extract client IP from request", function () {
+      // Test x-forwarded-for header
+      const req1 = {
+        headers: { "x-forwarded-for": "192.168.1.100" },
+        socket: { remoteAddress: "127.0.0.1" },
+      };
+      utils.getClientIP(req1).should.equal("192.168.1.100");
+
+      // Test socket.remoteAddress fallback
+      const req2 = {
+        headers: {},
+        socket: { remoteAddress: "192.168.1.50" },
+      };
+      utils.getClientIP(req2).should.equal("192.168.1.50");
+
+      // Test connection.remoteAddress fallback
+      const req3 = {
+        headers: {},
+        connection: { remoteAddress: "10.0.0.1" },
+      };
+      utils.getClientIP(req3).should.equal("10.0.0.1");
+
+      // Test connection.socket.remoteAddress fallback
+      const req4 = {
+        headers: {},
+        connection: { socket: { remoteAddress: "172.16.0.1" } },
+      };
+      utils.getClientIP(req4).should.equal("172.16.0.1");
+
+      // Test when no IP is available
+      const req5 = { headers: {} };
+      should(utils.getClientIP(req5)).be.undefined();
+    });
+
+    it("should validate device types", function () {
+      utils.isValidDeviceType("light").should.be.true();
+      utils.isValidDeviceType("switch").should.be.true();
+      utils.isValidDeviceType("dimmer").should.be.true();
+      utils.isValidDeviceType("color").should.be.true();
+
+      utils.isValidDeviceType("invalid").should.be.false();
+      utils.isValidDeviceType("").should.be.false();
+      utils.isValidDeviceType(null).should.be.false();
+      utils.isValidDeviceType(undefined).should.be.false();
+    });
+
+    it("should perform deep cloning", function () {
+      // Test primitive values
+      utils.deepClone(42).should.equal(42);
+      utils.deepClone("hello").should.equal("hello");
+      should(utils.deepClone(null)).equal(null);
+      should(utils.deepClone(undefined)).equal(undefined);
+
+      // Test Date objects
+      const date = new Date("2023-01-01");
+      const clonedDate = utils.deepClone(date);
+      clonedDate.should.be.instanceOf(Date);
+      clonedDate.getTime().should.equal(date.getTime());
+      clonedDate.should.not.equal(date); // Different object reference
+
+      // Test arrays
+      const arr = [1, 2, { nested: "value" }];
+      const clonedArr = utils.deepClone(arr);
+      clonedArr.should.deepEqual(arr);
+      clonedArr.should.not.equal(arr); // Different object reference
+      clonedArr[2].should.not.equal(arr[2]); // Nested objects should be cloned
+
+      // Test objects
+      const obj = {
+        name: "test",
+        nested: { value: 42 },
+        array: [1, 2, 3],
+      };
+      const clonedObj = utils.deepClone(obj);
+      clonedObj.should.deepEqual(obj);
+      clonedObj.should.not.equal(obj); // Different object reference
+      clonedObj.nested.should.not.equal(obj.nested); // Nested objects should be cloned
+      clonedObj.array.should.not.equal(obj.array); // Arrays should be cloned
+    });
+
+    it("should debounce function calls", function (done) {
+      let callCount = 0;
+      const testFunction = () => {
+        callCount++;
+      };
+      const debouncedFunction = utils.debounce(testFunction, 50);
+
+      // Call multiple times rapidly
+      debouncedFunction();
+      debouncedFunction();
+      debouncedFunction();
+
+      // Should not have been called yet
+      callCount.should.equal(0);
+
+      // After delay, should be called once
+      setTimeout(() => {
+        callCount.should.equal(1);
+        done();
+      }, 100);
+    });
+
+    it("should throttle function calls", function (done) {
+      let callCount = 0;
+      const testFunction = () => {
+        callCount++;
+      };
+      const throttledFunction = utils.throttle(testFunction, 50);
+
+      // First call should execute immediately
+      throttledFunction();
+      callCount.should.equal(1);
+
+      // Subsequent calls within throttle period should be ignored
+      throttledFunction();
+      throttledFunction();
+      callCount.should.equal(1);
+
+      // After throttle period, next call should execute
+      setTimeout(() => {
+        throttledFunction();
+        callCount.should.equal(2);
+        done();
+      }, 60);
+    });
+
+    it("should handle edge cases in stripWhitespace", function () {
+      // Test non-string input
+      utils.stripWhitespace(123).should.equal(123);
+      should(utils.stripWhitespace(null)).equal(null);
+      should(utils.stripWhitespace(undefined)).equal(undefined);
+
+      // Test empty string
+      utils.stripWhitespace("").should.equal("");
+
+      // Test only whitespace
+      utils.stripWhitespace("   ").should.equal("");
+
+      // Test mixed line endings
+      utils
+        .stripWhitespace("line1\r\nline2\nline3\r")
+        .should.equal("line1line2line3");
+    });
+
+    it("should handle edge cases in formatUUID", function () {
+      // Test number input
+      utils.formatUUID(123).should.equal("123");
+
+      // Test string with multiple dots
+      utils.formatUUID("a.b.c.d.e").should.equal("abcde");
+
+      // Test empty string
+      utils.formatUUID("").should.equal("");
+
+      // Test string with spaces that need trimming
+      utils.formatUUID("  test.id  ").should.equal("testid");
+    });
   });
 
   describe("Template Manager", function () {

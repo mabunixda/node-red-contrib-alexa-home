@@ -1,0 +1,29 @@
+{
+    "errors": [],
+    "data": [
+        {
+            "id": "{{ id }}",
+            "id_v1": "/lights/{{ id }}",
+            "type": "device",
+            "metadata": {
+                "name": "{{ name }}",
+                "archetype": "{{ archetype }}"
+            },
+            "services": [
+                {
+                    "rid": "{{ light_service_id }}",
+                    "rtype": "light"
+                }
+            ],
+            "product_data": {
+                "model_id": "{{ model_id }}",
+                "manufacturer_name": "Philips",
+                "product_name": "{{ product_name }}",
+                "product_archetype": "{{ archetype }}",
+                "certified": true,
+                "software_version": "1.88.1",
+                "hardware_platform_type": "100b-103"
+            }
+        }
+    ]
+}

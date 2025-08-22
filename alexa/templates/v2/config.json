@@ -1,0 +1,66 @@
+{
+    "name": "Philips hue",
+    "datastoreversion": "126",
+    "swversion": "1950074020",
+    "apiversion": "1.56.0",
+    "mac": "{{ macaddress }}",
+    "bridgeid": "{{ bridgeid }}",
+    "factorynew": false,
+    "replacesbridgeid": null,
+    "modelid": "BSB002",
+    "starterkitid": "",
+    {{#username}}
+    "whitelist": {
+        "{{ username }}": {
+            "last use date": "{{ date }}",
+            "create date": "{{ date }}",
+            "name": "Alexa#Echo"
+        }
+    },
+    {{/username}}
+    "swupdate": {
+        "updatestate": 0,
+        "checkforupdate": false,
+        "devicetypes": {
+            "bridge": false,
+            "lights": [],
+            "sensors": []
+        },
+        "url": "",
+        "text": "",
+        "notify": false
+    },
+    "swupdate2": {
+        "checkforupdate": false,
+        "lastchange": "{{ date }}",
+        "bridge": {
+            "state": "noupdates",
+            "lastinstall": "{{ date }}"
+        },
+        "state": "noupdates",
+        "autoinstall": {
+            "updatetime": "T14:00:00",
+            "on": false
+        }
+    },
+    "linkbutton": false,
+    "ipaddress": "{{ address }}",
+    "netmask": "255.255.255.0",
+    "gateway": "{{ gateway }}",
+    "dhcp": true,
+    "portalservices": false,
+    "UTC": "{{ date }}",
+    "localtime": "{{ localtime }}",
+    "timezone": "{{ timezone }}",
+    "zigbeechannel": 25,
+    "backup": {
+        "status": "idle",
+        "errorcode": 0
+    },
+    "internetservices": {
+        "internet": "connected",
+        "remoteaccess": "connected",
+        "time": "connected",
+        "swupdate": "connected"
+    }
+}
