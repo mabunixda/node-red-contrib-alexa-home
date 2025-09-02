@@ -66,7 +66,7 @@ module.exports = function (RED) {
    */
   AlexaTemperatureSensorNode.prototype.setupEventHandlers = function () {
     // Handle incoming messages
-    this.on("input", this.handleInputMessage.bind(this));
+    this.on("input", this.processCommand.bind(this));
 
     // Handle node close
     this.on("close", this.handleNodeClose.bind(this));
@@ -79,7 +79,7 @@ module.exports = function (RED) {
    * Handle incoming messages for temperature sensor updates
    * @param {Object} msg - Node-RED message object
    */
-  AlexaTemperatureSensorNode.prototype.handleInputMessage = function (msg) {
+  AlexaTemperatureSensorNode.prototype.processCommand = function (msg) {
     try {
       // Validate input
       if (!msg || typeof msg !== "object") {

@@ -58,7 +58,7 @@ module.exports = function (RED) {
    */
   AlexaSwitchNode.prototype.setupEventHandlers = function () {
     // Handle incoming messages
-    this.on("input", this.handleInputMessage.bind(this));
+    this.on("input", this.processCommand.bind(this));
 
     // Handle node close
     this.on("close", this.handleNodeClose.bind(this));
@@ -71,7 +71,7 @@ module.exports = function (RED) {
    * Handle incoming messages for switch control
    * @param {Object} msg - Node-RED message object
    */
-  AlexaSwitchNode.prototype.handleInputMessage = function (msg) {
+  AlexaSwitchNode.prototype.processCommand = function (msg) {
     try {
 
       // Validate input

@@ -65,7 +65,7 @@ module.exports = function (RED) {
    */
   AlexaBlindsNode.prototype.setupEventHandlers = function () {
     // Handle incoming messages
-    this.on("input", this.handleInputMessage.bind(this));
+    this.on("input", this.processCommand.bind(this));
 
     // Handle node close
     this.on("close", this.handleNodeClose.bind(this));
@@ -78,7 +78,7 @@ module.exports = function (RED) {
    * Handle incoming messages for blinds control
    * @param {Object} msg - Node-RED message object
    */
-  AlexaBlindsNode.prototype.handleInputMessage = function (msg) {
+  AlexaBlindsNode.prototype.processCommand = function (msg) {
     try {
       // Validate input
       if (!msg || typeof msg !== "object") {
@@ -87,7 +87,7 @@ module.exports = function (RED) {
       }
 
       // Process blinds command
-      const processedMsg = this.processBlindsCommand(msg);
+      const processedMsg = this.processCommandBlinds(msg);
 
       // Only send output if inputTrigger is false or output is explicitly set
       if (!this.inputTrigger || msg.output === true) {
@@ -106,7 +106,7 @@ module.exports = function (RED) {
    * @param {Object} msg - Input message
    * @returns {Object} Processed message
    */
-  AlexaBlindsNode.prototype.processBlindsCommand = function (msg) {
+  AlexaBlindsNode.prototype.processCommandBlinds = function (msg) {
     const payload = msg.payload || {};
     let command = "position";
     let position = this.position;
