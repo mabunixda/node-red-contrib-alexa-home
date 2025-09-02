@@ -146,6 +146,9 @@ describe("alexa-temperature-sensor node", function () {
 
       helper.load(alexaTemperatureSensorNode, flow, function () {
         const n1 = helper.getNode("n1");
+        // Mock controller to prevent hanging
+        n1.controller = { deregisterCommand: function () {} };
+
         n1.should.have.property("name", "Default Sensor");
         n1.should.have.property("devicetype", "Temperature sensor");
         n1.should.have.property("control", "temperature");
@@ -169,6 +172,9 @@ describe("alexa-temperature-sensor node", function () {
 
       helper.load(alexaTemperatureSensorNode, flow, function () {
         const n1 = helper.getNode("n1");
+        // Mock controller to prevent hanging
+        n1.controller = { deregisterCommand: function () {} };
+
         n1.state.should.have.property("temperature", 25.5);
         n1.should.have.property("scale", "FAHRENHEIT");
         done();

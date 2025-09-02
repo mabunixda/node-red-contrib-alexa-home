@@ -166,6 +166,9 @@ describe("alexa-blinds node", function () {
 
       helper.load(alexaBlindsNode, flow, function () {
         const n1 = helper.getNode("n1");
+        // Mock controller to prevent hanging
+        n1.controller = { deregisterCommand: function () {} };
+
         n1.should.have.property("name", "Default Blinds");
         n1.should.have.property("devicetype", "Window covering");
         n1.should.have.property("control", "blinds");

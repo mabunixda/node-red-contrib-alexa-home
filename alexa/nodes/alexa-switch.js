@@ -49,6 +49,7 @@ module.exports = function (RED) {
       // Initialize device state
       this.state = false; // Default to off
       this.bri = 254; // Full brightness when on (for Hue compatibility)
+      this.uniqueid = this.generateUniqueId();
 
   };
 

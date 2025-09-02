@@ -754,17 +754,24 @@ module.exports = function (RED) {
   };
 
   AlexaHomeController.prototype.generateAPIDevice = function (uuid, node) {
+    // Map display device types to API types for Hue compatibility
+    let apiType = node.devicetype;
+    if (node.devicetype === "Temperature sensor") {
+      apiType = "CLIPTemperature";
+    }
+
     const defaultAttributes = {
       on: node.state || false,
-      bri: node.bri,
+      bri: node.bri || 254,
       devicetype: node.devicetype,
-      x: node.xy[0],
-      y: node.xy[1],
+      type: apiType, // Use mapped API type for Hue compatibility
+      x: node.xy ? node.xy[0] : 0.3127, // Default XY coordinates for non-color devices
+      y: node.xy ? node.xy[1] : 0.329,
       hue: 0,
       sat: 254,
       ct: 199,
       colormode: "ct",
-      uniqueid: node.uniqueid,
+      uniqueid: node.uniqueid || node.generateUniqueId(),
     };
 
     // Add device-type specific attributes
@@ -773,7 +780,7 @@ module.exports = function (RED) {
       defaultAttributes.bri = Math.round((defaultAttributes.position / 100) * 254);
     }
 
-    if (node.devicetype === "Temperature sensor") {
+    if (node.devicetype === "Temperature sensor" || node.devicetype === "CLIPTemperature") {
       defaultAttributes.temperature = node.temperature || 20.0;
       defaultAttributes.scale = node.temperatureScale || "CELSIUS";
       defaultAttributes.bri = Math.round((defaultAttributes.temperature + 50) * 2.54);

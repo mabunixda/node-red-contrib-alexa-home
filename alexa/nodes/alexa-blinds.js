@@ -46,16 +46,18 @@ module.exports = function (RED) {
    */
   AlexaBlindsNode.prototype.initializeBlindsState = function (config) {
     // Initialize blinds state with position (0-100)
+    const brightness = parseInt(config.brightness) || 254;
+    const position = Math.round((brightness / 254) * 100);
+
     this.state = {
-      on: true, // Blinds are always "available"
-      bri: parseInt(config.brightness) || 254, // Maps to position (254 = 100% open)
-      position: 100 // Default to fully open
+      position: position,
+      on: true // Blinds are always "available"
     };
+    this.bri = brightness; // Maps to position (254 = 100% open)
+    this.position = position; // Position percentage
+    this.uniqueid = this.generateUniqueId();
 
-    // Convert brightness to position percentage
-    this.state.position = Math.round((this.state.bri / 254) * 100);
-
-    this.debug(`Blinds initialized: position=${this.state.position}%, bri=${this.state.bri}`);
+    this.debug(`Blinds initialized: position=${this.position}%, bri=${this.bri}`);
   };
 
   /**
@@ -92,7 +94,7 @@ module.exports = function (RED) {
         this.send(processedMsg);
       }
 
-      this.updateStatus(`Position: ${this.state.position}%`, "green");
+      this.updateStatus(`Position: ${this.position}%`, "green");
     } catch (error) {
       this.error(`Message processing failed: ${error.message}`);
       this.updateStatus("Error", "red");
@@ -107,21 +109,21 @@ module.exports = function (RED) {
   AlexaBlindsNode.prototype.processBlindsCommand = function (msg) {
     const payload = msg.payload || {};
     let command = "position";
-    let position = this.state.position;
+    let position = this.position;
 
     // Handle brightness to position conversion
     if (payload.bri !== undefined) {
-      this.state.bri = Math.max(0, Math.min(254, parseInt(payload.bri) || 0));
-      position = Math.round((this.state.bri / 254) * 100);
-      this.state.position = position;
+      this.bri = Math.max(0, Math.min(254, parseInt(payload.bri) || 0));
+      position = Math.round((this.bri / 254) * 100);
+      this.position = position;
       command = "position";
     }
 
     // Handle direct position commands
     if (payload.position !== undefined) {
       position = Math.max(0, Math.min(100, parseInt(payload.position) || 0));
-      this.state.position = position;
-      this.state.bri = Math.round((position / 100) * 254);
+      this.position = position;
+      this.bri = Math.round((position / 100) * 254);
       command = "position";
     }
 
@@ -129,9 +131,8 @@ module.exports = function (RED) {
     if (payload.on !== undefined) {
       const isOpen = Boolean(payload.on);
       position = isOpen ? 100 : 0;
-      this.state.position = position;
-      this.state.bri = isOpen ? 254 : 0;
-      this.state.on = true; // Blinds are always "available"
+      this.position = position;
+      this.bri = isOpen ? 254 : 0;
       command = "switch";
     }
 
@@ -141,14 +142,14 @@ module.exports = function (RED) {
       device_name: this.name,
       device_type: this.devicetype,
       payload: {
-        on: this.state.on,
-        bri: this.state.bri,
-        position: this.state.position,
+        on: this.state,
+        bri: this.bri,
+        position: this.position,
         command: command
       }
     };
 
-    this.debug(`Blinds command processed: ${command}, position=${position}%, bri=${this.state.bri}`);
+    this.debug(`Blinds command processed: ${command}, position=${position}%, bri=${this.bri}`);
     return outputMsg;
   };
 
