@@ -761,14 +761,17 @@ module.exports = function (RED) {
     }
 
     const defaultAttributes = {
-      on: (typeof node.state === 'object' && node.state !== null) ? node.state.on || false : node.state || false,
+      on:
+        typeof node.state === "object" && node.state !== null
+          ? node.state.on || false
+          : node.state || false,
       bri: node.bri || 254,
       devicetype: node.devicetype,
       type: apiType, // Use mapped API type for Hue compatibility
       x: node.xy ? node.xy[0] : 0.3127, // Default XY coordinates for non-color devices
       y: node.xy ? node.xy[1] : 0.329,
-      hue: 0,
-      sat: 254,
+      hue: node.hue || 0,
+      sat: node.sat || 254,
       ct: 199,
       colormode: "ct",
       uniqueid: node.uniqueid || node.generateUniqueId(),

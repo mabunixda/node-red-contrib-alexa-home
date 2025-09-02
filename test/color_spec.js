@@ -512,4 +512,174 @@ describe("alexa-home Node - Color Tests", function () {
       });
     });
   });
+
+  describe("Hue/Saturation Color Support", function () {
+    it("should handle red color using hue/sat values", function (done) {
+      const flow = [
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "HSB Light",
+          devicetype: "Extended color light",
+          wires: [["n2"]],
+        },
+        { id: "n2", type: "helper" },
+      ];
+      helper.load(alexaNode, flow, function () {
+        const n2 = helper.getNode("n2");
+        const n1 = helper.getNode("n1");
+        n1.controller = { deregisterCommand: function () {} };
+
+        n2.on("input", function (msg) {
+          msg.payload.should.have.property("hue", 0);
+          msg.payload.should.have.property("sat", 254);
+          msg.payload.should.have.property("command", "color");
+          msg.payload.should.have.property("on", true);
+          done();
+        });
+        n1.receive({ payload: { hue: 0, sat: 254, bri: 254 }, output: true });
+      });
+    });
+
+    it("should handle blue color using hue/sat values", function (done) {
+      const flow = [
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "HSB Light",
+          devicetype: "Extended color light",
+          wires: [["n2"]],
+        },
+        { id: "n2", type: "helper" },
+      ];
+      helper.load(alexaNode, flow, function () {
+        const n2 = helper.getNode("n2");
+        const n1 = helper.getNode("n1");
+        n1.controller = { deregisterCommand: function () {} };
+
+        n2.on("input", function (msg) {
+          msg.payload.should.have.property("hue", 43690);
+          msg.payload.should.have.property("sat", 254);
+          msg.payload.should.have.property("command", "color");
+          msg.payload.should.have.property("on", true);
+          done();
+        });
+        n1.receive({
+          payload: { hue: 43690, sat: 254, bri: 254 },
+          output: true,
+        });
+      });
+    });
+
+    it("should validate and clamp hue values", function (done) {
+      const flow = [
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "HSB Light",
+          devicetype: "Extended color light",
+          wires: [["n2"]],
+        },
+        { id: "n2", type: "helper" },
+      ];
+      helper.load(alexaNode, flow, function () {
+        const n2 = helper.getNode("n2");
+        const n1 = helper.getNode("n1");
+        n1.controller = { deregisterCommand: function () {} };
+
+        n2.on("input", function (msg) {
+          msg.payload.should.have.property("hue", 65535); // Should be clamped to max
+          msg.payload.should.have.property("sat", 254);
+          msg.payload.should.have.property("command", "color");
+          done();
+        });
+        n1.receive({ payload: { hue: 70000, sat: 254 }, output: true }); // Over max
+      });
+    });
+
+    it("should validate and clamp saturation values", function (done) {
+      const flow = [
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "HSB Light",
+          devicetype: "Extended color light",
+          wires: [["n2"]],
+        },
+        { id: "n2", type: "helper" },
+      ];
+      helper.load(alexaNode, flow, function () {
+        const n2 = helper.getNode("n2");
+        const n1 = helper.getNode("n1");
+        n1.controller = { deregisterCommand: function () {} };
+
+        n2.on("input", function (msg) {
+          msg.payload.should.have.property("hue", 10000);
+          msg.payload.should.have.property("sat", 254); // Should be clamped to max
+          msg.payload.should.have.property("command", "color");
+          done();
+        });
+        n1.receive({ payload: { hue: 10000, sat: 300 }, output: true }); // Over max
+      });
+    });
+
+    it("should handle partial hue/sat values gracefully", function (done) {
+      const flow = [
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "HSB Light",
+          devicetype: "Extended color light",
+          wires: [["n2"]],
+        },
+        { id: "n2", type: "helper" },
+      ];
+      helper.load(alexaNode, flow, function () {
+        const n2 = helper.getNode("n2");
+        const n1 = helper.getNode("n1");
+        n1.controller = { deregisterCommand: function () {} };
+
+        n2.on("input", function (msg) {
+          // Should NOT be processed as color command since sat is missing
+          msg.payload.should.have.property("bri", 200);
+          msg.payload.should.have.property("command", "dim");
+          done();
+        });
+        n1.receive({ payload: { hue: 10000, bri: 200 }, output: true }); // Missing sat
+      });
+    });
+
+    it("should handle GitHub issue #143 - blue color with hue 43690", function (done) {
+      const flow = [
+        {
+          id: "n1",
+          type: "alexa-home",
+          devicename: "Simulateur",
+          devicetype: "Extended color light",
+          wires: [["n2"]],
+        },
+        { id: "n2", type: "helper" },
+      ];
+      helper.load(alexaNode, flow, function () {
+        const n2 = helper.getNode("n2");
+        const n1 = helper.getNode("n1");
+        n1.controller = { deregisterCommand: function () {} };
+
+        n2.on("input", function (msg) {
+          // Should be processed as color command and not fail
+          msg.payload.should.have.property("hue", 43690);
+          msg.payload.should.have.property("sat", 254);
+          msg.payload.should.have.property("bri", 254);
+          msg.payload.should.have.property("command", "color");
+          msg.payload.should.have.property("on", true);
+          done();
+        });
+        // Exact payload from GitHub issue #143 that was failing
+        n1.receive({
+          payload: { on: true, hue: 43690, sat: 254, bri: 254 },
+          output: true,
+        });
+      });
+    });
+  });
 });
