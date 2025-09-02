@@ -5,8 +5,7 @@
     defaults: {
       devicename: { value: '', required: true },
       brightness: { value: '254' },
-      inputtrigger: { value: false },
-      controller: { type: 'alexa-home-controller' }
+      inputtrigger: { value: false }
     },
     inputs: 1,
     outputs: 1,
@@ -43,11 +42,6 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-controller"><i class="fa fa-server"></i> Controller</label>
-    <input type="text" id="node-input-controller">
-  </div>
-
-  <div class="form-row">
     <label for="node-input-brightness"><i class="fa fa-adjust"></i> Initial Position</label>
     <input type="range" id="node-input-brightness" min="0" max="254" step="1" style="width: 70%;">
     <span id="brightness-display" style="margin-left: 10px; font-weight: bold;">100%</span>
@@ -68,9 +62,6 @@
   <dl class="message-properties">
     <dt>Device Name <span class="property-type">string</span></dt>
     <dd>The name Alexa will use to identify your blinds (e.g., "Living Room Blinds")</dd>
-
-    <dt>Controller <span class="property-type">alexa-home-controller</span></dt>
-    <dd>The Alexa controller node that manages device discovery</dd>
 
     <dt>Initial Position <span class="property-type">number</span></dt>
     <dd>The initial position of the blinds (0-100%, where 100% = fully open)</dd>

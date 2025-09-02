@@ -12,7 +12,6 @@ module.exports = function (RED) {
   // Device type constants for lighting devices
   const DEVICE_TYPES = {
     LIGHT: "Extended color light",
-    SWITCH: "On/Off plug-in unit",
     DIMMER: "Dimmable light",
     COLOR: "Color light",
   };

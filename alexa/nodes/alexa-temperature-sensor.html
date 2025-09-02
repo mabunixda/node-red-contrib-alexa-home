@@ -7,7 +7,6 @@
       temperature: { value: '20.0' },
       scale: { value: 'CELSIUS' },
       inputtrigger: { value: false },
-      controller: { type: 'alexa-home-controller' }
     },
     inputs: 1,
     outputs: 1,
@@ -42,11 +41,6 @@
   </div>
 
   <div class="form-row">
-    <label for="node-input-controller"><i class="fa fa-server"></i> Controller</label>
-    <input type="text" id="node-input-controller">
-  </div>
-
-  <div class="form-row">
     <label for="node-input-temperature"><i class="fa fa-thermometer-half"></i> Initial Temperature</label>
     <input type="number" id="node-input-temperature" step="0.1" style="width: 100px;">
     <select id="node-input-scale" style="width: 120px; margin-left: 10px;">
@@ -70,9 +64,6 @@
   <dl class="message-properties">
     <dt>Device Name <span class="property-type">string</span></dt>
     <dd>The name Alexa will use to identify your temperature sensor (e.g., "Living Room Temperature")</dd>
-
-    <dt>Controller <span class="property-type">alexa-home-controller</span></dt>
-    <dd>The Alexa controller node that manages device discovery</dd>
 
     <dt>Initial Temperature <span class="property-type">number</span></dt>
     <dd>The initial temperature reading for the sensor</dd>

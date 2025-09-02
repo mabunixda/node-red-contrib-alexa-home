@@ -18,7 +18,8 @@
       "alexa-home": "alexa/nodes/alexa-lights.js",
       "alexa-home-controller": "alexa/nodes/alexa-home-controller.js",
       "alexa-blinds": "alexa/nodes/alexa-blinds.js",
-      "alexa-temperature-sensor": "alexa/nodes/alexa-temperature-sensor.js"
+      "alexa-temperature-sensor": "alexa/nodes/alexa-temperature-sensor.js",
+      "alexa-switch": "alexa/nodes/alexa-switch.js"
     }
   },
   "dependencies": {
