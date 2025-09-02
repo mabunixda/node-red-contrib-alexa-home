@@ -780,13 +780,20 @@ module.exports = function (RED) {
     // Add device-type specific attributes
     if (node.devicetype === "Window covering") {
       defaultAttributes.position = node.position || 0;
-      defaultAttributes.bri = Math.round((defaultAttributes.position / 100) * 254);
+      defaultAttributes.bri = Math.round(
+        (defaultAttributes.position / 100) * 254,
+      );
     }
 
-    if (node.devicetype === "Temperature sensor" || node.devicetype === "CLIPTemperature") {
+    if (
+      node.devicetype === "Temperature sensor" ||
+      node.devicetype === "CLIPTemperature"
+    ) {
       defaultAttributes.temperature = node.temperature || 20.0;
       defaultAttributes.scale = node.temperatureScale || "CELSIUS";
-      defaultAttributes.bri = Math.round((defaultAttributes.temperature + 50) * 2.54);
+      defaultAttributes.bri = Math.round(
+        (defaultAttributes.temperature + 50) * 2.54,
+      );
     }
 
     return defaultAttributes;

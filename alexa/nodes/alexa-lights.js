@@ -69,7 +69,7 @@ module.exports = function (RED) {
     return DEVICE_TYPES.LIGHT; // Default fallback
   };
 
-    /**
+  /**
    * Initialize lighting device state
    * @param {Object} config - Configuration object
    */

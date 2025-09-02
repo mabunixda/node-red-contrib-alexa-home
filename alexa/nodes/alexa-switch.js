@@ -40,20 +40,18 @@ module.exports = function (RED) {
     }
   }
 
-    /**
+  /**
    * Initialize switch-specific device state
    * @param {Object} config - Node configuration
    */
   AlexaSwitchNode.prototype.initializeState = function (config) {
-
-      // Initialize device state
-      this.state = false; // Default to off
-      this.bri = 254; // Full brightness when on (for Hue compatibility)
-      this.uniqueid = this.generateUniqueId();
-
+    // Initialize device state
+    this.state = false; // Default to off
+    this.bri = 254; // Full brightness when on (for Hue compatibility)
+    this.uniqueid = this.generateUniqueId();
   };
 
-      /**
+  /**
    * Set up event handlers for the blinds node
    */
   AlexaSwitchNode.prototype.setupEventHandlers = function () {
@@ -73,7 +71,6 @@ module.exports = function (RED) {
    */
   AlexaSwitchNode.prototype.processCommand = function (msg) {
     try {
-
       // Validate input
       if (!msg || typeof msg !== "object") {
         this.warn("Invalid message received");
@@ -82,7 +79,11 @@ module.exports = function (RED) {
 
       let isOn = false;
 
-      if (typeof msg.payload === "object" && msg.payload !== null && msg.payload.on !== undefined) {
+      if (
+        typeof msg.payload === "object" &&
+        msg.payload !== null &&
+        msg.payload.on !== undefined
+      ) {
         isOn = Boolean(msg.payload.on);
       } else {
         // Handle various payload formats
@@ -177,7 +178,7 @@ module.exports = function (RED) {
     this.status({
       fill: color,
       shape: "dot",
-      text: text
+      text: text,
     });
   };
 

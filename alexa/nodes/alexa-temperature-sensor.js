@@ -45,21 +45,24 @@ module.exports = function (RED) {
    * Initialize temperature sensor-specific device state
    * @param {Object} config - Node configuration
    */
-  AlexaTemperatureSensorNode.prototype.initializeTemperatureSensorState = function (config) {
-    // Initialize temperature sensor state
-    const temperature = parseFloat(config.temperature) || 20.0; // Default 20°C
+  AlexaTemperatureSensorNode.prototype.initializeTemperatureSensorState =
+    function (config) {
+      // Initialize temperature sensor state
+      const temperature = parseFloat(config.temperature) || 20.0; // Default 20°C
 
-    this.state = {
-      temperature: temperature,
-      on: true // Temperature sensors are always "on"
+      this.state = {
+        temperature: temperature,
+        on: true, // Temperature sensors are always "on"
+      };
+      this.temperature = temperature; // Keep for backwards compatibility
+      this.temperatureScale = this.scale;
+      this.bri = Math.round((temperature + 50) * 2.54); // Convert to brightness scale
+      this.uniqueid = this.generateUniqueId();
+
+      this.debug(
+        `Temperature sensor initialized: ${temperature}°${this.temperatureScale}`,
+      );
     };
-    this.temperature = temperature; // Keep for backwards compatibility
-    this.temperatureScale = this.scale;
-    this.bri = Math.round((temperature + 50) * 2.54); // Convert to brightness scale
-    this.uniqueid = this.generateUniqueId();
-
-    this.debug(`Temperature sensor initialized: ${temperature}°${this.temperatureScale}`);
-  };
 
   /**
    * Set up event handlers for the temperature sensor node
@@ -95,7 +98,10 @@ module.exports = function (RED) {
         this.send(processedMsg);
       }
 
-      this.updateStatus(`${this.temperature}°${this.temperatureScale}`, "green");
+      this.updateStatus(
+        `${this.temperature}°${this.temperatureScale}`,
+        "green",
+      );
     } catch (error) {
       this.error(`Message processing failed: ${error.message}`);
       this.updateStatus("Error", "red");
@@ -107,64 +113,73 @@ module.exports = function (RED) {
    * @param {Object} msg - Input message
    * @returns {Object} Processed message
    */
-  AlexaTemperatureSensorNode.prototype.processTemperatureSensorCommand = function (msg) {
-    const payload = msg.payload || {};
-    let command = "temperature";
+  AlexaTemperatureSensorNode.prototype.processTemperatureSensorCommand =
+    function (msg) {
+      const payload = msg.payload || {};
+      let command = "temperature";
 
-    // Handle temperature updates
-    if (payload.temperature !== undefined) {
-      let temperature = parseFloat(payload.temperature) || 0;
+      // Handle temperature updates
+      if (payload.temperature !== undefined) {
+        let temperature = parseFloat(payload.temperature) || 0;
 
-      // Handle scale conversion if input has different scale than node's configured scale
-      if (payload.scale !== undefined) {
-        const inputScale = payload.scale.toString().toUpperCase();
-        if ((inputScale === "CELSIUS" || inputScale === "FAHRENHEIT") && inputScale !== this.scale) {
-          // Convert input temperature to node's configured scale
-          if (inputScale === "CELSIUS" && this.scale === "FAHRENHEIT") {
-            temperature = (temperature * 9/5) + 32;
-          } else if (inputScale === "FAHRENHEIT" && this.scale === "CELSIUS") {
-            temperature = (temperature - 32) * 5/9;
+        // Handle scale conversion if input has different scale than node's configured scale
+        if (payload.scale !== undefined) {
+          const inputScale = payload.scale.toString().toUpperCase();
+          if (
+            (inputScale === "CELSIUS" || inputScale === "FAHRENHEIT") &&
+            inputScale !== this.scale
+          ) {
+            // Convert input temperature to node's configured scale
+            if (inputScale === "CELSIUS" && this.scale === "FAHRENHEIT") {
+              temperature = (temperature * 9) / 5 + 32;
+            } else if (
+              inputScale === "FAHRENHEIT" &&
+              this.scale === "CELSIUS"
+            ) {
+              temperature = ((temperature - 32) * 5) / 9;
+            }
+          }
+        }
+
+        this.temperature = temperature;
+        command = "temperature";
+      }
+
+      // Handle scale changes without temperature (change node's scale)
+      if (payload.scale !== undefined && payload.temperature === undefined) {
+        const newScale = payload.scale.toString().toUpperCase();
+        if (newScale === "CELSIUS" || newScale === "FAHRENHEIT") {
+          // Convert existing temperature if scale changed
+          if (this.scale !== newScale) {
+            if (this.scale === "CELSIUS" && newScale === "FAHRENHEIT") {
+              this.temperature = (this.temperature * 9) / 5 + 32;
+            } else if (this.scale === "FAHRENHEIT" && newScale === "CELSIUS") {
+              this.temperature = ((this.temperature - 32) * 5) / 9;
+            }
+            this.scale = newScale;
+            this.temperatureScale = newScale;
           }
         }
       }
 
-      this.temperature = temperature;
-      command = "temperature";
-    }
+      // Create output message
+      const outputMsg = {
+        topic: msg.topic || this.name,
+        device_name: this.name,
+        device_type: this.devicetype,
+        payload: {
+          on: this.state.on, // Always true for sensors
+          temperature: this.temperature,
+          scale: this.temperatureScale,
+          command: command,
+        },
+      };
 
-    // Handle scale changes without temperature (change node's scale)
-    if (payload.scale !== undefined && payload.temperature === undefined) {
-      const newScale = payload.scale.toString().toUpperCase();
-      if (newScale === "CELSIUS" || newScale === "FAHRENHEIT") {
-        // Convert existing temperature if scale changed
-        if (this.scale !== newScale) {
-          if (this.scale === "CELSIUS" && newScale === "FAHRENHEIT") {
-            this.temperature = (this.temperature * 9/5) + 32;
-          } else if (this.scale === "FAHRENHEIT" && newScale === "CELSIUS") {
-            this.temperature = (this.temperature - 32) * 5/9;
-          }
-          this.scale = newScale;
-          this.temperatureScale = newScale;
-        }
-      }
-    }
-
-    // Create output message
-    const outputMsg = {
-      topic: msg.topic || this.name,
-      device_name: this.name,
-      device_type: this.devicetype,
-      payload: {
-        on: this.state.on, // Always true for sensors
-        temperature: this.temperature,
-        scale: this.temperatureScale,
-        command: command
-      }
+      this.debug(
+        `Temperature sensor command processed: ${this.temperature}°${this.temperatureScale}`,
+      );
+      return outputMsg;
     };
-
-    this.debug(`Temperature sensor command processed: ${this.temperature}°${this.temperatureScale}`);
-    return outputMsg;
-  };
 
   /**
    * Register with the Alexa controller
@@ -185,7 +200,9 @@ module.exports = function (RED) {
    * Update controller reference
    * @param {Object} controllerNode - Controller node instance
    */
-  AlexaTemperatureSensorNode.prototype.updateController = function (controllerNode) {
+  AlexaTemperatureSensorNode.prototype.updateController = function (
+    controllerNode,
+  ) {
     if (!controllerNode) {
       this.warn("Attempted to update with invalid controller");
       return;
@@ -215,7 +232,7 @@ module.exports = function (RED) {
     this.status({
       fill: color,
       shape: "dot",
-      text: text
+      text: text,
     });
   };
 
@@ -228,5 +245,8 @@ module.exports = function (RED) {
   };
 
   // Register the node
-  RED.nodes.registerType("alexa-temperature-sensor", AlexaTemperatureSensorNode);
+  RED.nodes.registerType(
+    "alexa-temperature-sensor",
+    AlexaTemperatureSensorNode,
+  );
 };

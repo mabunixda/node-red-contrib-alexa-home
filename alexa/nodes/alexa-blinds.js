@@ -51,13 +51,15 @@ module.exports = function (RED) {
 
     this.state = {
       position: position,
-      on: true // Blinds are always "available"
+      on: true, // Blinds are always "available"
     };
     this.bri = brightness; // Maps to position (254 = 100% open)
     this.position = position; // Position percentage
     this.uniqueid = this.generateUniqueId();
 
-    this.debug(`Blinds initialized: position=${this.position}%, bri=${this.bri}`);
+    this.debug(
+      `Blinds initialized: position=${this.position}%, bri=${this.bri}`,
+    );
   };
 
   /**
@@ -145,11 +147,13 @@ module.exports = function (RED) {
         on: this.state,
         bri: this.bri,
         position: this.position,
-        command: command
-      }
+        command: command,
+      },
     };
 
-    this.debug(`Blinds command processed: ${command}, position=${position}%, bri=${this.bri}`);
+    this.debug(
+      `Blinds command processed: ${command}, position=${position}%, bri=${this.bri}`,
+    );
     return outputMsg;
   };
 
@@ -202,7 +206,7 @@ module.exports = function (RED) {
     this.status({
       fill: color,
       shape: "dot",
-      text: text
+      text: text,
     });
   };
 
