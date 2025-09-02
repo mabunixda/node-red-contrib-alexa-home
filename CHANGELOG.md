@@ -1,7 +1,17 @@
-<a id="v2.3.0"></a>
-# [v2.3.0](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.3.0) - 2025-09-02
+<a id="v3.0.0"></a>
+# [v3.0.0](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v3.0.0) - 2025-09-02
 
-## 2.3.0 (2025-09-02)
+## 3.0.0 (2025-09-02)
+
+#### Breaking Changes
+
+* cleanup (98510521)
+```
+
+BREAKING CHANGE: api v2 support on hue
+
+Signed-off-by: Martin Buchleitner <mabunixda@gmail.com>
+```
 
 #### Feature
 
@@ -9,7 +19,7 @@
 
 
 
-[Changes][v2.3.0]
+[Changes][v3.0.0]
 
 
 <a id="v2.2.0"></a>
@@ -453,7 +463,7 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
-[v2.3.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.2.0...v2.3.0
+[v3.0.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.2.0...v3.0.0
 [v2.2.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.3...v2.2.0
 [v2.1.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.2...v2.1.3
 [v2.1.2]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.1...v2.1.2
