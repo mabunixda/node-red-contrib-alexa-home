@@ -340,8 +340,9 @@ describe("Utility Modules", function () {
     });
 
     it("should generate ports with offsets", function () {
-      const port1 = getTestPortWithOffset(0);
-      const port2 = getTestPortWithOffset(1);
+      const basePort = 30000;
+      const port1 = getTestPortWithOffset(basePort, 0);
+      const port2 = getTestPortWithOffset(basePort, 1000);
 
       port1.should.be.within(30000, 31000);
       port2.should.be.within(31000, 32000);

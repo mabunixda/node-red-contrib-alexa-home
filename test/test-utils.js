@@ -2,116 +2,99 @@
  * Test utilities for parallel test execution
  */
 
-const crypto = require("crypto");
+const net = require('net');
 
 /**
- * Generate a cryptographically strong random number between min and max (inclusive)
- * Uses Node.js crypto module for better entropy than Math.random()
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @returns {number} Random number
+ * Check if a port is available synchronously
+ * @param {number} port - Port number to check
+ * @returns {boolean} True if port is available, false if in use
  */
-function getSecureRandom(min, max) {
-  const range = max - min + 1;
-  const bytesNeeded = Math.ceil(Math.log2(range) / 8);
-  const maxValue = Math.pow(256, bytesNeeded);
-  const threshold = maxValue - (maxValue % range);
-
-  let randomValue;
-  do {
-    const randomBytes = crypto.randomBytes(bytesNeeded);
-    randomValue = 0;
-    for (let i = 0; i < bytesNeeded; i++) {
-      randomValue = (randomValue << 8) + randomBytes[i];
-    }
-  } while (randomValue >= threshold);
-
-  return (randomValue % range) + min;
+function isPortAvailable(port) {
+  try {
+    const server = net.createServer();
+    server.listen(port, '127.0.0.1');
+    server.close();
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
- * Enhanced random with process-based entropy
- * Combines crypto random with process ID and timestamp for better distribution
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @returns {number} Random number
- */
-function getEnhancedRandom(min, max) {
-  // Use cryptographically secure, unbiased randomness.
-  return getSecureRandom(min, max);
-}
-
-/**
- * Generate a random test port in a safe range for testing
- * Uses enhanced randomness to minimize conflicts during parallel execution
+ * Generate a random test port in a safe range for testing with availability check
+ * Uses a wide range to minimize conflicts during parallel execution
  * @param {number} min - Minimum port number (default: 30000)
  * @param {number} max - Maximum port number (default: 65000)
- * @returns {number} Random port number
+ * @param {number} maxAttempts - Maximum attempts to find an available port (default: 100)
+ * @returns {number} Available random port number
  */
-function getRandomTestPort(min = 30000, max = 65000) {
-  return getEnhancedRandom(min, max);
+function getRandomTestPort(min = 30000, max = 65000, maxAttempts = 100) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const port = Math.floor(Math.random() * (max - min + 1)) + min;
+    if (isPortAvailable(port)) {
+      return port;
+    }
+  }
+
+  // Fallback: if no available port found, return a random port and let the test handle the conflict
+  console.warn(`Warning: Could not find an available port after ${maxAttempts} attempts. Returning random port.`);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /**
- * Generate multiple unique test ports for a single test
+ * Generate multiple unique test ports for a single test with availability check
  * @param {number} count - Number of ports needed
  * @param {number} min - Minimum port number (default: 30000)
  * @param {number} max - Maximum port number (default: 65000)
- * @returns {number[]} Array of unique port numbers
+ * @returns {number[]} Array of unique available port numbers
  */
 function getRandomTestPorts(count = 1, min = 30000, max = 65000) {
   const ports = new Set();
   let attempts = 0;
-  const maxAttempts = count * 10; // Prevent infinite loops
+  const maxAttempts = count * 50; // Allow more attempts for multiple ports
 
   while (ports.size < count && attempts < maxAttempts) {
-    ports.add(getEnhancedRandom(min, max));
+    const port = getRandomTestPort(min, max, 10); // Fewer attempts per port when getting multiple
+    if (!ports.has(port)) {
+      ports.add(port);
+    }
     attempts++;
   }
 
-  // If we couldn't get enough unique ports, fill with crypto random
-  while (ports.size < count) {
-    ports.add(getSecureRandom(min, max));
+  if (ports.size < count) {
+    console.warn(`Warning: Could only find ${ports.size} available ports out of ${count} requested.`);
   }
 
   return Array.from(ports);
 }
 
 /**
- * Generate a test port with an offset to avoid conflicts within the same test file
- * @param {number} baseOffset - Base offset multiplier (use test index or similar)
- * @param {number} range - Range size for each offset (default: 1000)
- * @returns {number} Port number
+ * Generate a test port with an offset from a base port with availability check
+ * @param {number} basePort - Base port number
+ * @param {number} offset - Offset to add to base port
+ * @returns {number} Port number (basePort + offset) if available, or a random available port
  */
-function getTestPortWithOffset(baseOffset = 0, range = 1000) {
-  const basePort = 30000 + baseOffset * range;
-  return basePort + getEnhancedRandom(0, range - 1);
-}
+function getTestPortWithOffset(basePort, offset) {
+  const targetPort = basePort + offset;
 
-/**
- * Generate a port with time-based seed for even better distribution
- * Useful when you need ports that are very unlikely to collide across processes
- * @param {number} min - Minimum port number (default: 30000)
- * @param {number} max - Maximum port number (default: 65000)
- * @returns {number} Random port number
- */
-function getTimeBasedPort(min = 30000, max = 65000) {
-  const now = Date.now();
-  const nanos = process.hrtime.bigint();
-  const pid = process.pid;
+  // Check if the target port is available
+  if (isPortAvailable(targetPort)) {
+    return targetPort;
+  }
 
-  // Create a unique seed combining timestamp, nanoseconds, and process ID
-  const seed = Number(nanos) ^ now ^ (pid << 16);
-  const range = max - min + 1;
+  // If target port is not available, find an alternative near the target
+  console.warn(`Port ${targetPort} not available, finding alternative...`);
 
-  return (Math.abs(seed) % range) + min;
+  // Try ports in a range around the target port
+  const rangeSize = 100;
+  const minPort = Math.max(targetPort - rangeSize, 30000);
+  const maxPort = Math.min(targetPort + rangeSize, 65000);
+
+  return getRandomTestPort(minPort, maxPort, 50);
 }
 
 module.exports = {
   getRandomTestPort,
   getRandomTestPorts,
   getTestPortWithOffset,
-  getTimeBasedPort,
-  getSecureRandom,
-  getEnhancedRandom,
 };
