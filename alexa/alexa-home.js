@@ -243,7 +243,7 @@ module.exports = function (RED) {
     msg.change_direction = 0;
 
     // Process color commands first (color with brightness should be treated as color)
-    if (msg.payload.xy) {
+    if (msg.payload.xy || (msg.payload.hue !== undefined && msg.payload.sat !== undefined)) {
       return node.processColorCommand(msg);
     }
 
@@ -292,20 +292,39 @@ module.exports = function (RED) {
    * @returns {Object} Processed message
    */
   AlexaHomeNode.prototype.processColorCommand = function (msg) {
-    const coordinates = this.validateColorCoordinates(msg.payload.xy);
-
-    msg.payload.xy = coordinates;
     msg.payload.command = "color";
 
     // Color commands should also set device to on and use current brightness
     msg.payload.on = msg.payload.on !== undefined ? msg.payload.on : true;
-    msg.payload.bri =
-      msg.payload.bri !== undefined ? msg.payload.bri : this.bri;
+    msg.payload.bri = msg.payload.bri !== undefined ? msg.payload.bri : this.bri;
 
-    RED.log.debug(
-      `${this.name} - Processing color command: [${coordinates.join(", ")}]`,
-    );
-    this.setConnectionStatusMsg("blue", `Color: [${coordinates.join(", ")}]`);
+    // Handle different color input formats
+    if (msg.payload.xy) {
+      // XY coordinates provided
+      const coordinates = this.validateColorCoordinates(msg.payload.xy);
+      msg.payload.xy = coordinates;
+      this.xy = coordinates;
+
+      RED.log.debug(
+        `${this.name} - Processing XY color command: [${coordinates.join(", ")}]`,
+      );
+      this.setConnectionStatusMsg("blue", `Color XY: [${coordinates.join(", ")}]`);
+    } else if (msg.payload.hue !== undefined && msg.payload.sat !== undefined) {
+      // Hue/Saturation provided (Alexa's preferred format)
+      const hue = this.validateHue(msg.payload.hue);
+      const sat = this.validateSaturation(msg.payload.sat);
+
+      // Update device state with validated values
+      this.hue = hue;
+      this.sat = sat;
+      msg.payload.hue = hue;
+      msg.payload.sat = sat;
+
+      RED.log.debug(
+        `${this.name} - Processing HSB color command: H=${hue}, S=${sat}`,
+      );
+      this.setConnectionStatusMsg("blue", `Color HSB: H=${hue}, S=${sat}`);
+    }
 
     return msg;
   };
@@ -374,6 +393,26 @@ module.exports = function (RED) {
         Math.min(XY_RANGE.MAX, parseFloat(coordinates[1]) || 0),
       ),
     ];
+  };
+
+  /**
+   * Validate and normalize hue value
+   * @param {number} hue - Hue value (0-65535 for Philips Hue compatibility)
+   * @returns {number} Valid hue value
+   */
+  AlexaHomeNode.prototype.validateHue = function (hue) {
+    const numericHue = parseInt(hue) || 0;
+    return Math.max(0, Math.min(65535, numericHue));
+  };
+
+  /**
+   * Validate and normalize saturation value
+   * @param {number} sat - Saturation value (0-254 for Philips Hue compatibility)
+   * @returns {number} Valid saturation value
+   */
+  AlexaHomeNode.prototype.validateSaturation = function (sat) {
+    const numericSat = parseInt(sat) || 0;
+    return Math.max(0, Math.min(254, numericSat));
   };
 
   /**
