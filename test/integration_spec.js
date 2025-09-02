@@ -1,7 +1,8 @@
 const should = require("should");
 const helper = require("node-red-node-test-helper");
-const controllerNode = require("../alexa/alexa-home-controller.js");
-const alexaNode = require("../alexa/alexa-home.js");
+const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
+const alexaNode = require("../alexa/nodes/alexa-lights.js");
+const { getRandomTestPort } = require("./test-utils");
 const request = require("supertest");
 let alexaHelper = require("../alexa/alexa-helper.js");
 
@@ -19,7 +20,7 @@ describe("Integration Tests - Complete Alexa Flow", function () {
 
   describe("Full Device Control Flow", function () {
     it("should handle complete Alexa device discovery and control", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -81,7 +82,7 @@ describe("Integration Tests - Complete Alexa Flow", function () {
     });
 
     it("should handle registration and authentication flow", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -142,7 +143,7 @@ describe("Integration Tests - Complete Alexa Flow", function () {
 
   describe("Multi-Device Complex Scenarios", function () {
     it("should handle color and brightness changes", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -191,7 +192,7 @@ describe("Integration Tests - Complete Alexa Flow", function () {
   });
 
   it("should handle input trigger vs external control", function (done) {
-    const hubPort = 60000 + Math.floor(Math.random() * 1000);
+    const hubPort = getRandomTestPort();
     const flow = [
       {
         id: "controller1",

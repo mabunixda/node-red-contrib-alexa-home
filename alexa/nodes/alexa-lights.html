@@ -10,7 +10,7 @@
         outputs: 1,
         icon: "alexa-home.png",
         label: function () {
-            return this.devicename || "Alexa device";
+            return this.devicename || "Alexa light";
         }
     });
 </script>
@@ -26,14 +26,26 @@
         <select id="node-input-devicetype" >
             <option>Extended color light</option>
             <option>Dimmable light</option>
-            <option>Color temperature light</option>
+            <option>Color light</option>
         </select>
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="alexa-home">
-    <p>This is a node for adding Alexa capability to your flow.
+    <p>This is a node for adding Alexa lighting capability to your flow.
     </p>
+
+    <p><strong>Note:</strong> This node is now focused on lighting devices only.
+    For blinds/window coverings, use the dedicated "alexa-blinds" node.
+    For temperature sensors, use the dedicated "alexa-temperature-sensor" node.
+    For on/off switches, use the dedicated "alexa-switch" node.</p>
+
+    <h3>Supported Device Types</h3>
+    <ul>
+        <li><strong>Extended color light</strong> - Full RGB color control with brightness</li>
+        <li><strong>Dimmable light</strong> - Brightness control only</li>
+        <li><strong>Color light</strong> - RGB color control</li>
+    </ul>
 
     <h3>How to use</h3>
     <ul>

@@ -6,8 +6,9 @@
 "use strict";
 
 const helper = require("node-red-node-test-helper");
-const controllerNode = require("../alexa/alexa-home-controller.js");
-const alexaNode = require("../alexa/alexa-home.js");
+const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
+const alexaNode = require("../alexa/nodes/alexa-lights.js");
+const { getRandomTestPort } = require("./test-utils");
 const request = require("supertest");
 
 helper.init(require.resolve("node-red"));
@@ -24,7 +25,7 @@ describe("Hue API v2 Handler", function () {
 
   describe("v2 Resource Endpoints", function () {
     it("should handle v2 light resource list request", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -88,7 +89,7 @@ describe("Hue API v2 Handler", function () {
     });
 
     it("should handle v2 device resource list request", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -142,7 +143,7 @@ describe("Hue API v2 Handler", function () {
     });
 
     it("should handle v2 light state update", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -204,7 +205,7 @@ describe("Hue API v2 Handler", function () {
     });
 
     it("should handle v2 bridge resource request", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -243,7 +244,7 @@ describe("Hue API v2 Handler", function () {
     });
 
     it("should return v2 error format for invalid resource", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",

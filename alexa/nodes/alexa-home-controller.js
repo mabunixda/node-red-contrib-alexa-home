@@ -6,15 +6,15 @@
 "use strict";
 
 module.exports = function (RED) {
-  const alexaHome = require("./alexa-helper");
-  const AlexaHub = require("./alexa-hub");
-  const TemplateManager = require("./template-manager");
-  const utils = require("./utils");
+  const alexaHome = require("../alexa-helper");
+  const AlexaHub = require("../alexa-hub");
+  const TemplateManager = require("../template-manager");
+  const utils = require("../utils");
   const path = require("path");
 
   // Initialize template manager
   const templateManager = new TemplateManager(
-    path.join(__dirname, "templates"),
+    path.join(__dirname, "../templates"),
   );
 
   /**
@@ -65,6 +65,13 @@ module.exports = function (RED) {
         res.status(503).send("Alexa Home Controller not available");
         return;
       }
+
+      // Check if v1 API is disabled
+      if (node.disableV1Api) {
+        res.status(404).send("v1 API disabled - use v2 API endpoints");
+        return;
+      }
+
       node.handleSetup(node.id, req, res);
     }),
   );
@@ -77,6 +84,15 @@ module.exports = function (RED) {
         res.status(503).json({ error: "Alexa Home Controller not available" });
         return;
       }
+
+      // Check if v1 API is disabled
+      if (node.disableV1Api) {
+        res
+          .status(404)
+          .json({ error: "v1 API disabled - use v2 API endpoints" });
+        return;
+      }
+
       node.handleRegistration(node.id, req, res);
     }),
   );
@@ -191,6 +207,15 @@ module.exports = function (RED) {
           res.status(503).json({ error: "Controller not available" });
           return;
         }
+
+        // Check if v1 API is disabled
+        if (node.disableV1Api) {
+          res
+            .status(404)
+            .json({ error: "v1 API disabled - use v2 API endpoints" });
+          return;
+        }
+
         node[route.handler](node.id, req, res);
       }),
     );
@@ -213,12 +238,13 @@ module.exports = function (RED) {
       node._commands = new Map();
       node._hub = [];
       node.useNode = config.useNode || false;
+      node.disableV1Api = config.disableV1Api || false;
 
       // Initialize template manager
       node.templateManager = templateManager;
 
       // Initialize v2 API handler
-      const HueApiV2Handler = require("./hue-api-v2-handler");
+      const HueApiV2Handler = require("../hue-api-v2-handler");
       node.v2Handler = new HueApiV2Handler(node, node.templateManager);
 
       // Validate configuration: useNode and HTTPS are incompatible
@@ -315,8 +341,16 @@ module.exports = function (RED) {
     const node = this;
     RED.log.info("Assigning alexa-home nodes to this controller");
 
+    const alexaNodeTypes = [
+      "alexa-home",
+      "alexa-lights",
+      "alexa-blinds",
+      "alexa-switch",
+      "alexa-temperature-sensor",
+    ];
+
     RED.nodes.eachNode(function (n) {
-      if (n.type === "alexa-home") {
+      if (alexaNodeTypes.includes(n.type)) {
         const deviceNode = RED.nodes.getNode(n.id);
         if (deviceNode) {
           node.registerCommand(deviceNode);
@@ -754,21 +788,47 @@ module.exports = function (RED) {
   };
 
   AlexaHomeController.prototype.generateAPIDevice = function (uuid, node) {
+    // Map display device types to API types for Hue compatibility
+    let apiType = node.devicetype;
+    if (node.devicetype === "Temperature sensor") {
+      apiType = "CLIPTemperature";
+    }
+
     const defaultAttributes = {
       on:
         typeof node.state === "object" && node.state !== null
           ? node.state.on || false
           : node.state || false,
-      bri: node.bri,
+      bri: node.bri || 254,
       devicetype: node.devicetype,
-      x: node.xy[0],
-      y: node.xy[1],
+      type: apiType, // Use mapped API type for Hue compatibility
+      x: node.xy ? node.xy[0] : 0.3127, // Default XY coordinates for non-color devices
+      y: node.xy ? node.xy[1] : 0.329,
       hue: node.hue || 0,
       sat: node.sat || 254,
       ct: 199,
       colormode: "ct",
-      uniqueid: node.uniqueid,
+      uniqueid: node.uniqueid || node.generateUniqueId(),
     };
+
+    // Add device-type specific attributes
+    if (node.devicetype === "Window covering") {
+      defaultAttributes.position = node.position || 0;
+      defaultAttributes.bri = Math.round(
+        (defaultAttributes.position / 100) * 254,
+      );
+    }
+
+    if (
+      node.devicetype === "Temperature sensor" ||
+      node.devicetype === "CLIPTemperature"
+    ) {
+      defaultAttributes.temperature = node.temperature || 20.0;
+      defaultAttributes.scale = node.temperatureScale || "CELSIUS";
+      defaultAttributes.bri = Math.round(
+        (defaultAttributes.temperature + 50) * 2.54,
+      );
+    }
 
     return defaultAttributes;
   };

@@ -14,6 +14,18 @@
         <li><strong>Standalone Server:</strong> Creates a separate web server on the configured port</li>
         <li><strong>Use Node-RED Server:</strong> Uses Node-RED's built-in web server (port automatically detected)</li>
     </ul>
+
+    <h3>API Version Configuration</h3>
+    <p>
+    You can optionally disable the legacy v1 API and only expose the modern v2 API endpoints:
+    </p>
+    <ul>
+        <li><strong>v1 API Enabled (default):</strong> Provides both v1 and v2 API endpoints for maximum compatibility</li>
+        <li><strong>v1 API Disabled:</strong> Only provides v2 API endpoints, reducing attack surface and improving security</li>
+    </ul>
+    <p>
+        <strong>Note:</strong> Disabling v1 API may affect compatibility with older Alexa devices or applications that rely on the legacy Philips Hue v1 API format.
+    </p>
     <h3>HTTPS/TLS Configuration</h3>
     <p>
     You can enable HTTPS by checking the "Use HTTPS" option and providing paths to your SSL certificate and private key files.
@@ -55,6 +67,12 @@
             <i class="icon-tag"/>Use Node as Webserver</label>
         <input type="checkbox" id="node-input-useNode">
         <div class="form-tips">Cannot be used with HTTPS option</div>
+    </div>
+    <div class="form-row">
+        <label for="node-input-disableV1Api">
+            <i class="fa fa-ban"></i> Disable v1 API</label>
+        <input type="checkbox" id="node-input-disableV1Api">
+        <div class="form-tips">Only expose v2 API endpoints (modern Hue API format)</div>
     </div>
     <div class="form-row" id="node-red-port-info" style="display: none;">
         <label for="node-red-port-display">
@@ -131,6 +149,10 @@
                 value: -1,
                 required: true,
                 validate: RED.validators.number()
+            },
+            disableV1Api: {
+                value: false,
+                required: false
             }
         },
         inputs: 0,

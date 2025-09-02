@@ -1,0 +1,76 @@
+<script type="text/javascript">
+    RED.nodes.registerType('alexa-switch', {
+        category: 'alexa-home',
+        color: '#FF9999',
+        defaults: {
+            devicename: { value: "", required: true },
+            inputtrigger: { value: false }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "alexa-home.png",
+        label: function () {
+            return this.devicename || "Alexa switch";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="alexa-switch">
+    <div class="form-row">
+        <label for="node-input-devicename">
+            <i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-devicename" placeholder="Smart Plug">
+    </div>
+    <div class="form-row">
+        <label for="node-input-inputtrigger">
+            <i class="icon-tag"></i> Input trigger</label>
+        <input type="checkbox" id="node-input-inputtrigger" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-inputtrigger" style="width: 70%;">Only send output when triggered by input</label>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="alexa-switch">
+    <p>This is a dedicated node for adding Alexa on/off switch capability to your flow.
+    </p>
+
+    <p><strong>Device Type:</strong> On/Off plug-in unit</p>
+
+    <h3>Functionality</h3>
+    <ul>
+        <li><strong>Simple On/Off Control</strong> - Basic switch functionality</li>
+        <li><strong>Alexa Compatible</strong> - Works with "Alexa, turn on/off [device name]"</li>
+        <li><strong>Multiple Input Formats</strong> - Accepts boolean, string ("on"/"off"), and numeric (1/0) values</li>
+    </ul>
+
+    <h3>Input</h3>
+    <p>The node accepts various input formats:</p>
+    <ul>
+        <li><code>msg.payload = true/false</code> - Direct boolean control</li>
+        <li><code>msg.payload = "on"/"off"</code> - String control</li>
+        <li><code>msg.payload = 1/0</code> - Numeric control</li>
+        <li><code>msg.payload = {on: true/false}</code> - Object with on property</li>
+    </ul>
+
+    <h3>Output</h3>
+    <p>The node outputs a standardized message:</p>
+    <pre>{
+  "topic": "device name",
+  "device_name": "device name",
+  "device_type": "On/Off plug-in unit",
+  "payload": {
+    "on": true/false,
+    "bri": 254/0,
+    "command": "switch"
+  }
+}</pre>
+
+    <h3>Configuration</h3>
+    <ul>
+        <li><strong>Name</strong> - The device name that Alexa will recognize</li>
+        <li><strong>Input trigger</strong> - When enabled, output is only sent when explicitly triggered</li>
+    </ul>
+
+    <h3>Usage</h3>
+    <p>Connect this node to your relay, smart plug, or other on/off device control logic.
+    The node will appear as a switchable device in your Alexa app after discovery.</p>
+</script>

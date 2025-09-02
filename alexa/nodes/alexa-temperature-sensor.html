@@ -1,0 +1,128 @@
+<script type="text/javascript">
+  RED.nodes.registerType('alexa-temperature-sensor', {
+    category: 'alexa',
+    color: '#FF6B6B',
+    defaults: {
+      devicename: { value: '', required: true },
+      temperature: { value: '20.0' },
+      scale: { value: 'CELSIUS' },
+      inputtrigger: { value: false },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'alexa-home.png',
+    label: function () {
+      return this.devicename || 'alexa temperature sensor';
+    },
+    labelStyle: function () {
+      return this.devicename ? 'node_label_italic' : '';
+    },
+    oneditprepare: function () {
+      // Set up device name field
+      $('#node-input-devicename').focus();
+
+      // Set up temperature input validation
+      $('#node-input-temperature').on('input', function () {
+        const value = parseFloat($(this).val());
+        if (isNaN(value)) {
+          $(this).css('border-color', 'red');
+        } else {
+          $(this).css('border-color', '');
+        }
+      });
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="alexa-temperature-sensor">
+  <div class="form-row">
+    <label for="node-input-devicename"><i class="fa fa-tag"></i> Device Name</label>
+    <input type="text" id="node-input-devicename" placeholder="e.g., Living Room Temperature">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-temperature"><i class="fa fa-thermometer-half"></i> Initial Temperature</label>
+    <input type="number" id="node-input-temperature" step="0.1" style="width: 100px;">
+    <select id="node-input-scale" style="width: 120px; margin-left: 10px;">
+      <option value="CELSIUS">Celsius (°C)</option>
+      <option value="FAHRENHEIT">Fahrenheit (°F)</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-inputtrigger" style="width: auto;">
+      <input type="checkbox" id="node-input-inputtrigger" style="display: inline-block; width: auto; vertical-align: top;">
+      Only respond to Alexa queries (ignore input messages)
+    </label>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="alexa-temperature-sensor">
+  <p>A Node-RED node for providing temperature readings to Amazon Alexa.</p>
+
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt>Device Name <span class="property-type">string</span></dt>
+    <dd>The name Alexa will use to identify your temperature sensor (e.g., "Living Room Temperature")</dd>
+
+    <dt>Initial Temperature <span class="property-type">number</span></dt>
+    <dd>The initial temperature reading for the sensor</dd>
+
+    <dt>Scale <span class="property-type">string</span></dt>
+    <dd>Temperature scale: Celsius or Fahrenheit</dd>
+
+    <dt>Input Trigger <span class="property-type">boolean</span></dt>
+    <dd>When checked, the node only responds to Alexa queries and ignores input messages unless they have <code>msg.output = true</code></dd>
+  </dl>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload.temperature <span class="property-type">number</span></dt>
+    <dd>Update the current temperature reading</dd>
+
+    <dt>payload.scale <span class="property-type">string</span></dt>
+    <dd>Change the temperature scale ("CELSIUS" or "FAHRENHEIT"). The temperature value will be automatically converted.</dd>
+
+    <dt>output <span class="property-type">boolean</span></dt>
+    <dd>When input trigger is enabled, set to true to force output</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.temperature <span class="property-type">number</span></dt>
+    <dd>Current temperature reading</dd>
+
+    <dt>payload.scale <span class="property-type">string</span></dt>
+    <dd>Current temperature scale</dd>
+
+    <dt>payload.on <span class="property-type">boolean</span></dt>
+    <dd>Always true (sensors are always "available")</dd>
+
+    <dt>payload.command <span class="property-type">string</span></dt>
+    <dd>Always "temperature" for sensor readings</dd>
+
+    <dt>device_name <span class="property-type">string</span></dt>
+    <dd>The name of the device</dd>
+
+    <dt>device_type <span class="property-type">string</span></dt>
+    <dd>Always "Temperature sensor"</dd>
+  </dl>
+
+  <h3>Voice Commands</h3>
+  <p>Example voice commands for Alexa:</p>
+  <ul>
+    <li>"Alexa, what's the [device name]?"</li>
+    <li>"Alexa, what's the temperature in the [room name]?"</li>
+    <li>"Alexa, how warm is the [device name]?"</li>
+  </ul>
+
+  <h3>Details</h3>
+  <p>This node provides temperature sensor functionality through Amazon Alexa using the Philips Hue bridge emulation.
+  The sensor appears as a read-only device in Alexa and can be queried for current temperature readings.</p>
+
+  <p>Temperature values can be provided in either Celsius or Fahrenheit, and the node will automatically handle
+  scale conversions when the scale is changed.</p>
+
+  <p><strong>Note:</strong> This is a read-only sensor node. Alexa cannot set temperatures through this node -
+  it only provides temperature readings.</p>
+</script>

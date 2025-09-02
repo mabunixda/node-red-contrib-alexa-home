@@ -172,10 +172,35 @@ function throttle(func, limit) {
 }
 
 /**
+ * Generates a unique identifier for devices
+ * @param {string} name - Device name
+ * @param {string} deviceType - Device type
+ * @returns {string} Unique device ID
+ */
+function generateUniqueId(name, deviceType) {
+  const base = "00:11:22:33:44:55:66:77-88";
+  const input = (name + deviceType).replace(/[^a-fA-F0-9]/g, "");
+  const characters = input.split("");
+  let index = 0;
+
+  return base.replace(/[0-9a-f]/gi, () => {
+    return characters[index++] || Math.floor(Math.random() * 16).toString(16);
+  });
+}
+
+/**
+ * Gets an available port for testing (synchronous version for tests)
+ * @returns {number} Available port number
+ */
+function getAvailablePortSync() {
+  return Math.floor(Math.random() * (60000 - 50000 + 1)) + 50000;
+}
+
+/**
  * Gets an available port for testing
- * @param {number} min - Minimum port number (default: 3000)
- * @param {number} max - Maximum port number (default: 65535)
- * @returns {Promise<number>} Available port number
+ * @param {number} min - Minimum port number
+ * @param {number} max - Maximum port number
+ * @returns {Promise<number>} Promise resolving to available port number
  */
 function getAvailablePort(min = 3000, max = 65535) {
   return new Promise((resolve, reject) => {
@@ -217,5 +242,7 @@ module.exports = {
   deepClone,
   debounce,
   throttle,
+  generateUniqueId,
+  getAvailablePortSync,
   getAvailablePort,
 };

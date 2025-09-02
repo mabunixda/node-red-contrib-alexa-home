@@ -15,8 +15,11 @@
   ],
   "node-red": {
     "nodes": {
-      "alexa-home": "alexa/alexa-home.js",
-      "alexa-home-controller": "alexa/alexa-home-controller.js"
+      "alexa-home": "alexa/nodes/alexa-lights.js",
+      "alexa-home-controller": "alexa/nodes/alexa-home-controller.js",
+      "alexa-blinds": "alexa/nodes/alexa-blinds.js",
+      "alexa-temperature-sensor": "alexa/nodes/alexa-temperature-sensor.js",
+      "alexa-switch": "alexa/nodes/alexa-switch.js"
     }
   },
   "dependencies": {
