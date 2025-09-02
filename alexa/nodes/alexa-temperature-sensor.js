@@ -165,10 +165,10 @@ module.exports = function (RED) {
    * Register with the Alexa controller
    */
   AlexaTemperatureSensorNode.prototype.registerWithController = function () {
-    const controllerNode = alexaHome.getController();
+    const controllerNode = alexaHome.controllerNode;
     if (controllerNode) {
       this.controller = controllerNode;
-      controllerNode.registerCommand(this.id, this.name, this.devicetype, this);
+      controllerNode.registerCommand(this);
       this.debug(`Registered with controller: ${this.name}`);
     } else {
       this.updateStatus("No Controller", "yellow");
@@ -177,11 +177,26 @@ module.exports = function (RED) {
   };
 
   /**
+   * Update controller reference
+   * @param {Object} controllerNode - Controller node instance
+   */
+  AlexaTemperatureSensorNode.prototype.updateController = function (controllerNode) {
+    if (!controllerNode) {
+      this.warn("Attempted to update with invalid controller");
+      return;
+    }
+
+    this.controller = controllerNode;
+    this.updateStatus("Connected", "green");
+    this.debug(`Device '${this.name}' connected to controller`);
+  };
+
+  /**
    * Handle node close event
    */
   AlexaTemperatureSensorNode.prototype.handleNodeClose = function () {
     if (this.controller) {
-      this.controller.deregisterCommand(this.id);
+      this.controller.deregisterCommand(this);
       this.debug(`Deregistered from controller: ${this.name}`);
     }
   };
