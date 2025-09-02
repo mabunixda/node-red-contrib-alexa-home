@@ -1,3 +1,17 @@
+<a id="v2.3.0"></a>
+# [v2.3.0](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.3.0) - 2025-09-02
+
+## 2.3.0 (2025-09-02)
+
+#### Feature
+
+* Add Philips Hue API v2 support for future Alexa compatibility ([#141](https://github.com/mabunixda/node-red-contrib-alexa-home/issues/141)) (74aaa964)
+
+
+
+[Changes][v2.3.0]
+
+
 <a id="v2.2.0"></a>
 # [v2.2.0](https://github.com/mabunixda/node-red-contrib-alexa-home/releases/tag/v2.2.0) - 2025-08-14
 
@@ -439,6 +453,7 @@ Relase of rewritten node implementation
 [Changes][1.0.0]
 
 
+[v2.3.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.2.0...v2.3.0
 [v2.2.0]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.3...v2.2.0
 [v2.1.3]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.2...v2.1.3
 [v2.1.2]: https://github.com/mabunixda/node-red-contrib-alexa-home/compare/v2.1.1...v2.1.2
