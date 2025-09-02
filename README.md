@@ -134,23 +134,24 @@ The easiest way to configure the Alexa Home Controller is through the Node-RED i
 
 When Alexa interacts with your devices, the following message properties are generated:
 
-| Property | Type | Description | Example |
-|----------|------|-------------|---------|
-| `msg.payload.on` | `boolean` | Device on/off state | `true` / `false` |
-| `msg.payload.bri` | `number` | Brightness level (0-254) | `128` |
-| `msg.payload.bri_normalized` | `number` | Brightness percentage (0-100) | `50` |
-| `msg.payload.xy` | `array` | CIE XY color coordinates | `[0.3127, 0.329]` |
-| `msg.payload.command` | `string` | Command type | `"switch"` / `"dim"` / `"color"` |
-| `msg.device_name` | `string` | Device name from configuration | `"Living Room Light"` |
-| `msg.light_id` | `string` | Unique device identifier | `"light_001"` |
-| `msg.alexa_ip` | `string` | IP address of requesting Alexa device | `"192.168.1.100"` |
-| `msg.change_direction` | `number` | Brightness change direction | `-1` / `0` / `1` |
+| Property                     | Type      | Description                           | Example                          |
+| ---------------------------- | --------- | ------------------------------------- | -------------------------------- |
+| `msg.payload.on`             | `boolean` | Device on/off state                   | `true` / `false`                 |
+| `msg.payload.bri`            | `number`  | Brightness level (0-254)              | `128`                            |
+| `msg.payload.bri_normalized` | `number`  | Brightness percentage (0-100)         | `50`                             |
+| `msg.payload.xy`             | `array`   | CIE XY color coordinates              | `[0.3127, 0.329]`                |
+| `msg.payload.command`        | `string`  | Command type                          | `"switch"` / `"dim"` / `"color"` |
+| `msg.device_name`            | `string`  | Device name from configuration        | `"Living Room Light"`            |
+| `msg.light_id`               | `string`  | Unique device identifier              | `"light_001"`                    |
+| `msg.alexa_ip`               | `string`  | IP address of requesting Alexa device | `"192.168.1.100"`                |
+| `msg.change_direction`       | `number`  | Brightness change direction           | `-1` / `0` / `1`                 |
 
 ### Input Message Format
 
 Send commands to your devices using these payload formats:
 
 #### On/Off Control
+
 ```javascript
 msg.payload = { on: true };  // Turn on
 msg.payload = { on: false }; // Turn off
@@ -162,12 +163,14 @@ msg.payload = 0;      // Turn off
 ```
 
 #### Brightness Control
+
 ```javascript
 msg.payload = { bri: 128 };     // Set brightness (0-254)
 msg.payload = { bri: 254, on: true }; // Full brightness and on
 ```
 
 #### Color Control
+
 ```javascript
 msg.payload = { xy: [0.675, 0.322] };  // Set color (CIE XY coordinates)
 msg.payload = {
@@ -178,6 +181,7 @@ msg.payload = {
 ```
 
 #### Combined Commands
+
 ```javascript
 msg.payload = {
   on: true,
