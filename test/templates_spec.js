@@ -145,7 +145,7 @@ describe("Templates and Static Resources", function () {
 
   describe("HTML Files", function () {
     it("should have valid alexa-home.html node definition", function () {
-      const htmlPath = path.join(__dirname, "../alexa/alexa-home.html");
+      const htmlPath = path.join(__dirname, "../alexa/nodes/alexa-lights.html");
       const content = fs.readFileSync(htmlPath, "utf8");
 
       // Should contain Node-RED node definition
@@ -160,7 +160,7 @@ describe("Templates and Static Resources", function () {
     it("should have valid alexa-home-controller.html node definition", function () {
       const htmlPath = path.join(
         __dirname,
-        "../alexa/alexa-home-controller.html",
+        "../alexa/nodes/alexa-home-controller.html",
       );
       const content = fs.readFileSync(htmlPath, "utf8");
 

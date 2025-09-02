@@ -6,15 +6,15 @@
 "use strict";
 
 module.exports = function (RED) {
-  const alexaHome = require("./alexa-helper");
-  const AlexaHub = require("./alexa-hub");
-  const TemplateManager = require("./template-manager");
-  const utils = require("./utils");
+  const alexaHome = require("../alexa-helper");
+  const AlexaHub = require("../alexa-hub");
+  const TemplateManager = require("../template-manager");
+  const utils = require("../utils");
   const path = require("path");
 
   // Initialize template manager
   const templateManager = new TemplateManager(
-    path.join(__dirname, "templates"),
+    path.join(__dirname, "../templates"),
   );
 
   /**
@@ -218,7 +218,7 @@ module.exports = function (RED) {
       node.templateManager = templateManager;
 
       // Initialize v2 API handler
-      const HueApiV2Handler = require("./hue-api-v2-handler");
+      const HueApiV2Handler = require("../hue-api-v2-handler");
       node.v2Handler = new HueApiV2Handler(node, node.templateManager);
 
       // Validate configuration: useNode and HTTPS are incompatible
@@ -766,6 +766,18 @@ module.exports = function (RED) {
       colormode: "ct",
       uniqueid: node.uniqueid,
     };
+
+    // Add device-type specific attributes
+    if (node.devicetype === "Window covering") {
+      defaultAttributes.position = node.position || 0;
+      defaultAttributes.bri = Math.round((defaultAttributes.position / 100) * 254);
+    }
+
+    if (node.devicetype === "Temperature sensor") {
+      defaultAttributes.temperature = node.temperature || 20.0;
+      defaultAttributes.scale = node.temperatureScale || "CELSIUS";
+      defaultAttributes.bri = Math.round((defaultAttributes.temperature + 50) * 2.54);
+    }
 
     return defaultAttributes;
   };

@@ -6,8 +6,8 @@
 "use strict";
 
 const helper = require("node-red-node-test-helper");
-const controllerNode = require("../alexa/alexa-home-controller.js");
-const alexaNode = require("../alexa/alexa-home.js");
+const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
+const alexaNode = require("../alexa/nodes/alexa-lights.js");
 const request = require("supertest");
 
 helper.init(require.resolve("node-red"));

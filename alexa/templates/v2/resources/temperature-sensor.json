@@ -1,0 +1,29 @@
+{
+    "errors": [],
+    "data": [
+        {
+            "id": "{{ id }}",
+            "id_v1": "/sensors/{{ id }}",
+            "type": "device",
+            "metadata": {
+                "name": "{{ name }}",
+                "archetype": "temperature_sensor"
+            },
+            "services": [
+                {
+                    "rid": "{{ sensor_service_id }}",
+                    "rtype": "temperature"
+                }
+            ],
+            "product_data": {
+                "model_id": "TS001",
+                "manufacturer_name": "Philips",
+                "product_name": "Temperature sensor",
+                "product_archetype": "temperature_sensor",
+                "certified": true,
+                "software_version": "1.88.1",
+                "hardware_platform_type": "100b-103"
+            }
+        }
+    ]
+}

@@ -1,6 +1,6 @@
 const should = require("should");
 const helper = require("node-red-node-test-helper");
-const controllerNode = require("../alexa/alexa-home-controller.js");
+const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
 const utils = require("../alexa/utils.js");
 
 helper.init(require.resolve("node-red"));

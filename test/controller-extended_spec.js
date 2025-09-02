@@ -1,8 +1,8 @@
 const should = require("should");
 const request = require("supertest");
 const helper = require("node-red-node-test-helper");
-const controllerNode = require("../alexa/alexa-home-controller.js");
-const alexaNode = require("../alexa/alexa-home.js");
+const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
+const alexaNode = require("../alexa/nodes/alexa-lights.js");
 
 let alexaHelper = require("../alexa/alexa-helper.js");
 
