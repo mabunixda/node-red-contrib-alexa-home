@@ -35,12 +35,12 @@ function getRandomTestPorts(count = 1, min = 50000, max = 65000) {
  * @returns {number} Port number
  */
 function getTestPortWithOffset(baseOffset = 0, range = 1000) {
-  const basePort = 50000 + (baseOffset * range);
+  const basePort = 50000 + baseOffset * range;
   return basePort + Math.floor(Math.random() * range);
 }
 
 module.exports = {
   getRandomTestPort,
   getRandomTestPorts,
-  getTestPortWithOffset
+  getTestPortWithOffset,
 };

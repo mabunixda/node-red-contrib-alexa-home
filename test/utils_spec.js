@@ -23,7 +23,6 @@ const {
 const utils = require("../alexa/utils");
 const TemplateManager = require("../alexa/template-manager");
 
-
 function getRandomTestPort(min = 1025, max = 65535) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -307,7 +306,11 @@ describe("Utility Modules", function () {
   });
 
   describe("Test Utilities", function () {
-    const { getRandomTestPort, getRandomTestPorts, getTestPortWithOffset } = require("./test-utils");
+    const {
+      getRandomTestPort,
+      getRandomTestPorts,
+      getTestPortWithOffset,
+    } = require("./test-utils");
 
     it("should generate random test ports", function () {
       const port1 = getRandomTestPort();
@@ -331,7 +334,7 @@ describe("Utility Modules", function () {
       uniquePorts.size.should.equal(5);
 
       // All should be in valid range
-      ports.forEach(port => {
+      ports.forEach((port) => {
         port.should.be.within(50000, 65000);
       });
     });

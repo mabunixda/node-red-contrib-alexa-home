@@ -82,7 +82,7 @@ describe("Multi-Device Registration", function () {
           deviceList.length.should.equal(4);
 
           // Check that each device type is represented
-          const deviceNames = deviceList.map(device => device.name);
+          const deviceNames = deviceList.map((device) => device.name);
 
           deviceNames.should.containEql("Test Light");
           deviceNames.should.containEql("Test Blinds");
@@ -90,10 +90,12 @@ describe("Multi-Device Registration", function () {
           deviceNames.should.containEql("Test Temperature Sensor");
 
           // Verify device types are correctly set
-          const lightDevice = deviceList.find(d => d.name === "Test Light");
-          const blindsDevice = deviceList.find(d => d.name === "Test Blinds");
-          const switchDevice = deviceList.find(d => d.name === "Test Switch");
-          const tempDevice = deviceList.find(d => d.name === "Test Temperature Sensor");
+          const lightDevice = deviceList.find((d) => d.name === "Test Light");
+          const blindsDevice = deviceList.find((d) => d.name === "Test Blinds");
+          const switchDevice = deviceList.find((d) => d.name === "Test Switch");
+          const tempDevice = deviceList.find(
+            (d) => d.name === "Test Temperature Sensor",
+          );
 
           lightDevice.should.have.property("type", "Extended color light");
           blindsDevice.should.have.property("type", "Window covering");
@@ -101,7 +103,7 @@ describe("Multi-Device Registration", function () {
           tempDevice.should.have.property("type", "CLIPTemperature");
 
           // Verify all devices have unique IDs and required properties
-          deviceList.forEach(device => {
+          deviceList.forEach((device) => {
             device.should.have.property("name");
             device.should.have.property("type");
             device.should.have.property("uniqueid");
