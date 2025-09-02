@@ -3,7 +3,7 @@
  */
 
 const helper = require("node-red-node-test-helper");
-const alexaSwitchNode = require("../alexa/nodes/alexa-switch.js");
+const alexaSwitchNode = require("../alexa/nodes/alexa-switch");
 
 helper.init(require.resolve("node-red"));
 
@@ -18,7 +18,7 @@ describe("alexa-switch node", function () {
   });
 
   describe("Switch Control", function () {
-    it.skip("should handle boolean true payload", function (done) {
+    it("should handle boolean true payload", function (done) {
       const flow = [
         {
           id: "n1",
@@ -46,7 +46,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle boolean false payload", function (done) {
+    it("should handle boolean false payload", function (done) {
       const flow = [
         {
           id: "n1",
@@ -73,7 +73,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle string 'on' payload", function (done) {
+    it("should handle string 'on' payload", function (done) {
       const flow = [
         {
           id: "n1",
@@ -99,7 +99,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle string 'off' payload", function (done) {
+    it("should handle string 'off' payload", function (done) {
       const flow = [
         {
           id: "n1",
@@ -125,7 +125,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle numeric 1 payload", function (done) {
+    it("should handle numeric 1 payload", function (done) {
       const flow = [
         {
           id: "n1",
@@ -151,7 +151,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle numeric 0 payload", function (done) {
+    it("should handle numeric 0 payload", function (done) {
       const flow = [
         {
           id: "n1",
@@ -177,7 +177,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle object payload with on property", function (done) {
+    it("should handle object payload with on property", function (done) {
       const flow = [
         {
           id: "n1",
@@ -205,7 +205,7 @@ describe("alexa-switch node", function () {
   });
 
   describe("Node Configuration", function () {
-    it.skip("should initialize with default values", function (done) {
+    it("should initialize with default values", function (done) {
       const flow = [
         {
           id: "n1",
@@ -224,7 +224,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle input trigger setting", function (done) {
+    it("should handle input trigger setting", function (done) {
       const flow = [
         {
           id: "n1",
@@ -258,7 +258,7 @@ describe("alexa-switch node", function () {
   });
 
   describe("Error Handling", function () {
-    it.skip("should handle invalid input gracefully", function (done) {
+    it("should handle invalid input gracefully", function (done) {
       const flow = [
         {
           id: "n1",
@@ -284,7 +284,7 @@ describe("alexa-switch node", function () {
       });
     });
 
-    it.skip("should handle null payload gracefully", function (done) {
+    it("should handle null payload gracefully", function (done) {
       const flow = [
         {
           id: "n1",

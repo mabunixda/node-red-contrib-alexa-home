@@ -124,7 +124,7 @@ describe("Node Refactoring - Device Type Separation", function () {
   });
 
   describe("alexa-switch", function () {
-    it.skip("should handle switch-specific functionality", function (done) {
+    it("should handle switch-specific functionality", function (done) {
       const flow = [
         {
           id: "n1",
@@ -154,7 +154,7 @@ describe("Node Refactoring - Device Type Separation", function () {
   });
 
   describe("Integration Testing - All Node Types", function () {
-    it.skip("should handle multiple device types in same flow", function (done) {
+    it("should handle multiple device types in same flow", function (done) {
       const flow = [
         {
           id: "light1",

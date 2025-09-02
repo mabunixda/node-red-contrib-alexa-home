@@ -27,38 +27,44 @@ module.exports = function (RED) {
       node.inputTrigger = Boolean(config.inputtrigger);
 
       // Initialize device state
-      node.state = false; // Default to off
-      node.bri = 254; // Full brightness when on (for Hue compatibility)
-
-      // Generate unique ID for the device
-      node.unique = utils.generateUniqueId(`${node.name}${node.id}${node.devicetype}`);
+      node.initializeState(config);
 
       // Set up event handlers
-      node.on("input", function(msg) {
-        node.handleInputMessage(msg);
-      });
+      node.setupEventHandlers();
 
-      node.on("close", function() {
-        if (node.controller && node.controller.deregisterCommand) {
-          node.controller.deregisterCommand(node.unique);
-        }
-      });
-
-      // Register with controller
-      if (alexaHome.controllerNode && alexaHome.controllerNode.registerCommand) {
-        alexaHome.controllerNode.registerCommand(node.unique, node);
-        node.controller = alexaHome.controllerNode;
-        node.status({ fill: "green", shape: "dot", text: "Connected" });
-      } else {
-        node.status({ fill: "red", shape: "dot", text: "No controller" });
-      }
-
-      RED.log.debug(`Alexa Switch Node '${node.name}' initialized successfully`);
+      // Show initial status
+      node.updateStatus("Ready", "green");
     } catch (error) {
-      RED.log.error(`Failed to initialize Alexa Switch Node: ${error.message}`);
-      node.status({ fill: "red", shape: "dot", text: `Init failed: ${error.message}` });
+      node.error(`Initialization failed: ${error.message}`);
+      node.updateStatus("Error", "red");
     }
   }
+
+    /**
+   * Initialize switch-specific device state
+   * @param {Object} config - Node configuration
+   */
+  AlexaSwitchNode.prototype.initializeState = function (config) {
+
+      // Initialize device state
+      this.state = false; // Default to off
+      this.bri = 254; // Full brightness when on (for Hue compatibility)
+
+  };
+
+      /**
+   * Set up event handlers for the blinds node
+   */
+  AlexaSwitchNode.prototype.setupEventHandlers = function () {
+    // Handle incoming messages
+    this.on("input", this.handleInputMessage.bind(this));
+
+    // Handle node close
+    this.on("close", this.handleNodeClose.bind(this));
+
+    // Register with controller if available
+    this.registerWithController();
+  };
 
   /**
    * Handle incoming messages for switch control
@@ -66,6 +72,7 @@ module.exports = function (RED) {
    */
   AlexaSwitchNode.prototype.handleInputMessage = function (msg) {
     try {
+
       // Validate input
       if (!msg || typeof msg !== "object") {
         this.warn("Invalid message received");
@@ -74,7 +81,7 @@ module.exports = function (RED) {
 
       let isOn = false;
 
-      if (typeof msg.payload === "object" && msg.payload.on !== undefined) {
+      if (typeof msg.payload === "object" && msg.payload !== null && msg.payload.on !== undefined) {
         isOn = Boolean(msg.payload.on);
       } else {
         // Handle various payload formats
@@ -84,6 +91,9 @@ module.exports = function (RED) {
           isOn = msg.payload === 1;
         } else if (typeof msg.payload === "boolean") {
           isOn = msg.payload;
+        } else if (msg.payload === null || msg.payload === undefined) {
+          // Explicitly handle null/undefined - default to false
+          isOn = false;
         }
         msg.payload = {}; // Reset to object structure
       }
@@ -115,6 +125,52 @@ module.exports = function (RED) {
     } catch (error) {
       this.error(`Error processing message: ${error.message}`, msg);
     }
+  };
+
+  /**
+   * Register with the Alexa controller
+   */
+  AlexaSwitchNode.prototype.registerWithController = function () {
+    const controllerNode = alexaHome.getController();
+    if (controllerNode) {
+      this.controller = controllerNode;
+      controllerNode.registerCommand(this.id, this.name, this.devicetype, this);
+      this.debug(`Registered with controller: ${this.name}`);
+    } else {
+      this.updateStatus("No Controller", "yellow");
+      this.debug("No controller found for registration");
+    }
+  };
+
+  /**
+   * Handle node close event
+   */
+  AlexaSwitchNode.prototype.handleNodeClose = function () {
+    if (this.controller) {
+      this.controller.deregisterCommand(this.id);
+      this.debug(`Deregistered from controller: ${this.name}`);
+    }
+  };
+
+  /**
+   * Update node status display
+   * @param {string} text - Status text
+   * @param {string} color - Status color
+   */
+  AlexaSwitchNode.prototype.updateStatus = function (text, color) {
+    this.status({
+      fill: color,
+      shape: "dot",
+      text: text
+    });
+  };
+
+  /**
+   * Generate unique ID for the blinds device
+   * @returns {string} Unique device ID
+   */
+  AlexaSwitchNode.prototype.generateUniqueId = function () {
+    return utils.generateUniqueId(this.name, this.devicetype);
   };
 
   // Register the node
