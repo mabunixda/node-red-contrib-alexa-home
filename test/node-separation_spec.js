@@ -147,7 +147,11 @@ describe("Node Refactoring - Device Type Separation", function () {
         { id: "output", type: "helper" },
       ];
 
-      const nodes = [alexaLightsNode, alexaBlindsNode, alexaTemperatureSensorNode];
+      const nodes = [
+        alexaLightsNode,
+        alexaBlindsNode,
+        alexaTemperatureSensorNode,
+      ];
 
       helper.load(nodes, flow, function () {
         const output = helper.getNode("output");

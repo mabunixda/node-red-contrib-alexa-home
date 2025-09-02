@@ -70,7 +70,10 @@ describe("alexa-temperature-sensor node", function () {
         });
 
         // Set temperature in Celsius - should be converted to Fahrenheit (20°C = 68°F)
-        n1.receive({ payload: { temperature: 20, scale: "CELSIUS" }, output: true });
+        n1.receive({
+          payload: { temperature: 20, scale: "CELSIUS" },
+          output: true,
+        });
       });
     });
 

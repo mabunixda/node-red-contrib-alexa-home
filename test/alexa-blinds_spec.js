@@ -133,7 +133,10 @@ describe("alexa-blinds node", function () {
         const expectedPositions = [0, 100]; // Out of range values should be clamped
 
         n2.on("input", function (msg) {
-          msg.payload.should.have.property("position", expectedPositions[messageCount]);
+          msg.payload.should.have.property(
+            "position",
+            expectedPositions[messageCount],
+          );
           messageCount++;
           if (messageCount === expectedPositions.length) {
             done();
