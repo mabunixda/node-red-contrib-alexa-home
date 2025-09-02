@@ -243,7 +243,10 @@ module.exports = function (RED) {
     msg.change_direction = 0;
 
     // Process color commands first (color with brightness should be treated as color)
-    if (msg.payload.xy || (msg.payload.hue !== undefined && msg.payload.sat !== undefined)) {
+    if (
+      msg.payload.xy ||
+      (msg.payload.hue !== undefined && msg.payload.sat !== undefined)
+    ) {
       return node.processColorCommand(msg);
     }
 
@@ -296,7 +299,8 @@ module.exports = function (RED) {
 
     // Color commands should also set device to on and use current brightness
     msg.payload.on = msg.payload.on !== undefined ? msg.payload.on : true;
-    msg.payload.bri = msg.payload.bri !== undefined ? msg.payload.bri : this.bri;
+    msg.payload.bri =
+      msg.payload.bri !== undefined ? msg.payload.bri : this.bri;
 
     // Handle different color input formats
     if (msg.payload.xy) {
@@ -308,7 +312,10 @@ module.exports = function (RED) {
       RED.log.debug(
         `${this.name} - Processing XY color command: [${coordinates.join(", ")}]`,
       );
-      this.setConnectionStatusMsg("blue", `Color XY: [${coordinates.join(", ")}]`);
+      this.setConnectionStatusMsg(
+        "blue",
+        `Color XY: [${coordinates.join(", ")}]`,
+      );
     } else if (msg.payload.hue !== undefined && msg.payload.sat !== undefined) {
       // Hue/Saturation provided (Alexa's preferred format)
       const hue = this.validateHue(msg.payload.hue);

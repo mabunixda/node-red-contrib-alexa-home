@@ -755,7 +755,10 @@ module.exports = function (RED) {
 
   AlexaHomeController.prototype.generateAPIDevice = function (uuid, node) {
     const defaultAttributes = {
-      on: (typeof node.state === 'object' && node.state !== null) ? node.state.on || false : node.state || false,
+      on:
+        typeof node.state === "object" && node.state !== null
+          ? node.state.on || false
+          : node.state || false,
       bri: node.bri,
       devicetype: node.devicetype,
       x: node.xy[0],

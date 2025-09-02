@@ -564,7 +564,10 @@ describe("alexa-home Node - Color Tests", function () {
           msg.payload.should.have.property("on", true);
           done();
         });
-        n1.receive({ payload: { hue: 43690, sat: 254, bri: 254 }, output: true });
+        n1.receive({
+          payload: { hue: 43690, sat: 254, bri: 254 },
+          output: true,
+        });
       });
     });
 
@@ -672,7 +675,10 @@ describe("alexa-home Node - Color Tests", function () {
           done();
         });
         // Exact payload from GitHub issue #143 that was failing
-        n1.receive({ payload: { on: true, hue: 43690, sat: 254, bri: 254 }, output: true });
+        n1.receive({
+          payload: { on: true, hue: 43690, sat: 254, bri: 254 },
+          output: true,
+        });
       });
     });
   });
