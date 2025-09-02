@@ -22,7 +22,7 @@ module.exports = function (RED) {
     try {
       // Initialize core properties
       node.name = config.devicename || "Alexa Blinds";
-      node.control = "blinds";
+      node.control = "lights"; // Use lights for Alexa compatibility
       node.devicetype = "Window covering";
       node.inputTrigger = Boolean(config.inputtrigger);
 

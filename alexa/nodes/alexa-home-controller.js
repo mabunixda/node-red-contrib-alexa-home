@@ -315,8 +315,16 @@ module.exports = function (RED) {
     const node = this;
     RED.log.info("Assigning alexa-home nodes to this controller");
 
+    const alexaNodeTypes = [
+      "alexa-home",
+      "alexa-lights",
+      "alexa-blinds",
+      "alexa-switch",
+      "alexa-temperature-sensor",
+    ];
+
     RED.nodes.eachNode(function (n) {
-      if (n.type === "alexa-home") {
+      if (alexaNodeTypes.includes(n.type)) {
         const deviceNode = RED.nodes.getNode(n.id);
         if (deviceNode) {
           node.registerCommand(deviceNode);

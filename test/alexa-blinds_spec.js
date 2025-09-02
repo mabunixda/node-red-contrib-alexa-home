@@ -171,7 +171,7 @@ describe("alexa-blinds node", function () {
 
         n1.should.have.property("name", "Default Blinds");
         n1.should.have.property("devicetype", "Window covering");
-        n1.should.have.property("control", "blinds");
+        n1.should.have.property("control", "lights");
         n1.state.should.have.property("position", 100); // Default fully open
         done();
       });
