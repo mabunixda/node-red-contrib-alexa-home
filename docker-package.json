@@ -1,8 +1,0 @@
-{
-  "_comment": "Optional Node-RED packages for Docker image",
-  "_disabled": {
-    "node-red-contrib-loxone": "*",
-    "node-red-contrib-samsung-tv": "*",
-    "node-red-contrib-alexa-remote2": "*"
-  }
-}
