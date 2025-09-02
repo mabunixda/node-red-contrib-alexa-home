@@ -1,2 +1,4 @@
 node_modules*
 data*
+*.md
+.nyc_output

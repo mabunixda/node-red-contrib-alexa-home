@@ -242,14 +242,14 @@ module.exports = function (RED) {
     // Initialize change direction tracking
     msg.change_direction = 0;
 
+    // Process color commands first (color with brightness should be treated as color)
+    if (msg.payload.xy) {
+      return node.processColorCommand(msg);
+    }
+
     // Process brightness commands
     if (msg.payload.bri !== undefined) {
       return node.processBrightnessCommand(msg);
-    }
-
-    // Process color commands
-    if (msg.payload.xy) {
-      return node.processColorCommand(msg);
     }
 
     // Process on/off commands

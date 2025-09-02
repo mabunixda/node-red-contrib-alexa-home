@@ -3,6 +3,10 @@
   "version": "2.0.0",
   "description": "Works directly with Alexa in your local network",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.5.0",
+    "node-red": ">=4.0.0"
+  },
   "keywords": [
     "node-red",
     "alexa",
@@ -16,8 +20,10 @@
     }
   },
   "dependencies": {
+    "escape-html": "^1.0.3",
     "express": "^5.1.0",
-    "node-ssdp": "^4.0.1"
+    "node-ssdp": "^4.0.1",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -28,17 +34,19 @@
     "node-red": "^4.1.0",
     "node-red-node-test-helper": "^0.3.0",
     "npm-check": "^6.0.1",
+    "nyc": "^17.1.0",
     "prettier": "^3.6.2",
     "should": "^13.2.3",
     "supertest": "^7.1.4"
   },
   "scripts": {
     "test": "mocha --sort --exit --timeout 5000 test/**/*.js",
-    "lint:fix": "eslint --fix alexa/**.js",
-    "lint": "eslint alexa/**.js",
-    "eslint:github-action": "eslint alexa/**.js",
+    "lint:fix": "eslint --fix alexa/**/*.js test/**/*.js",
+    "lint": "eslint alexa/**/*.js test/**/*.js",
+    "eslint:github-action": "eslint alexa/**/*.js test/**/*.js",
     "fmt": "prettier --write **/*.{js,yml}",
-    "fmt:check": "prettier --check **/*.{js,yml}"
+    "fmt:check": "prettier --check **/*.{js,yml}",
+    "coverage": "nyc npm test"
   },
   "repository": "mabunixda/node-red-contrib-alexa-home"
 }

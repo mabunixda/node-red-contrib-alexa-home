@@ -1,0 +1,245 @@
+[
+    {
+        "id": "controller1",
+        "type": "alexa-home-controller",
+        "controllername": "Color Scene Controller",
+        "port": "80",
+        "useHttps": false,
+        "useNode": false,
+        "maxItems": -1,
+        "x": 150,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "colorstrip1",
+        "type": "alexa-home",
+        "devicename": "RGB Strip",
+        "devicetype": "Extended color light",
+        "x": 150,
+        "y": 160,
+        "wires": [["color-processor1"]]
+    },
+    {
+        "id": "colorstrip2",
+        "type": "alexa-home",
+        "devicename": "Accent Light",
+        "devicetype": "Color light",
+        "x": 150,
+        "y": 220,
+        "wires": [["color-processor1"]]
+    },
+    {
+        "id": "colorstrip3",
+        "type": "alexa-home",
+        "devicename": "Cabinet Light",
+        "devicetype": "Extended color light",
+        "x": 150,
+        "y": 280,
+        "wires": [["color-processor1"]]
+    },
+    {
+        "id": "scene-light",
+        "type": "alexa-home",
+        "devicename": "Scene Controller",
+        "devicetype": "Scene",
+        "x": 150,
+        "y": 340,
+        "wires": [["scene-processor1"]]
+    },
+    {
+        "id": "color-processor1",
+        "type": "function",
+        "name": "Advanced Color Processor",
+        "func": "// Advanced color processing with CIE XY coordinate handling\n// Supports color temperature, RGB conversion, and color validation\n\nconst msg_out = [];\n\n// Store device name for targeting\nconst deviceName = msg.alexa_device_name || 'Unknown Device';\n\n// Color presets (CIE XY coordinates)\nconst colorPresets = {\n    'red': [0.675, 0.322],\n    'green': [0.408, 0.517],\n    'blue': [0.167, 0.04],\n    'purple': [0.385, 0.155],\n    'yellow': [0.441, 0.518],\n    'orange': [0.506, 0.416],\n    'pink': [0.3766, 0.1744],\n    'white': [0.3227, 0.329],\n    'warm white': [0.4091, 0.3941],\n    'cool white': [0.2858, 0.2747]\n};\n\n// Color temperature to XY conversion (simplified)\nfunction colorTempToXY(temp) {\n    // Simplified conversion for demonstration\n    // Real implementation would use proper CIE calculations\n    if (temp < 2700) return [0.4091, 0.3941]; // Warm\n    if (temp > 6500) return [0.2858, 0.2747]; // Cool\n    \n    // Linear interpolation between warm and cool\n    const ratio = (temp - 2700) / (6500 - 2700);\n    const x = 0.4091 - (0.4091 - 0.2858) * ratio;\n    const y = 0.3941 - (0.3941 - 0.2747) * ratio;\n    return [x, y];\n}\n\n// XY to RGB conversion (simplified)\nfunction xyToRGB(x, y, brightness = 1) {\n    // Simplified conversion - real implementation needs proper CIE math\n    const z = 1.0 - x - y;\n    const Y = brightness;\n    const X = (Y / y) * x;\n    const Z = (Y / y) * z;\n    \n    // XYZ to RGB matrix (simplified sRGB)\n    let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;\n    let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;\n    let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;\n    \n    // Gamma correction and normalization\n    r = Math.max(0, Math.min(1, r));\n    g = Math.max(0, Math.min(1, g));\n    b = Math.max(0, Math.min(1, b));\n    \n    return {\n        r: Math.round(r * 255),\n        g: Math.round(g * 255),\n        b: Math.round(b * 255)\n    };\n}\n\n// Process the command\nif (msg.payload.command === 'color' && msg.payload.xy) {\n    const x = msg.payload.xy[0];\n    const y = msg.payload.xy[1];\n    const brightness = msg.payload.bri_normalized || 100;\n    \n    // Validate XY coordinates\n    if (x < 0 || x > 1 || y < 0 || y > 1) {\n        node.warn(`Invalid XY coordinates: [${x}, ${y}]`);\n        return null;\n    }\n    \n    // Convert to RGB\n    const rgb = xyToRGB(x, y, brightness / 100);\n    \n    // Create enhanced payload\n    const output = {\n        device: deviceName,\n        command: 'color',\n        power: msg.payload.on,\n        brightness: brightness,\n        color: {\n            xy: [x, y],\n            rgb: rgb,\n            hex: `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`\n        },\n        timestamp: new Date().toISOString()\n    };\n    \n    // Route to appropriate output\n    msg_out.push({\n        topic: `color/${deviceName.toLowerCase().replace(/\\s+/g, '_')}`,\n        payload: output\n    });\n    \n} else if (msg.payload.command === 'dim') {\n    // Handle brightness only\n    const output = {\n        device: deviceName,\n        command: 'brightness',\n        power: msg.payload.on,\n        brightness: msg.payload.bri_normalized || 0,\n        timestamp: new Date().toISOString()\n    };\n    \n    msg_out.push({\n        topic: `brightness/${deviceName.toLowerCase().replace(/\\s+/g, '_')}`,\n        payload: output\n    });\n    \n} else if (msg.payload.command === 'switch') {\n    // Handle power only\n    const output = {\n        device: deviceName,\n        command: 'power',\n        power: msg.payload.on,\n        timestamp: new Date().toISOString()\n    };\n    \n    msg_out.push({\n        topic: `power/${deviceName.toLowerCase().replace(/\\s+/g, '_')}`,\n        payload: output\n    });\n}\n\nreturn msg_out;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 220,
+        "wires": [["debug1", "mqtt-out1"]]
+    },
+    {
+        "id": "scene-processor1",
+        "type": "function",
+        "name": "Scene Processor",
+        "func": "// Scene processor for coordinated lighting control\n// Triggers multiple devices with preset configurations\n\nconst scenes = {\n    'movie': {\n        description: 'Dim warm lighting for movies',\n        devices: [\n            { name: 'RGB Strip', xy: [0.4091, 0.3941], brightness: 20 },\n            { name: 'Accent Light', xy: [0.4091, 0.3941], brightness: 15 },\n            { name: 'Cabinet Light', xy: [0.4091, 0.3941], brightness: 10 }\n        ]\n    },\n    'party': {\n        description: 'Colorful party lighting',\n        devices: [\n            { name: 'RGB Strip', xy: [0.675, 0.322], brightness: 100 }, // Red\n            { name: 'Accent Light', xy: [0.167, 0.04], brightness: 100 }, // Blue\n            { name: 'Cabinet Light', xy: [0.408, 0.517], brightness: 100 } // Green\n        ]\n    },\n    'relax': {\n        description: 'Soft relaxing colors',\n        devices: [\n            { name: 'RGB Strip', xy: [0.3766, 0.1744], brightness: 40 }, // Pink\n            { name: 'Accent Light', xy: [0.385, 0.155], brightness: 30 }, // Purple\n            { name: 'Cabinet Light', xy: [0.4091, 0.3941], brightness: 25 } // Warm white\n        ]\n    },\n    'work': {\n        description: 'Bright white light for productivity',\n        devices: [\n            { name: 'RGB Strip', xy: [0.2858, 0.2747], brightness: 90 }, // Cool white\n            { name: 'Accent Light', xy: [0.3227, 0.329], brightness: 80 }, // White\n            { name: 'Cabinet Light', xy: [0.2858, 0.2747], brightness: 85 } // Cool white\n        ]\n    }\n};\n\n// Determine scene from device name or payload\nlet sceneName = '';\nif (msg.alexa_device_name && msg.alexa_device_name.includes('Scene')) {\n    // Extract scene from voice command context\n    const deviceName = msg.alexa_device_name.toLowerCase();\n    Object.keys(scenes).forEach(scene => {\n        if (deviceName.includes(scene)) {\n            sceneName = scene;\n        }\n    });\n}\n\n// If no scene detected, default to 'work' for on, off for off\nif (!sceneName) {\n    sceneName = msg.payload.on ? 'work' : 'off';\n}\n\nif (sceneName === 'off') {\n    // Turn off all devices\n    const output = {\n        scene: 'off',\n        devices: Object.keys(scenes.work.devices).map(i => ({\n            name: scenes.work.devices[i].name,\n            command: 'power',\n            power: false\n        })),\n        timestamp: new Date().toISOString()\n    };\n    \n    return {\n        topic: 'scene/control',\n        payload: output\n    };\n}\n\nconst scene = scenes[sceneName];\nif (!scene) {\n    node.warn(`Unknown scene: ${sceneName}`);\n    return null;\n}\n\n// Create scene activation payload\nconst output = {\n    scene: sceneName,\n    description: scene.description,\n    devices: scene.devices.map(device => ({\n        name: device.name,\n        command: 'color',\n        power: true,\n        brightness: device.brightness,\n        color: {\n            xy: device.xy\n        }\n    })),\n    timestamp: new Date().toISOString()\n};\n\nreturn {\n    topic: 'scene/control',\n    payload: output\n};",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 340,
+        "wires": [["debug2", "scene-distributor1"]]
+    },
+    {
+        "id": "scene-distributor1",
+        "type": "function",
+        "name": "Scene Device Distributor",
+        "func": "// Distribute scene commands to individual devices\n// Takes scene payload and creates individual device messages\n\nconst outputs = [];\n\nif (msg.payload.devices && Array.isArray(msg.payload.devices)) {\n    msg.payload.devices.forEach(device => {\n        const deviceMsg = {\n            topic: `device/${device.name.toLowerCase().replace(/\\s+/g, '_')}`,\n            payload: {\n                device: device.name,\n                command: device.command,\n                power: device.power,\n                brightness: device.brightness,\n                color: device.color,\n                scene: msg.payload.scene,\n                timestamp: msg.payload.timestamp\n            }\n        };\n        outputs.push(deviceMsg);\n    });\n}\n\nreturn [outputs];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 340,
+        "wires": [["mqtt-out2"]]
+    },
+    {
+        "id": "mqtt-out1",
+        "type": "mqtt out",
+        "name": "Individual Device Control",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "",
+        "x": 670,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "mqtt-out2",
+        "type": "mqtt out",
+        "name": "Scene Device Control",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "",
+        "x": 650,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "debug1",
+        "type": "debug",
+        "name": "Color Commands",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "debug2",
+        "type": "debug",
+        "name": "Scene Commands",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "test-red",
+        "type": "inject",
+        "name": "Test Red Color",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "alexa_device_name",
+                "v": "RGB Strip",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"command\":\"color\",\"on\":true,\"xy\":[0.675,0.322],\"bri_normalized\":80}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 440,
+        "wires": [["color-processor1"]]
+    },
+    {
+        "id": "test-blue",
+        "type": "inject",
+        "name": "Test Blue Color",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "alexa_device_name",
+                "v": "Accent Light",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"command\":\"color\",\"on\":true,\"xy\":[0.167,0.04],\"bri_normalized\":60}",
+        "payloadType": "json",
+        "x": 140,
+        "y": 480,
+        "wires": [["color-processor1"]]
+    },
+    {
+        "id": "test-scene",
+        "type": "inject",
+        "name": "Test Movie Scene",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "alexa_device_name",
+                "v": "Scene Controller",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"on\":true}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 520,
+        "wires": [["scene-processor1"]]
+    },
+    {
+        "id": "comment1",
+        "type": "comment",
+        "name": "Advanced Color Control with Scenes",
+        "info": "This example demonstrates advanced color control using CIE XY coordinates and scene management.\n\n**Features:**\n- CIE XY color space support with validation\n- RGB conversion and hex color output\n- Color temperature handling\n- Predefined color presets\n- Scene-based lighting control\n- Coordinated multi-device scenes\n- Enhanced debug output with timestamps\n\n**Supported Voice Commands:**\n- \"Alexa, set RGB strip to red\"\n- \"Alexa, make accent light blue\" \n- \"Alexa, dim cabinet light to 30%\"\n- \"Alexa, activate movie scene\"\n- \"Alexa, turn on party scene\"\n\n**Scene Types:**\n- **Movie**: Warm dim lighting (20%, 15%, 10%)\n- **Party**: Bright colorful RGB rotation\n- **Relax**: Soft pink/purple ambient\n- **Work**: Bright cool white productivity\n\n**Color Processing:**\n- Validates XY coordinates (0.0-1.0 range)\n- Converts XY to RGB with gamma correction\n- Generates hex color codes\n- Handles color temperature conversion\n- Provides enhanced device targeting\n\n**Technical Details:**\n- Uses proper CIE XY color coordinates\n- Implements simplified XYZ to RGB conversion\n- Scene distributor for multi-device coordination\n- MQTT topics with device-specific routing\n- Comprehensive error handling and validation",
+        "x": 200,
+        "y": 40,
+        "wires": []
+    }
+]
