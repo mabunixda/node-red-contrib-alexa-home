@@ -37,16 +37,8 @@ function getSecureRandom(min, max) {
  * @returns {number} Random number
  */
 function getEnhancedRandom(min, max) {
-  // Use process ID and high-resolution time as additional entropy
-  const processEntropy = process.pid;
-  const timeEntropy = process.hrtime.bigint();
-  const cryptoRandom = getSecureRandom(0, 0xffffff);
-
-  // Combine multiple entropy sources
-  const combined = Number(timeEntropy) ^ processEntropy ^ cryptoRandom;
-  const range = max - min + 1;
-
-  return (Math.abs(combined) % range) + min;
+  // Use cryptographically secure, unbiased randomness.
+  return getSecureRandom(min, max);
 }
 
 /**
