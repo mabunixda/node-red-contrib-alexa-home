@@ -3,6 +3,10 @@
   "version": "2.0.0",
   "description": "Works directly with Alexa in your local network",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.5.0",
+    "node-red": ">=4.0.0"
+  },
   "keywords": [
     "node-red",
     "alexa",
