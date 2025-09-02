@@ -2,29 +2,86 @@
  * Test utilities for parallel test execution
  */
 
+const crypto = require("crypto");
+
+/**
+ * Generate a cryptographically strong random number between min and max (inclusive)
+ * Uses Node.js crypto module for better entropy than Math.random()
+ * @param {number} min - Minimum value
+ * @param {number} max - Maximum value
+ * @returns {number} Random number
+ */
+function getSecureRandom(min, max) {
+  const range = max - min + 1;
+  const bytesNeeded = Math.ceil(Math.log2(range) / 8);
+  const maxValue = Math.pow(256, bytesNeeded);
+  const threshold = maxValue - (maxValue % range);
+
+  let randomValue;
+  do {
+    const randomBytes = crypto.randomBytes(bytesNeeded);
+    randomValue = 0;
+    for (let i = 0; i < bytesNeeded; i++) {
+      randomValue = (randomValue << 8) + randomBytes[i];
+    }
+  } while (randomValue >= threshold);
+
+  return (randomValue % range) + min;
+}
+
+/**
+ * Enhanced random with process-based entropy
+ * Combines crypto random with process ID and timestamp for better distribution
+ * @param {number} min - Minimum value
+ * @param {number} max - Maximum value
+ * @returns {number} Random number
+ */
+function getEnhancedRandom(min, max) {
+  // Use process ID and high-resolution time as additional entropy
+  const processEntropy = process.pid;
+  const timeEntropy = process.hrtime.bigint();
+  const cryptoRandom = getSecureRandom(0, 0xffffff);
+
+  // Combine multiple entropy sources
+  const combined = Number(timeEntropy) ^ processEntropy ^ cryptoRandom;
+  const range = max - min + 1;
+
+  return (Math.abs(combined) % range) + min;
+}
+
 /**
  * Generate a random test port in a safe range for testing
- * Uses a wide range to minimize conflicts during parallel execution
- * @param {number} min - Minimum port number (default: 50000)
+ * Uses enhanced randomness to minimize conflicts during parallel execution
+ * @param {number} min - Minimum port number (default: 30000)
  * @param {number} max - Maximum port number (default: 65000)
  * @returns {number} Random port number
  */
-function getRandomTestPort(min = 50000, max = 65000) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomTestPort(min = 30000, max = 65000) {
+  return getEnhancedRandom(min, max);
 }
 
 /**
  * Generate multiple unique test ports for a single test
  * @param {number} count - Number of ports needed
- * @param {number} min - Minimum port number (default: 50000)
+ * @param {number} min - Minimum port number (default: 30000)
  * @param {number} max - Maximum port number (default: 65000)
  * @returns {number[]} Array of unique port numbers
  */
-function getRandomTestPorts(count = 1, min = 50000, max = 65000) {
+function getRandomTestPorts(count = 1, min = 30000, max = 65000) {
   const ports = new Set();
-  while (ports.size < count) {
-    ports.add(getRandomTestPort(min, max));
+  let attempts = 0;
+  const maxAttempts = count * 10; // Prevent infinite loops
+
+  while (ports.size < count && attempts < maxAttempts) {
+    ports.add(getEnhancedRandom(min, max));
+    attempts++;
   }
+
+  // If we couldn't get enough unique ports, fill with crypto random
+  while (ports.size < count) {
+    ports.add(getSecureRandom(min, max));
+  }
+
   return Array.from(ports);
 }
 
@@ -35,13 +92,34 @@ function getRandomTestPorts(count = 1, min = 50000, max = 65000) {
  * @returns {number} Port number
  */
 function getTestPortWithOffset(baseOffset = 0, range = 1000) {
-  const basePort = 50000 + baseOffset * range;
-  return basePort + Math.floor(Math.random() * range);
+  const basePort = 30000 + baseOffset * range;
+  return basePort + getEnhancedRandom(0, range - 1);
+}
+
+/**
+ * Generate a port with time-based seed for even better distribution
+ * Useful when you need ports that are very unlikely to collide across processes
+ * @param {number} min - Minimum port number (default: 30000)
+ * @param {number} max - Maximum port number (default: 65000)
+ * @returns {number} Random port number
+ */
+function getTimeBasedPort(min = 30000, max = 65000) {
+  const now = Date.now();
+  const nanos = process.hrtime.bigint();
+  const pid = process.pid;
+
+  // Create a unique seed combining timestamp, nanoseconds, and process ID
+  const seed = Number(nanos) ^ now ^ (pid << 16);
+  const range = max - min + 1;
+
+  return (Math.abs(seed) % range) + min;
 }
 
 module.exports = {
   getRandomTestPort,
   getRandomTestPorts,
   getTestPortWithOffset,
+  getTimeBasedPort,
+  getSecureRandom,
+  getEnhancedRandom,
 };
-// Test comment

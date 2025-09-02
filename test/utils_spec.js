@@ -318,8 +318,8 @@ describe("Utility Modules", function () {
 
       port1.should.be.a.Number();
       port2.should.be.a.Number();
-      port1.should.be.within(50000, 65000);
-      port2.should.be.within(50000, 65000);
+      port1.should.be.within(30000, 65000);
+      port2.should.be.within(30000, 65000);
 
       // They should be different (extremely high probability)
       port1.should.not.equal(port2);
@@ -335,7 +335,7 @@ describe("Utility Modules", function () {
 
       // All should be in valid range
       ports.forEach((port) => {
-        port.should.be.within(50000, 65000);
+        port.should.be.within(30000, 65000);
       });
     });
 
@@ -343,8 +343,8 @@ describe("Utility Modules", function () {
       const port1 = getTestPortWithOffset(0);
       const port2 = getTestPortWithOffset(1);
 
-      port1.should.be.within(50000, 51000);
-      port2.should.be.within(51000, 52000);
+      port1.should.be.within(30000, 31000);
+      port2.should.be.within(31000, 32000);
     });
   });
 });
