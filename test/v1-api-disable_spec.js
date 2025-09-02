@@ -19,9 +19,7 @@ describe("v1 API Disable Feature", function () {
     helper.stopServer(done);
   });
 
-
   it("should disable v1 API when disableV1Api flag is set", function (done) {
-
     const flow = [
       {
         id: "controller1",
@@ -36,7 +34,9 @@ describe("v1 API Disable Feature", function () {
     helper.load(controllerNode, flow, function () {
       const controller = helper.getNode("controller1");
       controller.should.have.property("disableV1Api", true);
-      console.log(`Controller loaded with disableV1Api: ${controller.disableV1Api}`);
+      console.log(
+        `Controller loaded with disableV1Api: ${controller.disableV1Api}`,
+      );
       done();
     });
   });
@@ -58,7 +58,9 @@ describe("v1 API Disable Feature", function () {
     helper.load(controllerNode, flow, function () {
       const controller = helper.getNode("controller1");
       controller.should.have.property("disableV1Api", false);
-      console.log(`Controller loaded with disableV1Api: ${controller.disableV1Api}`);
+      console.log(
+        `Controller loaded with disableV1Api: ${controller.disableV1Api}`,
+      );
       done();
     });
   });

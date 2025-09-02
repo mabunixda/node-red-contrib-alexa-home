@@ -87,7 +87,9 @@ module.exports = function (RED) {
 
       // Check if v1 API is disabled
       if (node.disableV1Api) {
-        res.status(404).json({ error: "v1 API disabled - use v2 API endpoints" });
+        res
+          .status(404)
+          .json({ error: "v1 API disabled - use v2 API endpoints" });
         return;
       }
 
@@ -208,7 +210,9 @@ module.exports = function (RED) {
 
         // Check if v1 API is disabled
         if (node.disableV1Api) {
-          res.status(404).json({ error: "v1 API disabled - use v2 API endpoints" });
+          res
+            .status(404)
+            .json({ error: "v1 API disabled - use v2 API endpoints" });
           return;
         }
 

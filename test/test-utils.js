@@ -2,7 +2,7 @@
  * Test utilities for parallel test execution
  */
 
-const net = require('net');
+const net = require("net");
 
 /**
  * Check if a port is available synchronously
@@ -12,7 +12,7 @@ const net = require('net');
 function isPortAvailable(port) {
   try {
     const server = net.createServer();
-    server.listen(port, '127.0.0.1');
+    server.listen(port, "127.0.0.1");
     server.close();
     return true;
   } catch (error) {
@@ -37,7 +37,9 @@ function getRandomTestPort(min = 30000, max = 65000, maxAttempts = 100) {
   }
 
   // Fallback: if no available port found, return a random port and let the test handle the conflict
-  console.warn(`Warning: Could not find an available port after ${maxAttempts} attempts. Returning random port.`);
+  console.warn(
+    `Warning: Could not find an available port after ${maxAttempts} attempts. Returning random port.`,
+  );
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
@@ -62,7 +64,9 @@ function getRandomTestPorts(count = 1, min = 30000, max = 65000) {
   }
 
   if (ports.size < count) {
-    console.warn(`Warning: Could only find ${ports.size} available ports out of ${count} requested.`);
+    console.warn(
+      `Warning: Could only find ${ports.size} available ports out of ${count} requested.`,
+    );
   }
 
   return Array.from(ports);
