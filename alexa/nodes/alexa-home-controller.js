@@ -65,6 +65,13 @@ module.exports = function (RED) {
         res.status(503).send("Alexa Home Controller not available");
         return;
       }
+
+      // Check if v1 API is disabled
+      if (node.disableV1Api) {
+        res.status(404).send("v1 API disabled - use v2 API endpoints");
+        return;
+      }
+
       node.handleSetup(node.id, req, res);
     }),
   );
@@ -77,6 +84,13 @@ module.exports = function (RED) {
         res.status(503).json({ error: "Alexa Home Controller not available" });
         return;
       }
+
+      // Check if v1 API is disabled
+      if (node.disableV1Api) {
+        res.status(404).json({ error: "v1 API disabled - use v2 API endpoints" });
+        return;
+      }
+
       node.handleRegistration(node.id, req, res);
     }),
   );
@@ -191,6 +205,13 @@ module.exports = function (RED) {
           res.status(503).json({ error: "Controller not available" });
           return;
         }
+
+        // Check if v1 API is disabled
+        if (node.disableV1Api) {
+          res.status(404).json({ error: "v1 API disabled - use v2 API endpoints" });
+          return;
+        }
+
         node[route.handler](node.id, req, res);
       }),
     );
@@ -213,6 +234,7 @@ module.exports = function (RED) {
       node._commands = new Map();
       node._hub = [];
       node.useNode = config.useNode || false;
+      node.disableV1Api = config.disableV1Api || false;
 
       // Initialize template manager
       node.templateManager = templateManager;
