@@ -12,15 +12,12 @@ const alexaBlindsNode = require("../alexa/nodes/alexa-blinds.js");
 const alexaSwitchNode = require("../alexa/nodes/alexa-switch.js");
 const alexaTemperatureSensorNode = require("../alexa/nodes/alexa-temperature-sensor.js");
 const alexaHelper = require("../alexa/alexa-helper.js");
-
-function between(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+const { getRandomTestPort } = require("./test-utils");
 
 describe("Multi-Device Registration", function () {
   beforeEach(function (done) {
     // Set a test port for alexa helper
-    alexaHelper.hubPort = between(50000, 60000);
+    alexaHelper.hubPort = getRandomTestPort();
     helper.startServer(done);
   });
 

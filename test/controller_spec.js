@@ -3,13 +3,10 @@ const should = require("should");
 const helper = require("node-red-node-test-helper");
 const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
 const alexaNode = require("../alexa/nodes/alexa-lights.js");
+const { getRandomTestPort } = require("./test-utils");
 
 let alexaHelper = require("../alexa/alexa-helper.js");
-alexaHelper.hubPort = 60000;
-
-function between(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
+alexaHelper.hubPort = getRandomTestPort();
 
 function IsJsonString(str) {
   try {
@@ -40,7 +37,7 @@ describe("alexa-home-controller Node", function () {
   });
 
   it("should be loaded with correct default params", function (done) {
-    hubPort = between(50000, 60000);
+    hubPort = getRandomTestPort();
     const flow = [
       {
         id: "n1",
@@ -68,7 +65,7 @@ describe("alexa-home-controller Node", function () {
     });
   });
   it("should respond to setup request", function (done) {
-    hubPort = between(50000, 60000);
+    hubPort = getRandomTestPort();
     const flow = [
       {
         id: "n1",
@@ -93,7 +90,7 @@ describe("alexa-home-controller Node", function () {
     });
   });
   it("should respond to config request", function (done) {
-    hubPort = between(50000, 60000);
+    hubPort = getRandomTestPort();
     const flow = [
       {
         id: "n1",
@@ -122,7 +119,7 @@ describe("alexa-home-controller Node", function () {
     });
   });
   it("should respond to lights request", function (done) {
-    hubPort = between(50000, 60000);
+    hubPort = getRandomTestPort();
     const flow = [
       {
         id: "n1",
@@ -151,7 +148,7 @@ describe("alexa-home-controller Node", function () {
     });
   });
   it("should respond to registration request", function (done) {
-    hubPort = between(50000, 60000);
+    hubPort = getRandomTestPort();
     const flow = [
       {
         id: "n1",

@@ -406,7 +406,7 @@ module.exports = function (RED) {
    * @param {number} hue - Hue value (0-65535 for Philips Hue compatibility)
    * @returns {number} Valid hue value
    */
-  AlexaHomeNode.prototype.validateHue = function (hue) {
+  AlexaLightsNode.prototype.validateHue = function (hue) {
     const numericHue = parseInt(hue) || 0;
     return Math.max(0, Math.min(65535, numericHue));
   };
@@ -416,7 +416,7 @@ module.exports = function (RED) {
    * @param {number} sat - Saturation value (0-254 for Philips Hue compatibility)
    * @returns {number} Valid saturation value
    */
-  AlexaHomeNode.prototype.validateSaturation = function (sat) {
+  AlexaLightsNode.prototype.validateSaturation = function (sat) {
     const numericSat = parseInt(sat) || 0;
     return Math.max(0, Math.min(254, numericSat));
   };

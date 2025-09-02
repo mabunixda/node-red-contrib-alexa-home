@@ -8,6 +8,7 @@
 const helper = require("node-red-node-test-helper");
 const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
 const alexaNode = require("../alexa/nodes/alexa-lights.js");
+const { getRandomTestPort } = require("./test-utils");
 const request = require("supertest");
 
 helper.init(require.resolve("node-red"));
@@ -24,7 +25,7 @@ describe("Hue API v2 Security and Validation", function () {
 
   describe("Input Sanitization", function () {
     it("should handle HTML in device names (escaping not implemented)", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -78,7 +79,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should handle special characters in device names (escaping not implemented)", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -135,7 +136,7 @@ describe("Hue API v2 Security and Validation", function () {
 
   describe("Parameter Validation", function () {
     it("should validate brightness values are within range", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -198,7 +199,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should validate color temperature mirek values", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -258,7 +259,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should validate XY color coordinates", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -323,7 +324,7 @@ describe("Hue API v2 Security and Validation", function () {
 
   describe("CORS and Headers", function () {
     it("should include proper CORS headers for v2 API", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -376,7 +377,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should handle OPTIONS requests for CORS preflight", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -426,7 +427,7 @@ describe("Hue API v2 Security and Validation", function () {
 
   describe("Malformed Requests", function () {
     it("should handle invalid JSON in PUT requests", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -472,7 +473,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should handle extremely long resource IDs", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -510,7 +511,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should handle requests with missing Content-Type", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -558,7 +559,7 @@ describe("Hue API v2 Security and Validation", function () {
 
   describe("Rate Limiting and Performance", function () {
     it("should handle rapid consecutive requests", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -622,7 +623,7 @@ describe("Hue API v2 Security and Validation", function () {
     });
 
     it("should handle large request bodies", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",

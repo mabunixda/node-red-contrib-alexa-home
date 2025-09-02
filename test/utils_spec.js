@@ -23,6 +23,11 @@ const {
 const utils = require("../alexa/utils");
 const TemplateManager = require("../alexa/template-manager");
 
+
+function getRandomTestPort(min = 1025, max = 65535) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 describe("Utility Modules", function () {
   describe("Template Engine", function () {
     it("should render simple variables", function () {
@@ -298,6 +303,45 @@ describe("Utility Modules", function () {
       tm.validateData({ name: "test", age: 30 }, ["name"]).should.be.true();
       tm.validateData({ age: 30 }, ["name"]).should.be.false();
       tm.validateData(null, ["name"]).should.be.false();
+    });
+  });
+
+  describe("Test Utilities", function () {
+    const { getRandomTestPort, getRandomTestPorts, getTestPortWithOffset } = require("./test-utils");
+
+    it("should generate random test ports", function () {
+      const port1 = getRandomTestPort();
+      const port2 = getRandomTestPort();
+
+      port1.should.be.a.Number();
+      port2.should.be.a.Number();
+      port1.should.be.within(50000, 65000);
+      port2.should.be.within(50000, 65000);
+
+      // They should be different (extremely high probability)
+      port1.should.not.equal(port2);
+    });
+
+    it("should generate multiple unique ports", function () {
+      const ports = getRandomTestPorts(5);
+      ports.should.have.length(5);
+
+      // All should be unique
+      const uniquePorts = new Set(ports);
+      uniquePorts.size.should.equal(5);
+
+      // All should be in valid range
+      ports.forEach(port => {
+        port.should.be.within(50000, 65000);
+      });
+    });
+
+    it("should generate ports with offsets", function () {
+      const port1 = getTestPortWithOffset(0);
+      const port2 = getTestPortWithOffset(1);
+
+      port1.should.be.within(50000, 51000);
+      port2.should.be.within(51000, 52000);
     });
   });
 });

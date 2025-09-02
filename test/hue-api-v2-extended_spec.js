@@ -8,6 +8,7 @@
 const helper = require("node-red-node-test-helper");
 const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
 const alexaNode = require("../alexa/nodes/alexa-lights.js");
+const { getRandomTestPort } = require("./test-utils");
 const request = require("supertest");
 
 helper.init(require.resolve("node-red"));
@@ -24,7 +25,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
 
   describe("Server-Sent Events (SSE)", function () {
     it("should verify SSE endpoint exists and handler is configured", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -67,7 +68,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should emit resource updates to SSE clients", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -118,7 +119,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
 
   describe("HTTP Methods Coverage", function () {
     it("should verify v2Handler handles different HTTP methods", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -155,7 +156,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
 
   describe("Placeholder Resource Types", function () {
     it("should handle room resource requests", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -203,7 +204,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should handle zone resource requests", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -251,7 +252,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should handle scene resource requests", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -299,7 +300,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should handle bridge_home resource requests", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -349,7 +350,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
 
   describe("Advanced Color and Color Temperature", function () {
     it("should handle color temperature updates correctly", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -411,7 +412,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should include color capabilities in light data for color lights", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -478,7 +479,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
 
   describe("Error Handling Edge Cases", function () {
     it("should handle invalid light ID in GET request", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -525,7 +526,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should handle invalid update data gracefully", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -625,7 +626,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
 
   describe("Performance and Memory", function () {
     it("should handle multiple SSE clients without memory leaks", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -666,7 +667,7 @@ describe("Hue API v2 Handler - Extended Coverage", function () {
     });
 
     it("should handle large device lists efficiently", function (done) {
-      const hubPort = 60000 + Math.floor(Math.random() * 1000);
+      const hubPort = getRandomTestPort();
       const deviceCount = 50;
       const flow = [
         {
