@@ -18,7 +18,6 @@ This Node-RED package creates a local Philips Hue bridge emulation that allows A
 - 📱 **Multiple Device Types** - Lights, switches, dimmers, and color bulbs
 - 🌐 **Philips Hue API v1/v2** - Compatible with modern Alexa requirements
 - 🔧 **Enhanced Validation** - Robust error handling and input validation
-- 📊 **Comprehensive Examples** - Ready-to-use flows for common scenarios
 
 ## 🚀 Quick Start
 
@@ -59,76 +58,75 @@ Modern Alexa devices require communication on standard ports:
 
 Choose one of these setup methods:
 
-#### Method 1: Environment Variables (Recommended)
-Set the `ALEXA_PORT` environment variable and run Node-RED with appropriate privileges:
+### Node Configuration
 
-```bash
-# For systemd service
-Environment=ALEXA_PORT=80
+The easiest way to configure the Alexa Home Controller is through the Node-RED interface:
 
-# Manual start
-ALEXA_PORT=80 sudo node-red
-```
+#### alexa-home-controller Node Settings
 
-#### Method 2: HTTPS/TLS Configuration (Secure)
-Configure HTTPS to run on port 443 for secure communication:
+**Basic Configuration:**
+- **Name**: Custom name for the controller node
+- **Port**: Web server port (default: 60000)
+- **Max Items**: Maximum number of devices to expose to Alexa
 
-**Environment Variables:**
-```bash
-export ALEXA_HTTPS=true
-export ALEXA_PORT=443
-export ALEXA_CERT_PATH=/path/to/your/cert.pem
-export ALEXA_KEY_PATH=/path/to/your/private.key
-export ALEXA_CA_PATH=/path/to/ca-bundle.pem  # Optional
-```
+**Server Options:**
+- **Use Node-RED Server**: ✅ **Recommended** - Reuses Node-RED's existing web server
+  - Automatically detects Node-RED's port and configuration
+  - No separate web server process needed
+  - Inherits Node-RED's security settings
+  - Simpler deployment and maintenance
 
-**Node Configuration:**
-- Check "Use HTTPS" in the controller node
-- Provide certificate and key file paths
-- Ensure proper file permissions for certificate files
+- **Standalone Server**: Creates a separate web server instance
+  - Useful when Node-RED runs on non-standard ports
+  - Allows independent HTTPS configuration
+  - Required for custom SSL certificate setup
 
-#### Method 3: Port Forwarding with iptables
-Redirect traffic from standard ports to your chosen port:
+**HTTPS Configuration** (Standalone Server only):
+- **Use HTTPS**: Enable secure communication
+- **Certificate Path**: Path to SSL certificate file (.pem, .crt)
+- **Private Key Path**: Path to SSL private key file (.key)
+- **CA Bundle Path**: Optional Certificate Authority bundle file
 
-```bash
-# HTTP forwarding
-sudo iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 60000
+#### alexa-home Device Settings
 
-# HTTPS forwarding
-sudo iptables -t nat -I PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 60000
+**Device Configuration:**
+- **Device Name**: Name that Alexa will recognize (e.g., "Living Room Light")
+- **Device Type**: Choose device capabilities:
+  - **Extended color light**: Full RGB color and brightness control
+  - **Dimmable light**: Brightness control only
+  - **Color light**: Color and brightness control
+  - **On/Off plug-in unit**: Simple switch functionality
+- **Input Trigger**: Allow input messages to update device state
 
-# Make persistent (Ubuntu/Debian)
-sudo iptables-save > /etc/iptables/rules.v4
-```
+### Port Requirements for Alexa
 
-### Controller Configuration Options
+⚠️ **Important**: Alexa Generation 3+ devices require communication on standard ports:
+- **Port 80** for HTTP
+- **Port 443** for HTTPS
 
-#### Environment Variables
-| Variable | Description | Default | Example |
-|----------|-------------|---------|---------|
-| `ALEXA_PORT` | Web server port | `60000` | `80` |
-| `ALEXA_HTTPS` | Enable HTTPS mode | `false` | `true` |
-| `ALEXA_CERT_PATH` | SSL certificate file path | - | `/etc/ssl/cert.pem` |
-| `ALEXA_KEY_PATH` | SSL private key file path | - | `/etc/ssl/private.key` |
-| `ALEXA_CA_PATH` | Certificate Authority bundle | - | `/etc/ssl/ca-bundle.pem` |
+**Recommended Solution**: Use the "Use Node-RED Server" option and configure Node-RED itself to run on port 80 or 443.
 
-#### Node Configuration
-**alexa-home-controller settings:**
-- **Name**: Custom name for the controller
-- **Port**: Web server port (overrides `ALEXA_PORT`)
-- **Max Items**: Maximum devices to expose to Alexa
-- **Use Node-RED Server**: Use Node-RED's built-in web server
-- **HTTPS Configuration**: Enable secure communication
+**Alternative Solutions**: For advanced setups involving environment variables, iptables port forwarding, or reverse proxy configurations, see the [**Advanced Setup Guide**](ADVANCED_SETUP.md).
 
-**alexa-home device settings:**
-- **Device Name**: Name Alexa will recognize
-- **Device Type**: Light type (Extended color, Dimmer, Switch, Color)
-- **Input Trigger**: Allow input messages to trigger output
+#### alexa-home Device Settings
 
-#### Configuration Restrictions
-⚠️ **Important**: "Use Node-RED server" and "HTTPS Configuration" cannot be used together.
-- Node-RED server mode: Configure HTTPS at Node-RED application level
-- Standalone server mode: Configure HTTPS directly in this node
+**Device Configuration:**
+- **Device Name**: Name that Alexa will recognize (e.g., "Living Room Light")
+- **Device Type**: Choose device capabilities:
+  - **Extended color light**: Full RGB color and brightness control
+  - **Dimmable light**: Brightness control only
+  - **Color light**: Color and brightness control
+  - **On/Off plug-in unit**: Simple switch functionality
+- **Input Trigger**: Allow input messages to update device state
+
+### Configuration Restrictions
+
+⚠️ **Important Limitations**:
+- **"Use Node-RED Server" and "HTTPS Configuration" are mutually exclusive**
+  - When using Node-RED's server: Configure HTTPS at the Node-RED application level
+  - When using standalone server: Configure HTTPS directly in the controller node
+- **Port 80/443 may require elevated privileges** when using standalone server mode
+- **Certificate files must be readable** by the Node-RED process
 
 ## 📡 Message API
 
@@ -198,9 +196,9 @@ msg.output = true; // Allow input to pass through as output
 
 ## 📚 Examples
 
-The `examples/` directory contains ready-to-use flows demonstrating various use cases:
+The [`examples/`](examples/) directory contains ready-to-use Node-RED flows demonstrating various use cases. Each example includes detailed documentation and can be imported directly into your Node-RED instance.
 
-### 🔸 Basic Smart Lighting (`basic-smart-lighting.json`)
+### 🔸 Basic Smart Lighting ([`basic-smart-lighting.json`](examples/basic-smart-lighting.json))
 Perfect for beginners - demonstrates:
 - Simple on/off control
 - Brightness adjustment
@@ -212,7 +210,7 @@ Perfect for beginners - demonstrates:
 - "Alexa, set the kitchen light to 50 percent"
 - "Alexa, turn the bedroom light red"
 
-### 🔸 Advanced Color Scenes (`advanced-color-scenes.json`)
+### 🔸 Advanced Color Scenes ([`advanced-color-scenes.json`](examples/advanced-color-scenes.json))
 Professional color control featuring:
 - CIE XY color space validation
 - RGB hex color output
@@ -224,12 +222,22 @@ Professional color control featuring:
 - "Alexa, activate movie scene"
 - "Alexa, turn on party scene"
 
-### 🔸 Multi-Device Integration (`multi-device-integration.json`)
+### 🔸 Multi-Device Integration ([`multi-device-integration.json`](examples/multi-device-integration.json))
 Comprehensive smart home ecosystem with:
 - Multiple device types
 - Scene coordination
 - Advanced automation
 - MQTT and HTTP integration
+
+### 📖 How to Use Examples
+
+1. **Download**: Save the JSON file from the [`examples/`](examples/) directory
+2. **Import**: In Node-RED, go to Menu → Import → Select file/paste JSON
+3. **Configure**: Update device names, MQTT brokers, and other settings as needed
+4. **Deploy**: Deploy the flow and discover devices with Alexa
+5. **Test**: Use the provided voice commands to test functionality
+
+For detailed documentation of each example, see the [`examples/README.md`](examples/README.md) file.
 
 ## 🔧 Troubleshooting
 
