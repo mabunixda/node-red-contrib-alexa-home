@@ -7,9 +7,10 @@ const { getRandomTestPort } = require("./test-utils");
 helper.init(require.resolve("node-red"));
 
 describe("v1 API Disable Feature", function () {
-  let testPorts;
+  let testPort;
 
   beforeEach(function (done) {
+    testPort = getRandomTestPort();
     helper.startServer(done);
   });
 
@@ -18,19 +19,15 @@ describe("v1 API Disable Feature", function () {
     helper.stopServer(done);
   });
 
-  before(async function () {
-    testPorts = [getRandomTestPort(), getRandomTestPort(), getRandomTestPort()];
-  });
 
   it("should disable v1 API when disableV1Api flag is set", function (done) {
-    this.timeout(5000);
 
     const flow = [
       {
         id: "controller1",
         type: "alexa-home-controller",
         controllername: "Test Controller",
-        port: testPorts[0],
+        port: testPort,
         useNode: false, // Use standalone server for testing
         disableV1Api: true, // Disable v1 API
       },
@@ -52,7 +49,7 @@ describe("v1 API Disable Feature", function () {
         id: "controller1",
         type: "alexa-home-controller",
         controllername: "Test Controller",
-        port: testPorts[1],
+        port: testPort,
         useNode: false, // Use standalone server for testing
         disableV1Api: false, // Keep v1 API enabled
       },
@@ -72,7 +69,7 @@ describe("v1 API Disable Feature", function () {
         id: "controller1",
         type: "alexa-home-controller",
         controllername: "Test Controller",
-        port: testPorts[2],
+        port: testPort,
         useNode: false, // Use standalone server for testing
         // disableV1Api not specified - should default to false
       },
