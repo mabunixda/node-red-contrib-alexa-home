@@ -124,9 +124,11 @@ class AlexaHub {
   setupMiddleware(app) {
     // Use built-in Express JSON parser (replaces body-parser dependency)
     // Handles all content types (*/*) for Alexa compatibility
+    // Limit body size to 100kb to prevent large payload attacks
     app.use(
       express.json({
         type: "*/*",
+        limit: "100kb",
       }),
     );
 

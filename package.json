@@ -48,5 +48,8 @@
     "fmt:check": "prettier --check **/*.{js,yml}",
     "coverage": "nyc npm test"
   },
-  "repository": "mabunixda/node-red-contrib-alexa-home"
+  "repository": "mabunixda/node-red-contrib-alexa-home",
+  "overrides": {
+    "axios": "^1.15.0"
+  }
 }
