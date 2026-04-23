@@ -23,7 +23,7 @@
     "escape-html": "^1.0.3",
     "express": "^5.1.0",
     "node-ssdp": "^4.0.1",
-    "uuid": "^10.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
