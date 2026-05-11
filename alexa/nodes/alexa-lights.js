@@ -1,18 +1,17 @@
 /**
- * Modern Node-RED Alexa Home Device Node
- * Provides Alexa-compatible smart home device functionality with enhanced validation and error handling
+ * Node-RED Alexa Lights Node
+ * Provides Alexa-compatible lighting device functionality with enhanced validation and error handling
  */
 
 "use strict";
 
 module.exports = function (RED) {
-  const alexaHome = require("./alexa-helper");
-  const utils = require("./utils");
+  const alexaHome = require("../alexa-helper");
+  const utils = require("../utils");
 
-  // Device type constants for better maintainability
+  // Device type constants for lighting devices
   const DEVICE_TYPES = {
     LIGHT: "Extended color light",
-    SWITCH: "On/Off plug-in unit",
     DIMMER: "Dimmable light",
     COLOR: "Color light",
   };
@@ -25,18 +24,18 @@ module.exports = function (RED) {
   const XY_RANGE = { MIN: 0.0, MAX: 1.0 };
 
   /**
-   * Modern Alexa Home Device Node with enhanced features
+   * Alexa Lights Node with enhanced features
    * @constructor
    * @param {Object} config - Node-RED configuration object
    */
-  function AlexaHomeNode(config) {
+  function AlexaLightsNode(config) {
     RED.nodes.createNode(this, config);
 
     const node = this;
 
     try {
       // Initialize core properties with validation
-      node.name = config.devicename || "Alexa Device";
+      node.name = config.devicename || "Alexa Light";
       node.control = config.control || "lights";
       node.devicetype = node.validateDeviceType(config.devicetype);
       node.inputTrigger = Boolean(config.inputtrigger);
@@ -62,7 +61,7 @@ module.exports = function (RED) {
    * @param {string} deviceType - Device type from configuration
    * @returns {string} Valid device type
    */
-  AlexaHomeNode.prototype.validateDeviceType = function (deviceType) {
+  AlexaLightsNode.prototype.validateDeviceType = function (deviceType) {
     const validTypes = Object.values(DEVICE_TYPES);
     if (deviceType && validTypes.includes(deviceType)) {
       return deviceType;
@@ -71,10 +70,10 @@ module.exports = function (RED) {
   };
 
   /**
-   * Initialize device state properties
+   * Initialize lighting device state
    * @param {Object} config - Configuration object
    */
-  AlexaHomeNode.prototype.initializeDeviceState = function (config) {
+  AlexaLightsNode.prototype.initializeDeviceState = function (config) {
     this.state = false;
     this.bri = alexaHome.bri_default || 254;
     this.hue = 0;
@@ -88,7 +87,7 @@ module.exports = function (RED) {
   /**
    * Set up event handlers for the node
    */
-  AlexaHomeNode.prototype.setupEventHandlers = function () {
+  AlexaLightsNode.prototype.setupEventHandlers = function () {
     const node = this;
 
     node.on("input", function (msg) {
@@ -118,7 +117,7 @@ module.exports = function (RED) {
   /**
    * Register this device with the Alexa Home Controller
    */
-  AlexaHomeNode.prototype.registerWithController = function () {
+  AlexaLightsNode.prototype.registerWithController = function () {
     const controller = alexaHome.controllerNode;
 
     if (controller) {
@@ -136,7 +135,7 @@ module.exports = function (RED) {
    * @param {string} text - Status text
    * @param {string} shape - Status shape (dot, ring, etc.)
    */
-  AlexaHomeNode.prototype.setConnectionStatusMsg = function (
+  AlexaLightsNode.prototype.setConnectionStatusMsg = function (
     color,
     text,
     shape = "dot",
@@ -152,7 +151,7 @@ module.exports = function (RED) {
    * Update controller reference with enhanced validation
    * @param {Object} controllerNode - Controller node instance
    */
-  AlexaHomeNode.prototype.updateController = function (controllerNode) {
+  AlexaLightsNode.prototype.updateController = function (controllerNode) {
     if (!controllerNode) {
       this.warn("Attempted to update with invalid controller");
       return;
@@ -169,7 +168,7 @@ module.exports = function (RED) {
    * @param {Object} msg.payload - Command payload (on/off, brightness, color, etc.)
    * @param {boolean} msg.inputTrigger - Whether triggered from input vs Alexa
    */
-  AlexaHomeNode.prototype.processCommand = function (msg) {
+  AlexaLightsNode.prototype.processCommand = function (msg) {
     const node = this;
 
     try {
@@ -211,7 +210,7 @@ module.exports = function (RED) {
    * @param {Object} msg - Message to validate
    * @returns {Object} Validation result with isValid flag and error details
    */
-  AlexaHomeNode.prototype.validateMessage = function (msg) {
+  AlexaLightsNode.prototype.validateMessage = function (msg) {
     if (!msg) {
       return { isValid: false, error: "Message is null or undefined" };
     }
@@ -227,16 +226,16 @@ module.exports = function (RED) {
    * Handle validation errors consistently
    * @param {string} error - Error message
    */
-  AlexaHomeNode.prototype.handleValidationError = function (error) {
+  AlexaLightsNode.prototype.handleValidationError = function (error) {
     this.warn(`Validation error: ${error}`);
     this.setConnectionStatusMsg("orange", "Invalid Input");
   };
   /**
-   * Process command payload and determine command type
+   * Process command payload and determine command type with device-specific handling
    * @param {Object} msg - Original message
-   * @returns {Object} Processed message with command information
+   * * @returns {Object} Processed message with command information
    */
-  AlexaHomeNode.prototype.processCommandPayload = function (msg) {
+  AlexaLightsNode.prototype.processCommandPayload = function (msg) {
     const node = this;
 
     // Initialize change direction tracking
@@ -264,7 +263,7 @@ module.exports = function (RED) {
    * @param {Object} msg - Message with brightness payload
    * @returns {Object} Processed message
    */
-  AlexaHomeNode.prototype.processBrightnessCommand = function (msg) {
+  AlexaLightsNode.prototype.processBrightnessCommand = function (msg) {
     const brightness = this.validateBrightness(msg.payload.bri);
     if (brightness === null) {
       throw new Error(`Invalid brightness value: ${msg.payload.bri}`);
@@ -294,7 +293,7 @@ module.exports = function (RED) {
    * @param {Object} msg - Message with color payload
    * @returns {Object} Processed message
    */
-  AlexaHomeNode.prototype.processColorCommand = function (msg) {
+  AlexaLightsNode.prototype.processColorCommand = function (msg) {
     msg.payload.command = "color";
 
     // Color commands should also set device to on and use current brightness
@@ -341,7 +340,7 @@ module.exports = function (RED) {
    * @param {Object} msg - Message with on/off payload
    * @returns {Object} Processed message
    */
-  AlexaHomeNode.prototype.processOnOffCommand = function (msg) {
+  AlexaLightsNode.prototype.processOnOffCommand = function (msg) {
     let isOn = false;
 
     if (typeof msg.payload === "object" && msg.payload.on !== undefined) {
@@ -368,7 +367,7 @@ module.exports = function (RED) {
    * @param {*} value - Brightness value to validate
    * @returns {number|null} Valid brightness or null if invalid
    */
-  AlexaHomeNode.prototype.validateBrightness = function (value) {
+  AlexaLightsNode.prototype.validateBrightness = function (value) {
     const brightness = parseInt(value, 10);
     if (
       isNaN(brightness) ||
@@ -385,7 +384,7 @@ module.exports = function (RED) {
    * @param {Array} coordinates - XY color coordinates
    * @returns {Array} Valid coordinates
    */
-  AlexaHomeNode.prototype.validateColorCoordinates = function (coordinates) {
+  AlexaLightsNode.prototype.validateColorCoordinates = function (coordinates) {
     if (!Array.isArray(coordinates) || coordinates.length !== 2) {
       return [...DEFAULT_XY_COORDINATES];
     }
@@ -407,7 +406,7 @@ module.exports = function (RED) {
    * @param {number} hue - Hue value (0-65535 for Philips Hue compatibility)
    * @returns {number} Valid hue value
    */
-  AlexaHomeNode.prototype.validateHue = function (hue) {
+  AlexaLightsNode.prototype.validateHue = function (hue) {
     const numericHue = parseInt(hue) || 0;
     return Math.max(0, Math.min(65535, numericHue));
   };
@@ -417,7 +416,7 @@ module.exports = function (RED) {
    * @param {number} sat - Saturation value (0-254 for Philips Hue compatibility)
    * @returns {number} Valid saturation value
    */
-  AlexaHomeNode.prototype.validateSaturation = function (sat) {
+  AlexaLightsNode.prototype.validateSaturation = function (sat) {
     const numericSat = parseInt(sat) || 0;
     return Math.max(0, Math.min(254, numericSat));
   };
@@ -427,7 +426,7 @@ module.exports = function (RED) {
    * @param {*} value - Value to parse
    * @returns {boolean} Boolean on/off state
    */
-  AlexaHomeNode.prototype.parseOnOffValue = function (value) {
+  AlexaLightsNode.prototype.parseOnOffValue = function (value) {
     if (typeof value === "string") {
       return value === "1" || value.toLowerCase() === "on";
     }
@@ -441,10 +440,10 @@ module.exports = function (RED) {
   };
 
   /**
-   * Update device state from processed message
+   * Update device state from processed message with device-type specific handling
    * @param {Object} msg - Processed message
    */
-  AlexaHomeNode.prototype.updateDeviceState = function (msg) {
+  AlexaLightsNode.prototype.updateDeviceState = function (msg) {
     // Update normalized brightness
     msg.payload.bri_normalized = Math.round((msg.payload.bri / 254.0) * 100.0);
 
@@ -452,7 +451,7 @@ module.exports = function (RED) {
     msg.device_name = this.name;
     msg.light_id = this.id;
 
-    // Update device state
+    // Update common device state
     this.state = msg.payload.on;
     this.bri = msg.payload.bri;
 
@@ -466,7 +465,7 @@ module.exports = function (RED) {
    * @param {Object} msg - Message to evaluate
    * @returns {boolean} Whether to send output
    */
-  AlexaHomeNode.prototype.shouldSendOutput = function (msg) {
+  AlexaLightsNode.prototype.shouldSendOutput = function (msg) {
     return !(msg.inputTrigger && !msg.output);
   };
 
@@ -475,7 +474,7 @@ module.exports = function (RED) {
    * @param {string} uuid - Base UUID from node configuration
    * @returns {string} Formatted unique identifier
    */
-  AlexaHomeNode.prototype.generateUniqueId = function (uuid) {
+  AlexaLightsNode.prototype.generateUniqueId = function (uuid) {
     if (!uuid) {
       RED.log.warn("No UUID provided, using fallback");
       uuid = this.id || "default";
@@ -495,5 +494,5 @@ module.exports = function (RED) {
   };
 
   // Register the node type with Node-RED
-  RED.nodes.registerType("alexa-home", AlexaHomeNode);
+  RED.nodes.registerType("alexa-home", AlexaLightsNode);
 };

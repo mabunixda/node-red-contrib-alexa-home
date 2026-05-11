@@ -485,6 +485,8 @@ class HueApiV2Handler {
       "Color light": "hue_bulb",
       "Extended color light": "hue_bulb",
       "Color temperature light": "white_and_color_ambiance_bulb",
+      "Window covering": "window_covering_device",
+      "Temperature sensor": "temperature_sensor",
     };
     return mapping[deviceType] || "sultan_bulb";
   }
@@ -498,6 +500,8 @@ class HueApiV2Handler {
       "Color light": "LCT015",
       "Extended color light": "LCT015",
       "Color temperature light": "LTW011",
+      "Window covering": "WC001",
+      "Temperature sensor": "TS001",
     };
     return mapping[deviceType] || "LTW011";
   }
@@ -511,6 +515,8 @@ class HueApiV2Handler {
       "Color light": "Hue color lamp",
       "Extended color light": "Hue color lamp",
       "Color temperature light": "Hue white ambiance lamp",
+      "Window covering": "Smart blinds",
+      "Temperature sensor": "Temperature sensor",
     };
     return mapping[deviceType] || "Hue white lamp";
   }
@@ -532,6 +538,20 @@ class HueApiV2Handler {
       deviceType === "Color temperature light" ||
       deviceType === "Extended color light"
     );
+  }
+
+  /**
+   * Check if device is a window covering (blinds)
+   */
+  isWindowCovering(deviceType) {
+    return deviceType === "Window covering";
+  }
+
+  /**
+   * Check if device is a temperature sensor
+   */
+  isTemperatureSensor(deviceType) {
+    return deviceType === "Temperature sensor";
   }
 
   /**

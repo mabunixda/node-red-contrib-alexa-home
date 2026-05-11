@@ -1,5 +1,6 @@
 const should = require("should");
 const AlexaHub = require("../alexa/alexa-hub.js");
+const { getRandomTestPort } = require("./test-utils");
 
 // Mock controller for testing
 const mockController = {
@@ -45,7 +46,7 @@ const mockController = {
 
 describe("AlexaHub", function () {
   let hub;
-  const testPort = 60000;
+  const testPort = getRandomTestPort();
 
   beforeEach(function () {
     // Clean up any previous instances

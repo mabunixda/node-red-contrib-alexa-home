@@ -1,0 +1,123 @@
+<script type="text/javascript">
+  RED.nodes.registerType('alexa-blinds', {
+    category: 'alexa',
+    color: '#4B8BBA',
+    defaults: {
+      devicename: { value: '', required: true },
+      brightness: { value: '254' },
+      inputtrigger: { value: false }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'alexa-home.png',
+    label: function () {
+      return this.devicename || 'alexa blinds';
+    },
+    labelStyle: function () {
+      return this.devicename ? 'node_label_italic' : '';
+    },
+    oneditprepare: function () {
+      // Set up device name field
+      $('#node-input-devicename').focus();
+
+      // Set up brightness slider
+      $('#node-input-brightness').on('input', function () {
+        const value = $(this).val();
+        const percentage = Math.round((value / 254) * 100);
+        $('#brightness-display').text(percentage + '%');
+      });
+
+      // Initial brightness display
+      const initialBrightness = $('#node-input-brightness').val() || 254;
+      const initialPercentage = Math.round((initialBrightness / 254) * 100);
+      $('#brightness-display').text(initialPercentage + '%');
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="alexa-blinds">
+  <div class="form-row">
+    <label for="node-input-devicename"><i class="fa fa-tag"></i> Device Name</label>
+    <input type="text" id="node-input-devicename" placeholder="e.g., Living Room Blinds">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-brightness"><i class="fa fa-adjust"></i> Initial Position</label>
+    <input type="range" id="node-input-brightness" min="0" max="254" step="1" style="width: 70%;">
+    <span id="brightness-display" style="margin-left: 10px; font-weight: bold;">100%</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-inputtrigger" style="width: auto;">
+      <input type="checkbox" id="node-input-inputtrigger" style="display: inline-block; width: auto; vertical-align: top;">
+      Only respond to Alexa commands (ignore input messages)
+    </label>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="alexa-blinds">
+  <p>A Node-RED node for controlling window coverings and blinds through Amazon Alexa.</p>
+
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt>Device Name <span class="property-type">string</span></dt>
+    <dd>The name Alexa will use to identify your blinds (e.g., "Living Room Blinds")</dd>
+
+    <dt>Initial Position <span class="property-type">number</span></dt>
+    <dd>The initial position of the blinds (0-100%, where 100% = fully open)</dd>
+
+    <dt>Input Trigger <span class="property-type">boolean</span></dt>
+    <dd>When checked, the node only responds to Alexa commands and ignores input messages unless they have <code>msg.output = true</code></dd>
+  </dl>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload.position <span class="property-type">number</span></dt>
+    <dd>Set blinds position (0-100, where 0=closed, 100=fully open)</dd>
+
+    <dt>payload.bri <span class="property-type">number</span></dt>
+    <dd>Set position using brightness value (0-254, automatically converted to percentage)</dd>
+
+    <dt>payload.on <span class="property-type">boolean</span></dt>
+    <dd>Open (true) or close (false) the blinds completely</dd>
+
+    <dt>output <span class="property-type">boolean</span></dt>
+    <dd>When input trigger is enabled, set to true to force output</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.position <span class="property-type">number</span></dt>
+    <dd>Current blinds position (0-100%)</dd>
+
+    <dt>payload.bri <span class="property-type">number</span></dt>
+    <dd>Current brightness value (0-254)</dd>
+
+    <dt>payload.on <span class="property-type">boolean</span></dt>
+    <dd>Always true (blinds are always "available")</dd>
+
+    <dt>payload.command <span class="property-type">string</span></dt>
+    <dd>The type of command: "position" or "switch"</dd>
+
+    <dt>device_name <span class="property-type">string</span></dt>
+    <dd>The name of the device</dd>
+
+    <dt>device_type <span class="property-type">string</span></dt>
+    <dd>Always "Window covering"</dd>
+  </dl>
+
+  <h3>Voice Commands</h3>
+  <p>Example voice commands for Alexa:</p>
+  <ul>
+    <li>"Alexa, set [device name] to 75 percent"</li>
+    <li>"Alexa, open the [device name]"</li>
+    <li>"Alexa, close the [device name]"</li>
+    <li>"Alexa, set [device name] to 50 percent open"</li>
+  </ul>
+
+  <h3>Details</h3>
+  <p>This node provides window covering control through Amazon Alexa using the Philips Hue bridge emulation.
+  Blinds position is controlled using a percentage scale where 0% means fully closed and 100% means fully open.</p>
+
+  <p>The node maps Alexa brightness commands to position percentages, allowing natural voice control of blind positions.</p>
+</script>

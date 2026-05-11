@@ -1,14 +1,11 @@
 const should = require("should");
 const request = require("supertest");
 const helper = require("node-red-node-test-helper");
-const controllerNode = require("../alexa/alexa-home-controller.js");
-const alexaNode = require("../alexa/alexa-home.js");
+const controllerNode = require("../alexa/nodes/alexa-home-controller.js");
+const alexaNode = require("../alexa/nodes/alexa-lights.js");
+const { getRandomTestPort } = require("./test-utils");
 
 let alexaHelper = require("../alexa/alexa-helper.js");
-
-function between(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
 
 helper.init(require.resolve("node-red"));
 
@@ -18,7 +15,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   beforeEach(function (done) {
     // Set a unique port for each test to avoid conflicts
-    alexaHelper.hubPort = between(50000, 60000);
+    alexaHelper.hubPort = getRandomTestPort();
     // Ensure ALEXA_PORT is not set to avoid conflicts with environment
     delete process.env.ALEXA_PORT;
     helper.startServer(done);
@@ -31,7 +28,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("Controller Initialization", function () {
     it("should initialize with custom port and useNode option", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "n1",
@@ -56,7 +53,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should set controller node in alexaHelper", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "n1",
@@ -84,7 +81,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should register existing alexa-home nodes", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -112,7 +109,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("MAC Address and Bridge ID Generation", function () {
     it("should generate MAC address correctly", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "test-node-id-12345",
@@ -133,7 +130,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should generate bridge ID from MAC address", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "n1",
@@ -152,7 +149,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should format Hue bridge UUID", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "test-id-123",
@@ -178,7 +175,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("Device Registration and Management", function () {
     it("should register and deregister commands", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -217,7 +214,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should generate API device list", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -253,7 +250,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("API Endpoints - Advanced", function () {
     it("should handle individual light info request", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -283,7 +280,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should handle light state control", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -325,7 +322,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should handle unknown item types", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -351,7 +348,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should respond to POST requests on lights endpoint", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -376,7 +373,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should handle lights/new endpoint", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -403,7 +400,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("Error Handling and Edge Cases", function () {
     it("should handle malformed JSON gracefully", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -430,7 +427,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should handle requests when willClose is true", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -460,7 +457,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("SSDP and Network Discovery", function () {
     it("should start SSDP server", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -480,7 +477,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     it("should handle environment variable ALEXA_IP for controller", function (done) {
       const originalIp = process.env.ALEXA_IP;
       const originalPort = process.env.ALEXA_PORT;
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
 
       // Set environment variables before creating the flow
       process.env.ALEXA_PORT = hubPort.toString();
@@ -520,7 +517,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("Controller Close and Cleanup", function () {
     it("should have stopServers method on hubs", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -544,7 +541,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should have controllerNode reference management", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -569,7 +566,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
 
   describe("Template Rendering", function () {
     it("should render setup.xml with correct data", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
@@ -598,7 +595,7 @@ describe("alexa-home-controller Node - Extended Tests", function () {
     });
 
     it("should render registration response correctly", function (done) {
-      const hubPort = between(50000, 60000);
+      const hubPort = getRandomTestPort();
       const flow = [
         {
           id: "controller1",
