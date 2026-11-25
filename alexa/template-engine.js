@@ -46,7 +46,7 @@
 46	    // Handle partials first if any
 47	    if (partials && Object.keys(partials).length > 0) {
 48	      Object.entries(partials).forEach(([key, partial]) => {
-49	        const partialRegex = new RegExp(`\\{\\{>\\s*${key}\\s*\\}\\}\\``;
+49	        const partialRegex = new RegExp(`\\{\\{>\\s*${key}\\s*\\}\\}\\}`);
 50	        result = result.replace(partialRegex, partial || "");
 51	      });
 52	    }
