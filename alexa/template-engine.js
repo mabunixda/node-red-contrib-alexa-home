@@ -98,7 +98,7 @@
 98
 99	    return result;
 100	  } catch (error) {
-101	    throw new Error(`Template rendering failed: ${error.message}`);
+101	    throw new Error("Template rendering failed: " + error.message);
 102	  }
 103	}
 104
