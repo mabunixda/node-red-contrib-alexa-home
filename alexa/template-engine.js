@@ -46,7 +46,7 @@ function renderTemplate(template, data = {}, partials = {}) {
     // Handle partials first if any
     if (partials && Object.keys(partials).length > 0) {
       Object.entries(partials).forEach(([key, partial]) => {
-        const partialRegex = new RegExp(`\\{\\{>${key}\\}\\}`, "g");
+        const partialRegex = new RegExp("\\{\\{>\\s*" + key + "\\s*\\}\\}\\}");
         result = result.replace(partialRegex, partial || "");
       });
     }
@@ -98,7 +98,7 @@ function renderTemplate(template, data = {}, partials = {}) {
 
     return result;
   } catch (error) {
-    throw new Error(`Template rendering failed: ${error.message}`);
+    throw new Error("Template rendering failed: " + error.message);
   }
 }
 
